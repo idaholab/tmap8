@@ -1,10 +1,10 @@
-/************************************************************/
+/*************************************************************/
 /*                DO NOT MODIFY THIS HEADER                 */
 /*   TMAP8: Tritium Migration Analysis Program, Version 8   */
 /*                                                          */
 /*   Copyright 2021 - 2025 Battelle Energy Alliance, LLC    */
 /*                   ALL RIGHTS RESERVED                    */
-/************************************************************/
+/*************************************************************/
 
 #include "ADMatInterfaceReactionYHxPCT.h"
 
@@ -55,11 +55,19 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   using std::max;
   using std::pow;
 
+<<<<<<< HEAD
   // Gas pressure (Pa): R * T * c / 2 (two atoms per molecule)
+=======
+  // tolerance for the pressure being closed to the plateau region
+  const Real tolerance = 10; // Pa
+
+  // Calculate the equilibrium concentration value based on PCT curve
+  // (2 because two atoms for a molecule
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
   auto neighbor_pressure =
       PhysicalConstants::ideal_gas_constant * _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2;
 
-  // Calculate the value of the pressures for the phase transition plateau (pressure in Pa)
+  // Plateau/limit pressure (Pa)
   auto limit_pressure = exp(-26.1 + 3.88e-2 * _neighbor_temperature[_qp] -
                             9.70e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
@@ -73,8 +81,15 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   ADReal Ar_Min_HP_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
                          2.55e-3 * _neighbor_temperature[_qp] - 5.61e-01;
 
+<<<<<<< HEAD
   // return warning if the PCT curves is used out of bounds (pressure in Pa)
   if (((neighbor_pressure < 1e2) || (neighbor_pressure > 2.e5)))
+=======
+ // define atomic fraction variable
+  ADReal atomic_fraction = 0.0;
+
+if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1.e6)))
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
                              "Pa and temperature ",
@@ -82,6 +97,7 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for YHxPCT material."));
 
+<<<<<<< HEAD
   // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure / limit_pressure > 1.15)
   {
@@ -108,6 +124,40 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                       (1.06e01 - 4.35e-03 * _neighbor_temperature[_qp]) *
                           log(neighbor_pressure / (tolerance * limit_pressure));
   }
+=======
+
+  if (neighbor_pressure > limit_pressure && abs(neighbor_pressure - limit_pressure) < tolerance)
+  {
+  // High pressure region, near limit
+  atomic_fraction = 0.5;
+  }
+  else if (neighbor_pressure > limit_pressure)
+  {
+  // High pressure region (far enough from plateau)
+  atomic_fraction =
+      2. - pow(1. + exp(21.6 - 0.0225 * _neighbor_temperature[_qp] +
+                        (-0.0445 + 7.18e-4 * _neighbor_temperature[_qp]) *
+                            log(max(neighbor_pressure - limit_pressure, 1e-10))),
+               -1);
+  }
+  else if ((neighbor_pressure < limit_pressure) &&
+         (abs(neighbor_pressure - limit_pressure) < tolerance))
+  {
+  // Low pressure region, near limit
+  atomic_fraction = 1.0;
+  }
+  else if (neighbor_pressure < limit_pressure)
+  {
+  // Low pressure region (far enough from plateau)
+  atomic_fraction =
+      0.5 - pow(0.001 + exp(-8.97e01 + 9.75e-2 * _neighbor_temperature[_qp] +
+                            (1.20 - 4.41e-3 * _neighbor_temperature[_qp]) *
+                                log(max(limit_pressure - neighbor_pressure, 1e-10))),
+                -1);
+
+  }
+
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];

@@ -18,12 +18,28 @@ and $\rho$ is the yttrium molar density in mol/m$^3$.
 
 [YHx_PCT_Data] shows the data used in this interface kernel. The experimental data originates from [!cite](Lundin_1962).
 
+<<<<<<< HEAD
+=======
+[YHx_PCT_Data] shows the data used in this interface kernel. The experimental data originates from [!cite](Lundin_1962).
+The [YHx_PCT_fit_2D] shows high and low pressure fit with the high pressure fit from [!cite](Matthews2021SWIFT) and the low-pressure is a newly fitted curve.
 
 !media comparison_YHx_PCT.py
        image_name=YHx_PCT_Data.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_Data
+       caption=PCT data for YHx from [!cite](Lundin_1962).
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
+
+!media comparison_YHx_PCT.py
+       image_name=YHx_PCT_Data.png
+       style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
+<<<<<<< HEAD
+       id=YHx_PCT_Data
        caption=PCT data for $YH_{x}$ sampled from [!cite](Lundin_1962).
+=======
+       id=YHx_PCT_fit_2D
+       caption=PCT data for YHx from [!cite](Lundin_1962) with high pressure fits from [!cite](Matthews2021SWIFT) implemented in TMAP8, and test results.
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
 
 To incorporate the entire PCT curve in TMAP8, the curve was divided into three regions: the low-pressure (LP) region, the plateau region (PR), and the high-pressure (HP) region. The fitting procedures and the modeling approach for each region are described below.
@@ -65,6 +81,7 @@ This fit is shown in [YHx_PCT_plateau_pressure_fit].
        id=YHx_PCT_plateau_pressure_fit
        caption=Fit phase transition region as pressure as a function of temperature.
 
+<<<<<<< HEAD
 These fits are applied within the following conditional statement for entire PCT modelling capabilities
 
 \begin{equation}
@@ -95,6 +112,16 @@ The ${f_{max,LP}(T)}$ and ${f_{min,HP}(T)}$ are quadratic fits that were verifie
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_Plateau_EndPoints_comparison
        caption=Boundary of atomic ratio fit vs. PCT data from [!cite](Lundin_1962).
+=======
+In the high pressure region, the atomic fraction $f_{at}$ is determined as [!citep](Matthews2021SWIFT):
+\begin{equation}
+f_{at}(T,P) = 2-\left[1+\exp(21.6 -0.0225 T + (-0.0445 + 7.18 \times 10^{-4} T) (\log\left(P - P_{lim}(T)\right)))\right]^{-1},
+\end{equation}
+where $P$ is the hydrogen partial pressure in Pa. While in the low pressure region, the atomic fraction $f_{at}$ is determined as:
+\begin{equation}
+f_{at}(T,P) = 0.5-\left[0.001+\exp(-89.75 + 0.0975 T + (1.20 - 4.41 \times 10^{-3} T) (\log\left(P_{lim}(T) - P\right)))\right]^{-1},
+\end{equation}
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
 
 ## Test
@@ -107,6 +134,7 @@ To model the interface, the input file employs the [InterfaceDiffusion.md] objec
 \frac{d C_s}{dt} = 0 = K (f_{at}(T,P) \rho - C_s),
 \end{equation}
 
+<<<<<<< HEAD
 
 The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1273.15 K, $3 \times 10^{3}$ Pa),
 and the results for the the low pressure test for ($T$, $P$) =(1273.15 K, $3 \times 10^{2}$ Pa), (1473.15 K, $3 \times 10^{3}$ Pa), (1573.15 K, $6 \times 10^{2}$ Pa) and (1573.15 K, $6 \times 10^{2}$ Pa)
@@ -149,6 +177,9 @@ The [PCT_all_temperatures_experimental_vs_TMAP8_YHx] shows the PCT fit against t
        id=PCT_all_temperatures_experimental_vs_TMAP8_YHx
        caption=PCT data for YHx from [!cite](Lundin_1962) with fits implemented in TMAP8, and test results.
 
+=======
+The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1473.15 K, $5 \times 10^{4}$ Pa). While the low pressure test for ($T$, $P$) = (1473.15 K, $3 \times 10^{3}$ Pa), (1273.15 K, $3 \times 10^{2}$ Pa), (1573.15 K, $5 \times 10^{3}$ Pa), and(1573.15 K, $6 \times 10^{2}$ Pa).
+>>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
 ## Example Input File Syntax
 

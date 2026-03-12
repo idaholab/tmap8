@@ -18,6 +18,7 @@
     should_execute = false # this test relies on the output files from YHx_PCT_csv, so it shouldn't be run twice
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature and generate an exodus file.'
   []
+###################################### HIGH PRESSURE TESTING
   [YHx_PCT_T1173_P1e3_csv]
     type = CSVDiff
     input = YHx_PCT.i
@@ -49,7 +50,7 @@
     max_parallel = 1 # see #200
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=1173.15 K.'
   []
-  [YHx_PCT_T1173_P5e4_csv]
+[YHx_PCT_T1173_P5e4_csv]
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = 'output_file_base=YHx_PCT_T1173_P5e4_out

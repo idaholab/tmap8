@@ -21,6 +21,7 @@
  * (1962) 838–5.
  * The fits are from Matthews et al., Metal Hydride Simulations Using SWIFT, LANL technical report
  * LA-UR-21-27538, 2021.
+
  */
 
 class ADMatInterfaceReactionYHxPCT : public ADInterfaceKernel
