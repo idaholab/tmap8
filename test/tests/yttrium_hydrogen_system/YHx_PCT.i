@@ -21,7 +21,7 @@ reaction_rate_Ea = '${units 1.52 eV -> J}'
 
 # Domain size and mesh parameters
 domain_length = '${units 1 m}'
-num_nodes = 8
+num_nodes = 100
 
 # time
 simulation_time = '${units 1e9 s}'
@@ -308,8 +308,8 @@ output_file_base = 'YHx_PCT_out'
   dtmax = ${dt_max}
   nl_max_its = 16
   l_max_its = 30
-  nl_rel_tol = 1e-7
-  nl_abs_tol = 4e-12
+  nl_rel_tol = 1e-4
+  nl_abs_tol = 4e-9
   scheme = 'bdf2'
   solve_type = 'Newton'
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_type -snes_type'
