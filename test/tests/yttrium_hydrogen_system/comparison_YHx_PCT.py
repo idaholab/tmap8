@@ -26,12 +26,12 @@ N_SMOOTH = 400
 MMHG_TO_PA = 133.322
 
 COL_PRESSURE_EXP_LOG = "Partial Pressure"
-COL_PRESSURE_PA      = "Partial Pressure (Pa)"
-COL_PRESSURE_MMHG    = "Partial Pressure (mm Hg)"
-COL_ATOM_RATIO       = "Atom Ratio"
-COL_TMAP_T           = "temperature"
-COL_TMAP_P           = "pressure_H2_enclosure_1_at_interface"
-COL_TMAP_AF          = "atomic_fraction_H_enclosure_2_at_interface"
+COL_PRESSURE_PA = "Partial Pressure (Pa)"
+COL_PRESSURE_MMHG = "Partial Pressure (mm Hg)"
+COL_ATOM_RATIO = "Atom Ratio"
+COL_TMAP_T = "temperature"
+COL_TMAP_P = "pressure_H2_enclosure_1_at_interface"
+COL_TMAP_AF = "atomic_fraction_H_enclosure_2_at_interface"
 
 if "/tmap8/doc/" in script_folder.lower():
     root = "../../../../../test/tests/yttrium_hydrogen_system/"
@@ -45,33 +45,32 @@ gold_dir = os.path.join(root, "gold")
 # Models
 # ------------------------------------------------------------------------------
 
+
 def p0_lim_func(T):
     return np.exp(-26.1 + 3.88e-2 * T - 9.7e-6 * T**2)
+
 
 def atom_ratio_eq_lower_func(T, P):
     p0 = p0_lim_func(T)
     arg = np.maximum(p0 - P, 1e-12)
     with np.errstate(divide="ignore", invalid="ignore"):
         return 0.5 - (
-            0.001 + np.exp(
-                -8.97e01+ 9.75e-2*T +
-                (1.20 - 4.41e-3*T)*np.log(arg)
-            )
-        )**(-1)
+            0.001 + np.exp(-8.97e01 + 9.75e-2 * T + (1.20 - 4.41e-3 * T) * np.log(arg))
+        ) ** (-1)
+
 
 def atom_ratio_eq_upper_func(T, P):
     p0 = p0_lim_func(T)
     arg = np.maximum(P - p0, 1e-12)
     with np.errstate(divide="ignore", invalid="ignore"):
         return 2.0 - (
-            1.0 + np.exp(
-                21.6 - 0.0225*T +
-                (-0.0445 + 7.18e-4*T)*np.log(arg)
-            )
-        )**(-1)
+            1.0 + np.exp(21.6 - 0.0225 * T + (-0.0445 + 7.18e-4 * T) * np.log(arg))
+        ) ** (-1)
+
 
 def rmse(y_true, y_pred):
-    return np.sqrt(np.mean((y_true - y_pred)**2))
+    return np.sqrt(np.mean((y_true - y_pred) ** 2))
+
 
 # ------------------------------------------------------------------------------
 # Load experimental data
@@ -85,14 +84,16 @@ for T in TEMPERATURES_K:
     f = path_k if os.path.exists(path_k) else path_c
 
     if not os.path.exists(f):
-        print(f"WARNING: missing experimental CSV for {T} K -> tried {path_k} and {path_c}")
+        print(
+            f"WARNING: missing experimental CSV for {T} K -> tried {path_k} and {path_c}"
+        )
         continue
 
     df = pd.read_csv(f)
 
     # Pressure columns accepted: log10(Pa), Pa, or mmHg
     if COL_PRESSURE_EXP_LOG in df.columns:
-        df[COL_PRESSURE_PA] = 10**df[COL_PRESSURE_EXP_LOG]
+        df[COL_PRESSURE_PA] = 10 ** df[COL_PRESSURE_EXP_LOG]
     elif COL_PRESSURE_PA in df.columns:
         df[COL_PRESSURE_PA] = df[COL_PRESSURE_PA].astype(float)
     elif COL_PRESSURE_MMHG in df.columns:
@@ -117,7 +118,8 @@ for T in TEMPERATURES_K:
 fig = plt.figure(figsize=(10, 6))
 for T in TEMPERATURES_K:
     df = data_by_temp.get(T)
-    if df is None: continue
+    if df is None:
+        continue
     plt.scatter(df[COL_ATOM_RATIO], df[COL_PRESSURE_PA], s=16, label=f"{T}.15 K")
     plt.plot(df[COL_ATOM_RATIO], df[COL_PRESSURE_PA])
 
@@ -125,7 +127,8 @@ p0_lim = p0_lim_func(temperature_list)
 
 for T in TEMPERATURES_K:
     df = data_by_temp.get(T)
-    if df is None: continue
+    if df is None:
+        continue
     AR = df[COL_ATOM_RATIO].values
     P = df[COL_PRESSURE_PA].values
     idx = np.where(AR > ATOM_RATIO_LOW)[0]
@@ -174,9 +177,34 @@ for f in high_files:
         except Exception as e:
             print(f"WARNING: could not read {path}: {e}")
 
+<<<<<<< HEAD
 prediction_points = load_prediction_points(csv_folder)
 prediction_rmspe = compute_prediction_rmspe(csv_folder)
 
+=======
+# ------------------------------------------------------------------------------
+# Colors (consistent palette by temperature)
+# ------------------------------------------------------------------------------
+TEMP_COLOR_MAP = {
+    1173: "#1f77b4",
+    1273: "#ff7f0e",
+    1373: "#2ca02c",
+    1473: "#d62728",
+    1573: "#9467bd",
+}
+
+
+def color_for_T(T, idx):
+    if int(T) in TEMP_COLOR_MAP:
+        return TEMP_COLOR_MAP[int(T)]
+    palette = plt.cm.tab20
+    return palette(idx % 20)
+
+
+# ------------------------------------------------------------------------------
+# Combined 2D Fit Figure
+# ------------------------------------------------------------------------------
+>>>>>>> 6de057a7 (Appling patches to python and C files)
 
 # ============================================================================ #
 # Plot the experimental data, the fit, and the TMAP8 results
@@ -185,12 +213,12 @@ ax = plt.gca()
 
 # Collect handles/labels
 high_data_handles, high_data_labels = [], []
-high_fit_handles,  high_fit_labels  = [], []
+high_fit_handles, high_fit_labels = [], []
 
-low_fit_handles,   low_fit_labels   = [], []   # no low_data collected for legend
+low_fit_handles, low_fit_labels = [], []  # no low_data collected for legend
 
 tmap_high_handles, tmap_high_labels = [], []
-tmap_low_handles,  tmap_low_labels  = [], []
+tmap_low_handles, tmap_low_labels = [], []
 
 for i, T in enumerate(TEMPERATURES_K):
     df = data_by_temp.get(T)
@@ -202,7 +230,7 @@ for i, T in enumerate(TEMPERATURES_K):
     color_T = color_for_T(T, i)
 
     # ---- Low branch ----
-    idx_low = AR <0.5
+    idx_low = AR < 0.5
     if np.any(idx_low):
         P_lo, AR_lo = P[idx_low], AR[idx_low]
         fit_lo = atom_ratio_eq_lower_func(T, P_lo)
@@ -215,9 +243,11 @@ for i, T in enumerate(TEMPERATURES_K):
         Pmax = np.max(P_lo)
         if Pmax > Pmin:
             Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
-            ln_lo, = plt.plot(Ps, atom_ratio_eq_lower_func(T, Ps), "--", color=color_T)
+            (ln_lo,) = plt.plot(
+                Ps, atom_ratio_eq_lower_func(T, Ps), "--", color=color_T
+            )
         else:
-            ln_lo, = plt.plot(P_lo, fit_lo, "--", color=color_T)
+            (ln_lo,) = plt.plot(P_lo, fit_lo, "--", color=color_T)
         low_fit_handles.append(ln_lo)
         low_fit_labels.append(f"{T} K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}")
 
@@ -240,11 +270,14 @@ for i, T in enumerate(TEMPERATURES_K):
             Pmax = np.max(P_hi)
             if Pmax > Pmin:
                 Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
-                ln_hi, = plt.plot(Ps, atom_ratio_eq_upper_func(T, Ps), "-", color=color_T)
+                (ln_hi,) = plt.plot(
+                    Ps, atom_ratio_eq_upper_func(T, Ps), "-", color=color_T
+                )
             else:
-                ln_hi, = plt.plot(P_hi, fit_hi, "-", color=color_T)
+                (ln_hi,) = plt.plot(P_hi, fit_hi, "-", color=color_T)
             high_fit_handles.append(ln_hi)
             high_fit_labels.append(f"{T} K High P Fit RMSE {rmse(AR_hi, fit_hi):.3f}")
+
 
 # ---- TMAP8 overlays: split into High vs Low ----
 def overlay_tmap_split(df):
@@ -266,7 +299,10 @@ def overlay_tmap_split(df):
         err_pct = abs(AF_pred - AF_model) / AF_model * 100 if AF_model != 0 else np.nan
         h = plt.scatter(P_pred, AF_pred, s=70, marker=marker, color="k")
         tmap_high_handles.append(h)
-        tmap_high_labels.append(f"{int(T_pred)} K, {P_pred:.2e} Pa (err {err_pct:.2f}%)")
+        tmap_high_labels.append(
+            f"{int(T_pred)} K, {P_pred:.2e} Pa (err {err_pct:.2f}%)"
+        )
+
 
         # Plot the data points
         plt.scatter(pressures_upper, atom_ratios_upper, label=f"{temperature} K Data")
@@ -310,25 +346,30 @@ plt.grid(True)
 
 # -------------------- Legend assembly (single column, ordered groups) --------------------
 combined_handles = []
-combined_labels  = []
+combined_labels = []
 
 # 1) High Pressure: Data, then Fit
 for h, l in zip(high_data_handles, high_data_labels):
-    combined_handles.append(h); combined_labels.append(l)
+    combined_handles.append(h)
+    combined_labels.append(l)
 for h, l in zip(high_fit_handles, high_fit_labels):
-    combined_handles.append(h); combined_labels.append(l)
+    combined_handles.append(h)
+    combined_labels.append(l)
 
 # 2) TMAP8 High
 for h, l in zip(tmap_high_handles, tmap_high_labels):
-    combined_handles.append(h); combined_labels.append(l)
+    combined_handles.append(h)
+    combined_labels.append(l)
 
 # 3) Low Pressure: Fit only (no Low Data legend)
 for h, l in zip(low_fit_handles, low_fit_labels):
-    combined_handles.append(h); combined_labels.append(l)
+    combined_handles.append(h)
+    combined_labels.append(l)
 
 # 4) TMAP8 Low
 for h, l in zip(tmap_low_handles, tmap_low_labels):
-    combined_handles.append(h); combined_labels.append(l)
+    combined_handles.append(h)
+    combined_labels.append(l)
 
 # Reserve a bit of margin on the right side for the outside legend
 plt.subplots_adjust(right=0.78)
@@ -337,11 +378,11 @@ legend = plt.legend(
     combined_handles,
     combined_labels,
     ncols=1,
-    loc="center left",          # anchor the center-left of the legend...
-    bbox_to_anchor=(1.02, 0.5), # ...just outside the axes at 102% x, 50% y
+    loc="center left",  # anchor the center-left of the legend...
+    bbox_to_anchor=(1.02, 0.5),  # ...just outside the axes at 102% x, 50% y
     fontsize=8,
     frameon=True,
-    borderaxespad=0.0,          # reduce extra padding between axes and legend
+    borderaxespad=0.0,  # reduce extra padding between axes and legend
 )
 
 # Optional: tidy the internal layout of the legend entries
