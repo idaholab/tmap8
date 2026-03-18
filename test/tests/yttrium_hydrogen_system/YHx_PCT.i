@@ -15,7 +15,7 @@ initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*
 diffusivity_Do = '${units 1.e-8 m^2/s}'
 diffusivity_Ea = '${units 0.38 eV -> J}'
 diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 10}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
-# Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540.
+# Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540
 reaction_rate_0 = '${units 4.95e5 1/s}'
 reaction_rate_Ea = '${units 1.52 eV -> J}'
 
