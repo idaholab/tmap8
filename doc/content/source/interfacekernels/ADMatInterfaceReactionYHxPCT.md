@@ -123,6 +123,9 @@ f_{at}(T,P) = 0.5-\left[0.001+\exp(-89.75 + 0.0975 T + (1.20 - 4.41 \times 10^{-
 \end{equation}
 >>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
+The [!param](/InterfaceKernels/ADMatInterfaceReactionYHxPCT/silence_warnings) option can be used to dictate how TMAP8 reacts when the pressure gets out of bounds.
+If `silence_warnings = false`, which is the default behavior, then TMAP8 will print a warning stating that the pressure and temperature are outside the bounds of the atomic fraction correlation.
+If `silence_warnings = true`, then TMAP8 will let the simulation continue without issuing any warnings.
 
 ## Test
 

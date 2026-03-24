@@ -68,7 +68,6 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                             9.70e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
   // define atomic fraction variable
-<<<<<<< HEAD
   ADReal atomic_fraction = 0.0;
 
   // define atomic ratio maximum fit variable for the low and high pressure region, respectively
@@ -78,20 +77,12 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   ADReal Ar_Min_HP_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
                          2.55e-3 * _neighbor_temperature[_qp] - 5.61e-01;
 
-<<<<<<< HEAD
   // return warning if the PCT curves is used out of bounds (pressure in Pa)
   if (((neighbor_pressure < 1e2) || (neighbor_pressure > 2.e5)))
-=======
- // define atomic fraction variable
-  ADReal atomic_fraction = 0.0;
-
-if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1.e6)))
->>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 =======
   ADReal atomic_fraction = 0.0;
 
   if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1.e6)))
->>>>>>> 6de057a7 (Appling patches to python and C files)
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
                              "Pa and temperature ",
@@ -99,8 +90,6 @@ if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for YHxPCT material."));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure / limit_pressure > 1.15)
   {
@@ -127,10 +116,7 @@ if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1
                       (1.06e01 - 4.35e-03 * _neighbor_temperature[_qp]) *
                           log(neighbor_pressure / (tolerance * limit_pressure));
   }
-=======
 
-=======
->>>>>>> 6de057a7 (Appling patches to python and C files)
   if (neighbor_pressure > limit_pressure && abs(neighbor_pressure - limit_pressure) < tolerance)
   {
     // High pressure region, near limit
@@ -160,11 +146,7 @@ if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1
                   -1);
   }
 
-<<<<<<< HEAD
->>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
-=======
->>>>>>> 6de057a7 (Appling patches to python and C files)
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];
 
