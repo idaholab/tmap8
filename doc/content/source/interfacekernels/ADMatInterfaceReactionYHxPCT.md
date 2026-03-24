@@ -17,19 +17,19 @@ $f_{at}(T,P)$ is the composition in atomic fraction of H in YHx given a gas temp
 and $\rho$ is the yttrium atomic density in mol/m$^3$.
 
 [YHx_PCT_Data] shows the data used in this interface kernel. The experimental data originates from [!cite](Lundin_1962).
-The [YHx_PCT_fit_2D] shows high and low pressure fit with the high pressure fit from [!cite](Matthews2021SWIFT) and the low-pressure is a newly fitted curve.
+The [YHx_PCT_fit_2D] shows high and low pressure fit with the high pressure fit from [!cite](Matthews2021SWIFT), and the low-pressure from a newly fitted curve.
 
 !media comparison_YHx_PCT.py
        image_name=YHx_PCT_Data.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_Data
-       caption=PCT data for YHx from [!cite](Lundin_1962).
+       caption=PCT data for YHx sampled from [!cite](Lundin_1962).
 
 !media comparison_YHx_PCT.py
        image_name=YHx_PCT_fit_2D.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_fit_2D
-       caption=PCT data for YHx from [!cite](Lundin_1962) with high pressure fits from [!cite](Matthews2021SWIFT) implemented in TMAP8, and test results.
+       caption=PCT data for YHx from [!cite](Lundin_1962) with high pressure fits from [!cite](Matthews2021SWIFT) and new low pressure fits implemented in TMAP8, and test results.
 
 The plateau representing phase transition is captured as [!citep](Matthews2021SWIFT):
 \begin{equation} \label{eq:pressure_plateau}
@@ -48,11 +48,16 @@ In the high pressure region, the atomic fraction $f_{at}$ is determined as [!cit
 \begin{equation}
 f_{at}(T,P) = 2-\left[1+\exp(21.6 -0.0225 T + (-0.0445 + 7.18 \times 10^{-4} T) (\log\left(P - P_{lim}(T)\right)))\right]^{-1},
 \end{equation}
-where $P$ is the hydrogen partial pressure in Pa. While in the low pressure region, the atomic fraction $f_{at}$ is determined as:
+where $P$ is the hydrogen partial pressure in Pa. 
+While in the low pressure region, the atomic fraction $f_{at}$ is determined as:
 \begin{equation}
 f_{at}(T,P) = 0.5-\left[0.001+\exp(-89.75 + 0.0975 T + (1.20 - 4.41 \times 10^{-3} T) (\log\left(P_{lim}(T) - P\right)))\right]^{-1},
 \end{equation}
+Both fits are plotted in [YHx_PCT_fit_2D].
 
+The [!param](/InterfaceKernels/ADMatInterfaceReactionYHxPCT/silence_warnings) option can be used to dictate how TMAP8 reacts when the pressure gets out of bounds.
+If `silence_warnings = false`, which is the default behavior, then TMAP8 will print a warning stating that the pressure and temperature are outside the bounds of the atomic fraction correlation.
+If `silence_warnings = true`, then TMAP8 will let the simulation continue without issuing any warnings.
 
 ## Test
 
@@ -65,7 +70,9 @@ To model the interface, the input file employs the [InterfaceDiffusion.md] objec
 \end{equation}
 where $\rho$ is the yttrium atomic density.
 
-The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1473.15 K, $5 \times 10^{4}$ Pa). While the low pressure test for ($T$, $P$) = (1473.15 K, $3 \times 10^{3}$ Pa), (1273.15 K, $3 \times 10^{2}$ Pa), (1573.15 K, $5 \times 10^{3}$ Pa), and(1573.15 K, $6 \times 10^{2}$ Pa).
+The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1473.15 K, $5 \times 10^{4}$ Pa),  
+and the results for the the low pressure test for ($T$, $P$) = (1473.15 K, $3 \times 10^{3}$ Pa), (1273.15 K, $3 \times 10^{2}$ Pa), (1573.15 K, $5 \times 10^{3}$ Pa), and(1573.15 K, $6 \times 10^{2}$ Pa) 
+are all shown in [YHx_PCT_fit_2D] and show good agreement with [eq:atomic_fraction].
 
 ## Example Input File Syntax
 

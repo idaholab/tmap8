@@ -90,7 +90,7 @@
                 Executioner/num_steps=250
                 InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
     csvdiff = YHx_PCT_T1273_P1e3_out.csv
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e3 Pa and T=1173.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e3 Pa and T=1273.15 K.'
   []
   [YHx_PCT_T1273_P3e2_csv]
     type = CSVDiff
@@ -103,8 +103,7 @@
                 Executioner/num_steps=400
                 InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
     csvdiff = YHx_PCT_T1273_P3e2_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=1173.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e2 Pa and T=1273.15 K.'
   []
   [YHx_PCT_T1473_P3e3_csv]
     type = CSVDiff
@@ -115,8 +114,7 @@
                 initial_atomic_fraction=0.35
                 Executioner/num_steps=200'
     csvdiff = YHx_PCT_T1473_P3e3_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e4 Pa and T=1173.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1473.15 K.'
   []
   [YHx_PCT_T1573_P5e3_csv]
     type = CSVDiff
@@ -129,8 +127,7 @@
                 Executioner/num_steps=500
                 InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
     csvdiff = YHx_PCT_T1573_P5e3_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1273.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e3 Pa and T=1573.15 K.'
   []
    [YHx_PCT_T1573_P6e2_csv]
     type = CSVDiff
@@ -142,15 +139,8 @@
                 Executioner/num_steps=200
                 InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
     csvdiff = YHx_PCT_T1573_P6e2_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1273.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=6e2 Pa and T=1273.15 K.'
   []
-  ############################# END OF LOW PRESSURE TESTING
-
-
-
-
-
   [YHx_PCT_comparison]
     type = RunCommand
     command = 'python3 comparison_YHx_PCT.py'

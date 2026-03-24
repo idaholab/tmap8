@@ -1,10 +1,10 @@
-/*************************************************************/
+/************************************************************/
 /*                DO NOT MODIFY THIS HEADER                 */
 /*   TMAP8: Tritium Migration Analysis Program, Version 8   */
 /*                                                          */
 /*   Copyright 2021 - 2025 Battelle Energy Alliance, LLC    */
 /*                   ALL RIGHTS RESERVED                    */
-/*************************************************************/
+/************************************************************/
 
 #include "ADMatInterfaceReactionYHxPCT.h"
 
@@ -57,17 +57,17 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   const Real tolerance = 10; // Pa
 
   // Calculate the equilibrium concentration value based on PCT curve
-  // (2 because two atoms for a molecule
+  // (/2 because two atoms for a molecule) (pressure in Pa)
   auto neighbor_pressure =
       PhysicalConstants::ideal_gas_constant * _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2;
 
-  // Plateau/limit pressure (Pa)
+  // Calculate the value of the pressures for the phase transition plateau (pressure in Pa)
   auto limit_pressure = exp(-26.1 + 3.88e-2 * _neighbor_temperature[_qp] -
                             9.7e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
   // define atomic fraction variable
   ADReal atomic_fraction = 0.0;
-
+  // return warning if the PCT curves is used out of bounds (pressure in Pa)
   if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1.e6)))
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
