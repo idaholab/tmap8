@@ -76,6 +76,7 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for YHxPCT material."));
 
+  // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure > limit_pressure && abs(neighbor_pressure - limit_pressure) < tolerance)
   {
     // High pressure region, near limit
