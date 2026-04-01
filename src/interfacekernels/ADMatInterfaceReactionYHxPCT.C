@@ -67,6 +67,8 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // define atomic fraction variable
   ADReal atomic_fraction = 0.0;
+  // define atomic ratio maximum fit variable for the low pressure region
+  ADReal Ar_Max_LP_fit = 0.0;
   // return warning if the PCT curves is used out of bounds (pressure in Pa)
   if (!_silence_warnings && ((neighbor_pressure < 0.011) || (neighbor_pressure > 1.e6)))
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
@@ -79,12 +81,12 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure > limit_pressure && abs(neighbor_pressure - limit_pressure) < tolerance)
   {
-    // High pressure region, near limit
+    // Low pressure region, max limit
     atomic_fraction = 0.5;
   }
   else if (neighbor_pressure > limit_pressure)
   {
-    // High pressure region (far enough from plateau)
+    // High pressure region
     atomic_fraction = 2. - pow(1. + exp(21.6 - 0.0225 * _neighbor_temperature[_qp] +
                                         (-0.0445 + 7.18e-4 * _neighbor_temperature[_qp]) *
                                             log(max(neighbor_pressure - limit_pressure, 1e-10))),
@@ -93,15 +95,17 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   else if ((neighbor_pressure < limit_pressure) &&
            (abs(neighbor_pressure - limit_pressure) < tolerance))
   {
-    // Low pressure region, near limit
+    // High pressure region, min limit
     atomic_fraction = 1.0;
   }
   else if (neighbor_pressure < limit_pressure)
   {
-    // Low pressure region (far enough from plateau)
+    // Upper limit in the low pressure region
+    Ar_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -2.55e-3 * _neighbor_temperature[_qp] + 2.156;
+    // Low pressure region
     atomic_fraction =
-        0.5 - pow(0.001 + exp(-8.97e01 + 9.75e-2 * _neighbor_temperature[_qp] +
-                              (1.20 - 4.41e-3 * _neighbor_temperature[_qp]) *
+        Ar_Max_LP_fit - 10 * pow( 0.001 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
+                              (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
                                   log(max(limit_pressure - neighbor_pressure, 1e-10))),
                   -1);
   }
