@@ -101,13 +101,14 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   else if (neighbor_pressure < limit_pressure)
   {
     // Upper limit in the low pressure region
-    Ar_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -2.55e-3 * _neighbor_temperature[_qp] + 2.156;
+    Ar_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -
+                    2.55e-3 * _neighbor_temperature[_qp] + 2.156;
     // Low pressure region
-    atomic_fraction =
-        Ar_Max_LP_fit - 10 * pow( 0.001 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
-                              (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
-                                  log(max(limit_pressure - neighbor_pressure, 1e-10))),
-                  -1);
+    atomic_fraction = Ar_Max_LP_fit -
+                      10 * pow(0.001 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
+                                           (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
+                                               log(max(limit_pressure - neighbor_pressure, 1e-10))),
+                               -1);
   }
 
   // Convert to concentration
