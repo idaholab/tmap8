@@ -95,7 +95,7 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   else if ((neighbor_pressure < limit_pressure) &&
            (abs(neighbor_pressure - limit_pressure) < tolerance))
   {
-    // High pressure region, min limit
+    // Low pressure region, near limit
     atomic_fraction = 1.0;
   }
   else if (neighbor_pressure < limit_pressure)
