@@ -81,8 +81,9 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure > limit_pressure && abs(neighbor_pressure - limit_pressure) < tolerance)
   {
-    // High pressure region, near limit
-    atomic_fraction = 0.5;
+    // If near the start of the high pressure , jump to low pressure maximum atomic ratio
+    Ar_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -
+                    2.55e-3 * _neighbor_temperature[_qp] + 2.156;
   }
   else if (neighbor_pressure > limit_pressure)
   {
@@ -95,7 +96,7 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   else if ((neighbor_pressure < limit_pressure) &&
            (abs(neighbor_pressure - limit_pressure) < tolerance))
   {
-    // Low pressure region, near limit
+    // If near the tail of the low pressure , jump to high pressure minimum atomic ratio
     atomic_fraction = 1.0;
   }
   else if (neighbor_pressure < limit_pressure)
