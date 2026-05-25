@@ -32,16 +32,6 @@ temperature_coolant_max = '${units 552.0 K}'
 plasma_max_heat = '${units 1.0e7 W/m^2}' # Heat flux of 10 MW/m^2 at steady state
 plasma_min_heat = '${units 0.0 W/m^2}' # no flux while the pulse is off.
 
-# Maximum mobile flux of 7.90e-13 at the top surface (1.0e-4 [m])
-# 10e24 at/m^3/s plasma flux at steady state
-# 50% of it corresponds to tritium in a DT plasma
-# Assuming 0.1% of incident plasma is retained in the divertor, this results in a flux of
-# 5e20 at/m^3/s for tritium
-# This is then normalized by the tungsten_atomic_density and leads to a flux of ~7.90e-9 m/s
-# This is then distributed in the first mesh layer, which has a thickness of 1e-4 m
-plasma_max_flux = '${units 7.90e-13 1/s}' # at.fraction / s
-plasma_min_flux = '${units 0.0 1/s}'
-
 # Initial conditions
 C_trapping_init = 1.0e-15 # at.fraction
 
@@ -94,6 +84,17 @@ diffusivity_CuCrZr_Ea = '${units 4873.9 K}'
 solubility_CuCrZr_D0 = '${units 6.75e-6 1/Pa^0.5}' # ${fparse 4.28e23 / tungsten_atomic_density} 1/m^3/Pa^(1/2) / (1/m^3) = 1/Pa^(1/2)
 solubility_CuCrZr_Ea = '${units 4525.8 K}'
 
+# Maximum retained tritium surface flux at the top surface during operation.
+# plasma flux at steady state
+plasma_max_flux = ${units 1.0e24 at/m^2/s}
+# 50% of it corresponds to tritium in a DT plasma
+plasma_max_t_flux = ${fparse 50 / 100 * plasma_max_flux}
+# Assuming 0.1% of incident tritium is retained in the divertor, leading to a retained tritium surface flux of 5.0e20 at/m^2/s
+plasma_max_retained_t_flux = ${fparse 0.1 / 100 * plasma_max_t_flux}
+# For the normalized atomic-fraction variable used here, the equivalent Neumann flux is J / N_W = 7.89e-9 m/s
+plasma_max_retained_t_surface_flux = '${fparse plasma_max_retained_t_flux / tungsten_atomic_density}' # normalized surface flux [m/s]
+plasma_min_retained_t_surface_flux = '${units 0.0 m/s}'
+
 # For postprocessor scaling
 diffusivity_fixed = '${units 5.01e-24 g/m^2}' # (3.01604928)/(6.02e23)/[gram(T)/m^2]
 # diffusivity_fixed = ${units 5.508e-19 g/m^2}  # (1.0e3)*(1.0e3)/(6.02e23)/(3.01604928) [gram(T)/m^2] alternative
@@ -114,11 +115,11 @@ scaling_factor_2 = '${units 3.44e10 g/m^2}' # (1.0e3)*(1.0e3)*(${tungsten_atomic
                         if(t_in_cycle < ${plasma_ss_end}, 1,
                         if(t_in_cycle < ${plasma_ramp_down_end}, 1 - (t_in_cycle-${plasma_ss_end})/${plasma_ramp_time}, 0.0)))'
   []
-  [mobile_flux_bc_function]
+  [retained_t_surface_flux_function]
     type = ParsedFunction
     symbol_values = 'pulse_time_function'
     symbol_names = 'pulse_time_function'
-    expression = '(${plasma_max_flux} - ${plasma_min_flux}) * pulse_time_function + ${plasma_min_flux}'
+    expression = '(${plasma_max_retained_t_surface_flux} - ${plasma_min_retained_t_surface_flux}) * pulse_time_function + ${plasma_min_retained_t_surface_flux}'
   []
   [temperature_flux_bc_function]
     type = ParsedFunction

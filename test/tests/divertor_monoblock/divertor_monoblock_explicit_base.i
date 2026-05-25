@@ -411,7 +411,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
     type = FunctionNeumannBC
     variable = C_mobile_W
     boundary = 'top'
-    function = mobile_flux_bc_function
+    function = retained_t_surface_flux_function
   []
   [mobile_tube]
     type = DirichletBC

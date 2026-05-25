@@ -9,8 +9,8 @@
 # Define parameters in one spot for easier reading
 upper_heat_flux_lower = ${units 9.5 MW/m^2 -> W/m^2}
 upper_heat_flux_upper = ${units 10.5 MW/m^2 -> W/m^2}
-upper_tritium_flux_lower = 7.505e-13 # units
-upper_tritium_flux_upper = 8.295e-13 # units
+upper_tritium_flux_lower = ${units 7.495e-9 m/s} # normalized surface flux
+upper_tritium_flux_upper = ${units 8.285e-9 m/s} # normalized surface flux
 coolant_temperature_lower = ${units 524.4 K}
 coolant_temperature_upper = ${units 579.6 K}
 N_samples = 10
@@ -37,7 +37,7 @@ N_samples = 10
     multi_app = runner
     sampler = sobol
     param_names = "temperature_top_val
-                   C_mob_W_top_flux_val
+                   retained_t_surface_flux_val
                    temperature_tube_val"
   []
 []
