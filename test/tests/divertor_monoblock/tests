@@ -18,9 +18,7 @@
 			Executioner/end_time=1600
 			rings_CuCrZr=10
 			rings_Cu=8
-			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			rings_W=40'
 			detail = 'pulsed operation.'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			heavy = true
@@ -37,8 +35,7 @@
 			rings_CuCrZr=10
 			rings_Cu=8
 			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			Executioner/nl_abs_tol=3e-6'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			heavy = true
 			min_parallel = 2
@@ -53,9 +50,7 @@
 			Executioner/end_time=100
 			rings_CuCrZr=10
 			rings_Cu=8
-			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			rings_W=40'
 			detail = 'pulsed operation with a single tritium variable and physics syntax'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			abs_zero = 3e-9

@@ -19,7 +19,6 @@
 ### ScInt_          Scaled and integrated
 
 temperature_top_val = ${units 10 MW/m^2}
-retained_t_surface_flux_val = ${plasma_max_retained_t_surface_flux} # normalized surface flux [m/s]
 temperature_tube_val = ${units 552 K}
 
 [Controls]
@@ -31,6 +30,8 @@ temperature_tube_val = ${units 552 K}
 
 ### This input uses the `!include` feature to incorporate other input files
 !include divertor_monoblock_explicit_base.i
+
+retained_t_surface_flux_val = ${plasma_max_retained_t_surface_flux} # normalized surface flux [m/s]
 
 # Geometry and design
 num_sectors := 12
