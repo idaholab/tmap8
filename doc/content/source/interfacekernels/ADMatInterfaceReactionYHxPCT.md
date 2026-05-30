@@ -19,14 +19,18 @@ and $\rho$ is the yttrium molar density in mol/m$^3$.
 [YHx_PCT_Data] shows the data used in this interface kernel. The experimental data originates from [!cite](Lundin_1962).
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 [YHx_PCT_Data] shows the data used in this interface kernel. The experimental data originates from [!cite](Lundin_1962).
 The [YHx_PCT_fit_2D] shows high and low pressure fit with the high pressure fit from [!cite](Matthews2021SWIFT) and the low-pressure is a newly fitted curve.
+=======
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 
 !media comparison_YHx_PCT.py
        image_name=YHx_PCT_Data.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_Data
+<<<<<<< HEAD
        caption=PCT data for YHx from [!cite](Lundin_1962).
 >>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
@@ -42,6 +46,11 @@ The [YHx_PCT_fit_2D] shows high and low pressure fit with the high pressure fit 
 >>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 
 
+=======
+       caption=PCT data for $YH_{x}$ sampled from [!cite](Lundin_1962).
+
+
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 To incorporate the entire PCT curve in TMAP8, the curve was divided into three regions: the low-pressure (LP) region, the plateau region (PR), and the high-pressure (HP) region. The fitting procedures and the modeling approach for each region are described below.
 
 \begin{equation}\label{eq:atomic_fraction_HP}
@@ -81,6 +90,7 @@ This fit is shown in [YHx_PCT_plateau_pressure_fit].
        id=YHx_PCT_plateau_pressure_fit
        caption=Fit phase transition region as pressure as a function of temperature.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 These fits are applied within the following conditional statement for entire PCT modelling capabilities
 
@@ -123,45 +133,47 @@ where $P$ is the hydrogen partial pressure in Pa. While in the low pressure regi
 where $P$ is the hydrogen partial pressure in Pa.
 While in the low pressure region, the atomic fraction $f_{at}$ is determined as:
 >>>>>>> fdf51b49 (Improvement to low pressure fit and corrections to python file)
+=======
+These fits are applied within the following conditional statement for entire PCT modelling capabilities
+
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 \begin{equation}
-f_{at}(T,P) = Ar_{max,LP}(T)-10\left[0.001+\exp(-50.0 + 0.0573 T + (0.830 - 2.69 \times 10^{-3} T) (\log\left(P_{lim}(T) - P\right)))\right]^{-1},
+\text{If} \left (\frac{P}{P_{\text{lim}}}\right) > 1.15:
+\quad f_{HP}(T,P)
 \end{equation}
 <<<<<<< HEAD
 >>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
 =======
 
+<<<<<<< HEAD
 Both fits are plotted in [YHx_PCT_fit_2D].
 >>>>>>> fdf51b49 (Improvement to low pressure fit and corrections to python file)
+=======
+\begin{equation}
+\text{Else-if} \left (\frac{P}{P_{\text{lim}}}\right) <1.05:
+\quad f_{LP}(T,P)
+\end{equation}
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 
-Equation [eq:atomic_fraction] is valid for:
+\begin{equation}
+\text{Else: }
+\quad f_{PR}(T,P)
+\end{equation}
+
+The validity of this present fit is between:
 \begin{equation} \label{eq:bounds}
-0.011 < P [Pa] < 1.e06
+100 < P\,\text{[Pa]} < 10^{5}
 \end{equation}
 
-The ${Ar_{max,LP}(T)}$ represents maximum atomic ratio per temperature in the low pressure region and is written as:
-\begin{equation}\label{eq:Ar_MAX_LP}
-Ar_{max,LP}(T) = 1.01 \times 10^{-6} T^2 -2.55 \times 10^{-3} T + 2.156,
-\end{equation}
 
-Equation [eq:Ar_MAX_LP] is valid for:
-\begin{equation} \label{eq:Ar_MAX_LP_bounds}
-1173 < T [K] < 1573
-\end{equation}
-
-The ${Ar_{max,LP}(T)}$ is verified by plotting the fit against the PCT data shown in the figure below.
+The ${f_{max,LP}(T)}$ and ${f_{min,HP}(T)}$ are quadratic fits that were verified by plotting the fit against the PCT data shown in the figure below. Evidently,the ${f_{min,HP}(T)}$ suffer slight losses due to non-symmetry of plateau region. Nonetheless, the fits are suitable for modelling purposes.
 
 !media comparison_YHx_PCT.py
-       image_name=YHx_PCT_Data_Vs_ArMaxFit.png
+       image_name=YHx_PCT_Plateau_EndPoints_comparison.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
-       id=YHx_PCT_Data_Vs_ArMaxFit
-       caption=Maximum atomic ratio fit vs. PCT data from [!cite](Lundin_1962).
+       id=YHx_PCT_Plateau_EndPoints_comparison
+       caption=Boundary of atomic ratio fit vs. PCT data from [!cite](Lundin_1962).
 
-
-
-
-The [!param](/InterfaceKernels/ADMatInterfaceReactionYHxPCT/silence_warnings) option can be used to dictate how TMAP8 reacts when the pressure gets out of bounds.
-If `silence_warnings = false`, which is the default behavior, then TMAP8 will print a warning stating that the pressure and temperature are outside the bounds of the atomic fraction correlation.
-If `silence_warnings = true`, then TMAP8 will let the simulation continue without issuing any warnings.
 
 ## Test
 
@@ -175,6 +187,9 @@ To model the interface, the input file employs the [InterfaceDiffusion.md] objec
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 
 The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1273.15 K, $3 \times 10^{3}$ Pa),
 and the results for the the low pressure test for ($T$, $P$) =(1273.15 K, $3 \times 10^{2}$ Pa), (1473.15 K, $3 \times 10^{3}$ Pa), (1573.15 K, $6 \times 10^{2}$ Pa) and (1573.15 K, $6 \times 10^{2}$ Pa)
@@ -217,6 +232,7 @@ The [PCT_all_temperatures_experimental_vs_TMAP8_YHx] shows the PCT fit against t
        id=PCT_all_temperatures_experimental_vs_TMAP8_YHx
        caption=PCT data for YHx from [!cite](Lundin_1962) with fits implemented in TMAP8, and test results.
 
+<<<<<<< HEAD
 =======
 The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^{3}$ Pa), (1173.15 K, $1 \times 10^{4}$ Pa), (1173.15 K, $5 \times 10^{4}$ Pa), and(1473.15 K, $5 \times 10^{4}$ Pa). While the low pressure test for ($T$, $P$) = (1473.15 K, $3 \times 10^{3}$ Pa), (1273.15 K, $3 \times 10^{2}$ Pa), (1573.15 K, $5 \times 10^{3}$ Pa), and(1573.15 K, $6 \times 10^{2}$ Pa).
 >>>>>>> b70b205f (Modifications, reformatting, and cleaning YHX #Ref 262)
@@ -225,6 +241,8 @@ The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^
 and the results for the the low pressure test for ($T$, $P$) = (1473.15 K, $3 \times 10^{3}$ Pa), (1273.15 K, $3 \times 10^{2}$ Pa), (1573.15 K, $5 \times 10^{3}$ Pa), and(1573.15 K, $6 \times 10^{2}$ Pa)
 are all shown in [YHx_PCT_fit_2D] and show good agreement with [eq:atomic_fraction].
 >>>>>>> fdf51b49 (Improvement to low pressure fit and corrections to python file)
+=======
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 
 ## Example Input File Syntax
 
