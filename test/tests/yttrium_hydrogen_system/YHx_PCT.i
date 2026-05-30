@@ -4,7 +4,7 @@ N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from TMAP8PhysicalConst
 boltzmann_constant = '${units 1.380649e-23 J/K}' # Boltzmann constant from TMAP8PhysicalConstants.h
 
 # Simulation conditions and material properties
-temperature = '${units 1200 K}'
+temperature = '${units 1173.15 K}'
 density_Y = '${units 48605 mol/m^3}'
 initial_pressure_H2_enclosure_1 = '${units 1e4 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
@@ -12,16 +12,17 @@ initial_atomic_fraction = 1.8 # (-)
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_Y} mol/m^3}'
 
 # diffusivity from Majer et al., Journal of Alloys and Compounds 330-332 (2002) 438-442.
-diffusivity_Do = '${units 1.e-8 m^2/s}'
+diffusivity_Do = '${units 1 m^2/s}'
 diffusivity_Ea = '${units 0.38 eV -> J}'
-diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 10}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
+
+diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 100}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
 # Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540
 reaction_rate_0 = '${units 4.95e5 1/s}'
 reaction_rate_Ea = '${units 1.52 eV -> J}'
 
 # Domain size and mesh parameters
 domain_length = '${units 1 m}'
-num_nodes = 100
+num_nodes = 10
 
 # time
 simulation_time = '${units 1e9 s}'

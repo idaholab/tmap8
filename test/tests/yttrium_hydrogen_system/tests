@@ -18,7 +18,6 @@
     should_execute = false # this test relies on the output files from YHx_PCT_csv, so it shouldn't be run twice
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature and generate an exodus file.'
   []
-###################################### HIGH PRESSURE TESTING
   [YHx_PCT_T1173_P1e3_csv]
     type = CSVDiff
     input = YHx_PCT.i
@@ -50,7 +49,7 @@
     max_parallel = 1 # see #200
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=1173.15 K.'
   []
-[YHx_PCT_T1173_P5e4_csv]
+  [YHx_PCT_T1173_P5e4_csv]
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = 'output_file_base=YHx_PCT_T1173_P5e4_out
@@ -79,7 +78,6 @@
     recover = false
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1273.15 K.'
   []
-  ###################################### LOW PRESSURE TESTING
   [YHx_PCT_T1273_P1e3_csv]
     type = CSVDiff
     input = YHx_PCT.i
@@ -87,8 +85,7 @@
                 temperature=1273.15
                 initial_pressure_H2_enclosure_1=1e3
                 initial_atomic_fraction=0.25
-                Executioner/num_steps=250
-                InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
+                Executioner/num_steps=250'
     csvdiff = YHx_PCT_T1273_P1e3_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e3 Pa and T=1273.15 K.'
   []
@@ -100,8 +97,7 @@
                 temperature=1273.15
                 initial_pressure_H2_enclosure_1=3e2
                 initial_atomic_fraction=0.25
-                Executioner/num_steps=400
-                InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
+                Executioner/num_steps=400'
     csvdiff = YHx_PCT_T1273_P3e2_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e2 Pa and T=1273.15 K.'
   []
@@ -124,8 +120,7 @@
                 temperature=1573.15
                 initial_pressure_H2_enclosure_1=5e3
                 initial_atomic_fraction=0.35
-                Executioner/num_steps=500
-                InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
+                Executioner/num_steps=500'
     csvdiff = YHx_PCT_T1573_P5e3_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e3 Pa and T=1573.15 K.'
   []
@@ -136,12 +131,92 @@
                 temperature=1573.15
                 initial_pressure_H2_enclosure_1=6e2
                 initial_atomic_fraction=0.2
-                Executioner/num_steps=200
-                InterfaceKernels/interface_reaction_YHx_PCT/silence_warnings=true'
+                Executioner/num_steps=200'
     csvdiff = YHx_PCT_T1573_P6e2_out.csv
-    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=6e2 Pa and T=1273.15 K.'
+    requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=6e2 Pa and T=1573.15 K.'
   []
-  [YHx_PCT_comparison]
+  [YHx_PCT_Low_to_High_1173K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1173K
+                temperature=1173.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1173K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1173.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1223K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1223K
+                temperature=1223.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1223K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1223.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1273K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1273K
+                temperature=1273.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1273K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1273.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1323K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1323K
+                temperature=1323.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1323K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1323.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1373K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1373K
+                temperature=1373.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1373K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1373.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1423K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1423K
+                temperature=1423.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1423K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1423.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1473K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1473K
+                temperature=1473.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1473K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1473.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1523K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1523K
+                temperature=1523.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1523K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1523.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+  [YHx_PCT_Low_to_High_1573K_csv]
+    type = CSVDiff
+    input = YHx_PCT_Overall.i
+    cli_args = 'output_file_base=YHx_PCT_Low_to_High_1573K
+                temperature=1573.15
+                initial_pressure_H2_enclosure_1=2e2'
+    csvdiff = YHx_PCT_Low_to_High_1573K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1573.15 K with an initial pressure of starting at P=2e2 Pa.'
+  []
+    [YHx_PCT_comparison]
     type = RunCommand
     command = 'python3 comparison_YHx_PCT.py'
     requirement = 'The system shall be able to generate comparison plots between experimental PCT curves, the model used in TMAP8, and TMAP8 predictions.'

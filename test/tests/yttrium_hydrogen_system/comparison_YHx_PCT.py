@@ -21,7 +21,7 @@ mmHg_to_Pa = 133.322  # 1 mmHg = 133.322 Pa
 C_to_K = 273.15  # 0 C = 273.15 K
 temperature_list = [900, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1300]  # C
 temperature_list = [x + 273.15 for x in temperature_list]  # K
-
+tolerance = 1.148
 # ============================================================================ #
 # Extract data from experiments
 if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
@@ -159,15 +159,28 @@ plt.savefig("YHx_PCT_plateau_pressure_fit.png", bbox_inches="tight", dpi=300)
 plt.close(fig)
 
 
+# Local helper: minimum AR for the high-pressure branch (same form as used later in script)
+def ar_min_high_p(T):
+    """
+    Temperature-dependent minimum atom ratio for the high-pressure branch:
+    Ar_Min_High_P(T) = -1.01e-6 * T^2 + 2.55e-3 * T - 0.5616
+    """
+    T = float(T)
+    return -1.01e-6 * (T**2) + 2.55e-3 * T - 0.5616
+
+
 # ============================================================================ #
 # Fit the high pressures as a function of temperature
 def atom_ratio_eq_upper_func(temperature, pressure):
-    return 2 - (
-        1
+    AR_min = (
+        -1.01e-6 * temperature**2 + 2.55e-3 * temperature - 0.56166
+    )  # AR minimum at high P
+    return 2 - 1.0015 * (
+        AR_min
         + np.exp(
-            21.6
-            - 0.0225 * temperature
-            + (-0.0445 + 7.18 * 10 ** (-4) * temperature)
+            24.8902
+            - 0.0253 * temperature
+            + (-0.3981 + 0.001 * temperature)
             * (np.log(pressure - p0_lim_func(temperature)))
         )
     ) ** (-1)
@@ -254,8 +267,8 @@ def atom_ratio_eq_lower_func(T, P):
     p0 = p0_lim_func(T)
     arg = np.maximum(p0 - P, 1e-12)
     with np.errstate(divide="ignore", invalid="ignore"):
-        return (1.01e-6 * np.square(T) - 2.55e-3 * T + 2.156) - 10 * (
-            0.001 + np.exp(-50.0 + 5.73e-2 * T + (0.830 - 2.69e-3 * T) * np.log(arg))
+        return (1.01e-6 * np.square(T) - 2.556e-3 * T + 2.156) - 10 * (
+            0.001 + np.exp(-50.0 + 5.73e-2 * T + (0.8296 - 2.69e-3 * T) * np.log(arg))
         ) ** (-1)
 
 
@@ -483,7 +496,7 @@ ax.plot_surface(
     pressure_mesh, temperature_mesh, atom_ratio_eq_lower_mesh, color="green", alpha=0.3
 )
 
-ax.set_xlabel("Partial Pressure (Pa)")
+ax.set_xlabel("Pressure (Pa)")
 ax.set_ylabel("Temperature (K)")
 ax.set_zlabel("Atom Ratio (-)")
 ax.set_title(
@@ -504,11 +517,14 @@ RMSE_values_low = {}  # (Low pressure)
 fig = plt.figure(figsize=(12, 6))
 
 print("temperature_list", temperature_list)
-
 # -------------------- Legend collections --------------------
 high_data_handles, high_data_labels = [], []
 high_fit_handles, high_fit_labels = [], []
 low_fit_handles, low_fit_labels = [], []
+
+# NEW: distinct legend group for Plateau region
+plateau_fit_handles, plateau_fit_labels = [], []
+
 tmap_high_handles, tmap_high_labels = [], []
 tmap_low_handles, tmap_low_labels = [], []
 
@@ -520,6 +536,22 @@ for i, temperature in enumerate(temperature_list):
 
     # color by temperature
     color_T = color_for_T(temperature, i)
+
+    # Ensure we have arrays
+    pressures_arr = np.asarray(pressures, dtype=float)
+    atom_ratios_arr = np.asarray(atom_ratios, dtype=float)
+
+    # --------------------  plot FULL experimental data --------------------
+    # CHANGED: swapped axes — x=atom_ratios_arr, y=pressures_arr
+    sc_all = plt.scatter(
+        atom_ratios_arr,
+        pressures_arr,
+        color=color_T,
+        s=16,
+    )
+    high_data_handles.append(sc_all)
+    high_data_labels.append(f"{temperature} K Data")
+    # --------------------------------------------------------------------------------------------
 
     index_limit = plateau_positions[temperature]["end_index"]
     if index_limit is not None:
@@ -542,20 +574,10 @@ for i, temperature in enumerate(temperature_list):
         )
         RMSE_values_high[temperature] = RMSE
 
-        # Plot the data points
-        sc_hi = plt.scatter(
-            pressures_upper,
-            atom_ratios_upper,
-            color=color_T,
-            s=16,
-        )
-        high_data_handles.append(sc_hi)
-        high_data_labels.append(f"{temperature} K Data")
-
-        # Plot the fit function
+        # CHANGED: swapped axes — x=fit_values_upper, y=pressures_upper
         (ln_hi,) = plt.plot(
-            pressures_upper,
             fit_values_upper,
+            pressures_upper,
             color=color_T,
             linestyle="-",
         )
@@ -572,10 +594,6 @@ for i, temperature in enumerate(temperature_list):
 
     # Compute threshold for low-pressure regime using Ar_Max_Low_P(T)
     Ar_Max_Low_P_T = ar_max_low_p(temperature)
-
-    # Ensure we have arrays
-    pressures_arr = np.asarray(pressures, dtype=float)
-    atom_ratios_arr = np.asarray(atom_ratios, dtype=float)
 
     # Find the last index where Atom Ratio <= Ar_Max_Low_P(T)
     mask = atom_ratios_arr <= Ar_Max_Low_P_T
@@ -602,13 +620,10 @@ for i, temperature in enumerate(temperature_list):
         )
         RMSE_values_low[temperature] = RMSE
 
-        # Plot the lower data -- keep plotted, but do NOT include in legend
-        plt.scatter(pressures_lower, atom_ratios_lower, color=color_T, s=16)
-
-        # Plot the lower fit -- dashed style + color and collect handle
+        # CHANGED: swapped axes — x=fit_values_lower, y=pressures_lower
         (ln_lo,) = plt.plot(
-            pressures_lower,
             fit_values_lower,
+            pressures_lower,
             color=color_T,
             linestyle="--",
             label=f"{temperature} K Low P Fit RMSE {RMSE:.2f}",
@@ -643,94 +658,290 @@ for point in prediction_points:
         # Include RMSE in low fit legend ordering
         low_fit_handles.append(ln_lo)
         low_fit_labels.append(f"{temperature} K Low P Fit RMSE {RMSE:.2f}")
-# plot the TMAP8 predictions
-error = (
-    abs(
-        TMAP8_prediction_T1273_P3e3_atomic_fraction
-        - analytical_equation_T1273_P3e3_atomic_fraction
+
+
+# -------------------- Combined fit: Low ↔ Plateau ↔ High (by AR thresholds) --------------------
+# Local helper: plateau-region fit (identical to the later section; included here to avoid reordering)
+def atom_ratio_plateau_region_fit(T, P):
+
+    T = float(T)
+    p0 = float(p0_lim_func(T))  # plateau pressure reference
+    denom = max(tolerance * p0, 1e-20)
+    arg = np.maximum(np.asarray(P, dtype=float) / denom, 1e-12)
+    return (1.325 - 2.177e-04 * T) + (1.056e01 - 4.35e-03 * T) * np.log(arg)
+
+
+# Local helper: minimum AR for the high-pressure branch (same form as used later in script)
+def ar_min_high_p(T):
+    """
+    Temperature-dependent minimum atom ratio for the high-pressure branch:
+    Ar_Min_High_P(T) = -1.01e-6 * T^2 + 2.55e-3 * T - 0.5616
+    """
+    T = float(T)
+    return -1.01e-6 * (T**2) + 2.55e-3 * T - 0.5616
+
+
+# Helper: branch selection for a single (T, P) using same domain + AR-threshold rules
+def select_branch(T, P):
+    T = float(T)
+    P = float(P)
+    p0_T = float(p0_lim_func(T))
+
+    # Evaluate the three branches at this point
+    AR_low = atom_ratio_eq_lower_func(T, np.array([P]))
+    AR_high = atom_ratio_eq_upper_func(T, np.array([P]))
+    AR_plateau = atom_ratio_plateau_region_fit(T, np.array([P]))
+
+    AR_low = AR_low[0] if np.size(AR_low) else np.nan
+    AR_high = AR_high[0] if np.size(AR_high) else np.nan
+    AR_plateau = AR_plateau[0] if np.size(AR_plateau) else np.nan
+
+    # Thresholds
+    AR_low_max = ar_max_low_p(T)
+    AR_high_min = ar_min_high_p(T)
+
+    # Domains
+    is_low_dom = (P / p0_T) < tolerance
+    is_high_dom = (P / p0_T) > tolerance
+
+    use_low = np.isfinite(AR_low) and is_low_dom and (AR_low <= AR_low_max)
+    use_high = np.isfinite(AR_high) and is_high_dom and (AR_high >= AR_high_min)
+    use_plat = (
+        np.isfinite(AR_plateau)
+        and (AR_plateau > AR_low_max)
+        and (AR_plateau < AR_high_min)
     )
-    / analytical_equation_T1273_P3e3_atomic_fraction
-    * 100
+
+    if use_low:
+        return "low"
+    if use_high:
+        return "high"
+    return "plateau"
+
+
+# Create a unified pressure span for this temperature (covering the experimental range)
+Pmin = max(np.nanmin(np.asarray(pressures, dtype=float)), 1e-12)
+Pmax = np.nanmax(np.asarray(pressures, dtype=float))
+if np.isfinite(Pmin) and np.isfinite(Pmax) and Pmax > Pmin:
+    P_line = np.logspace(np.log10(Pmin), np.log10(Pmax), 400)
+else:
+    # Fallback to a reasonable span around p0 if experimental range is odd
+    p0_T = float(p0_lim_func(temperature))
+    P_line = np.logspace(np.log10(max(p0_T / 10.0, 1e-12)), np.log10(p0_T * 10.0), 400)
+
+# Compute fits on their natural domains
+p0_T = float(p0_lim_func(temperature))
+AR_low_line = np.full_like(P_line, np.nan, dtype=float)
+AR_high_line = np.full_like(P_line, np.nan, dtype=float)
+AR_plateau_line = np.full_like(P_line, np.nan, dtype=float)
+
+# Low-branch (domain)
+mask_low_domain = (P_line / p0_T) < tolerance
+AR_low_line[mask_low_domain] = atom_ratio_eq_lower_func(
+    temperature, P_line[mask_low_domain]
 )
-h = plt.scatter(
+
+# Plateau branch (defined for all P, will be clipped by AR thresholds)
+AR_plateau_line[:] = atom_ratio_plateau_region_fit(temperature, P_line)
+
+# High-branch (domain)
+mask_high_domain = (P_line / p0_T) > tolerance
+AR_high_line[mask_high_domain] = atom_ratio_eq_upper_func(
+    temperature, P_line[mask_high_domain]
+)
+
+# Thresholds for switching
+AR_low_max = ar_max_low_p(temperature)  # upper bound for low branch
+AR_high_min = 1.0  # lower bound for high branch
+
+# Apply switching by AR thresholds (and domains) on line spans
+mask_low_use = np.isfinite(AR_low_line) & (AR_low_line <= AR_low_max)
+mask_plat_use = (
+    np.isfinite(AR_plateau_line)
+    & (AR_plateau_line > AR_low_max)
+    & (AR_plateau_line < AR_high_min)
+)
+mask_high_use = np.isfinite(AR_high_line) & (AR_high_line >= AR_high_min)
+
+# --- Also compute switching masks on the experimental data, for RMSE ---
+pred_low_data = atom_ratio_eq_lower_func(temperature, pressures_arr)
+pred_high_data = atom_ratio_eq_upper_func(temperature, pressures_arr)
+pred_plateau_data = atom_ratio_plateau_region_fit(temperature, pressures_arr)
+
+mask_low_use_data = (
+    np.isfinite(pred_low_data)
+    & ((pressures_arr / p0_T) < tolerance)
+    & (pred_low_data <= AR_low_max)
+)
+mask_high_use_data = (
+    np.isfinite(pred_high_data)
+    & ((pressures_arr / p0_T) > tolerance)
+    & (pred_high_data >= AR_high_min)
+)
+mask_plat_use_data = (
+    np.isfinite(pred_plateau_data)
+    & (pred_plateau_data > AR_low_max)
+    & (pred_plateau_data < AR_high_min)
+)
+
+# --- RMSEs computed with the same switch (on EXP points) ---
+RMSE_low = np.nan
+RMSE_high = np.nan
+if np.any(mask_low_use_data):
+    RMSE_low = np.sqrt(
+        np.mean(
+            (atom_ratios_arr[mask_low_use_data] - pred_low_data[mask_low_use_data]) ** 2
+        )
+    )
+    RMSE_values_low[temperature] = RMSE_low
+if np.any(mask_high_use_data):
+    RMSE_high = np.sqrt(
+        np.mean(
+            (atom_ratios_arr[mask_high_use_data] - pred_high_data[mask_high_use_data])
+            ** 2
+        )
+    )
+    RMSE_values_high[temperature] = RMSE_high
+
+# Plot the three segments (capture handles for legend)
+# CHANGED: swapped axes in both plot calls — x=AR_*_line, y=P_line
+ln_lo = ln_plat = ln_hi = None
+if np.any(mask_low_use):
+    (ln_lo,) = plt.plot(
+        AR_low_line[mask_low_use],
+        P_line[mask_low_use],
+        color=color_T,
+        linestyle="--",
+        linewidth=1.8,
+        label=(
+            f"{temperature} K Low P Fit RMSE {RMSE_low:.2f}"
+            if np.isfinite(RMSE_low)
+            else f"{temperature} K Low P Fit RMSE n/a"
+        ),
+    )
+if np.any(mask_high_use):
+    (ln_hi,) = plt.plot(
+        AR_high_line[mask_high_use],
+        P_line[mask_high_use],
+        color=color_T,
+        linestyle="-",
+        linewidth=1.8,
+        label=(
+            f"{temperature} K High P Fit RMSE {RMSE_high:.2f}"
+            if np.isfinite(RMSE_high)
+            else f"{temperature} K High P Fit RMSE n/a"
+        ),
+    )
+
+# Collect handles for legends (respect your grouping scheme)
+if ln_hi is not None:
+    high_fit_handles.append(ln_hi)
+    high_fit_labels.append(
+        f"{temperature} K High P Fit RMSE {RMSE_high:.2f}"
+        if np.isfinite(RMSE_high)
+        else f"{temperature} K High P Fit RMSE n/a"
+    )
+
+if ln_plat is not None:
+    plateau_fit_handles.append(ln_plat)
+    plateau_fit_labels.append(f"{temperature} K Plateau Fit")
+
+if ln_lo is not None:
+    low_fit_handles.append(ln_lo)
+    low_fit_labels.append(
+        f"{temperature} K Low P Fit RMSE {RMSE_low:.2f}"
+        if np.isfinite(RMSE_low)
+        else f"{temperature} K Low P Fit RMSE n/a"
+    )
+
+# -------------------- TMAP8 predictions: classify by the same switch --------------------
+# NEW: distinct legend group for Plateau TMAP (to mirror the plateau fits group)
+tmap_plat_handles, tmap_plat_labels = [], []
+
+
+def add_tmap_point(T, P, xH):
+    branch = select_branch(T, P)
+    # Reference value from the proper branch
+    if branch == "low":
+        ref = atom_ratio_eq_lower_func(T, np.array([P]))[0]
+        err = (
+            (abs(xH - ref) / ref * 100.0)
+            if (np.isfinite(ref) and ref != 0.0)
+            else np.nan
+        )
+        # CHANGED: swapped axes — x=xH, y=P
+        h = plt.scatter(xH, P, marker="*", color="k", s=90)
+        tmap_low_handles.append(h)
+        tmap_low_labels.append(
+            f"{T} K and {P:.2f} Pa prediction (low-fit error: {err:.2f} %)"
+            if np.isfinite(err)
+            else f"{T} K and {P:.2f} Pa prediction (low-fit error: n/a)"
+        )
+    elif branch == "high":
+        ref = atom_ratio_eq_upper_func(T, np.array([P]))[0]
+        err = (
+            (abs(xH - ref) / ref * 100.0)
+            if (np.isfinite(ref) and ref != 0.0)
+            else np.nan
+        )
+        # CHANGED: swapped axes — x=xH, y=P
+        h = plt.scatter(xH, P, marker="x", color="k", s=90)
+        tmap_high_handles.append(h)
+        tmap_high_labels.append(
+            f"{T} K and {P:.2f} Pa prediction (high-fit error: {err:.2f} %)"
+            if np.isfinite(err)
+            else f"{T} K and {P:.2f} Pa prediction (high-fit error: n/a)"
+        )
+    else:  # plateau
+        ref = atom_ratio_plateau_region_fit(T, np.array([P]))[0]
+        err = (
+            (abs(xH - ref) / ref * 100.0)
+            if (np.isfinite(ref) and ref != 0.0)
+            else np.nan
+        )
+        # CHANGED: swapped axes — x=xH, y=P
+        h = plt.scatter(xH, P, marker="o", color="k", s=90)
+        tmap_plat_handles.append(h)
+        tmap_plat_labels.append(
+            f"{T} K and {P:.2f} Pa prediction (plateau-fit error: {err:.2f} %)"
+            if np.isfinite(err)
+            else f"{T} K and {P:.2f} Pa prediction (plateau-fit error: n/a)"
+        )
+
+
+# Existing specific TMAP8 points (auto-classified now)
+add_tmap_point(
+    TMAP8_prediction_T1273_P3e3_temperature,
     TMAP8_prediction_T1273_P3e3_pressure,
     TMAP8_prediction_T1273_P3e3_atomic_fraction,
-    marker="x",
-    color="k",
-    s=90,
-)
-tmap_high_handles.append(h)
-tmap_high_labels.append(
-    f"{TMAP8_prediction_T1273_P3e3_temperature} K and {TMAP8_prediction_T1273_P3e3_pressure:.2f} Pa prediction (high-fit error: {error:.2f} %)"
 )
 
-error = (
-    abs(
-        TMAP8_prediction_T1173_P1e3_atomic_fraction
-        - analytical_equation_T1173_P1e3_atomic_fraction
-    )
-    / analytical_equation_T1173_P1e3_atomic_fraction
-    * 100
-)
-h = plt.scatter(
+add_tmap_point(
+    TMAP8_prediction_T1173_P1e3_temperature,
     TMAP8_prediction_T1173_P1e3_pressure,
     TMAP8_prediction_T1173_P1e3_atomic_fraction,
-    marker="x",
-    color="k",
-    s=90,
-)
-tmap_high_handles.append(h)
-tmap_high_labels.append(
-    f"{TMAP8_prediction_T1173_P1e3_temperature} K and {TMAP8_prediction_T1173_P1e3_pressure:.2f} Pa prediction (high-fit error: {error:.2f} %)"
 )
 
-error = (
-    abs(
-        TMAP8_prediction_T1173_P1e4_atomic_fraction
-        - analytical_equation_T1173_P1e4_atomic_fraction
-    )
-    / analytical_equation_T1173_P1e4_atomic_fraction
-    * 100
-)
-h = plt.scatter(
+add_tmap_point(
+    TMAP8_prediction_T1173_P1e4_temperature,
     TMAP8_prediction_T1173_P1e4_pressure,
     TMAP8_prediction_T1173_P1e4_atomic_fraction,
-    marker="x",
-    color="k",
-    s=90,
-)
-tmap_high_handles.append(h)
-tmap_high_labels.append(
-    f"{TMAP8_prediction_T1173_P1e4_temperature} K and {TMAP8_prediction_T1173_P1e4_pressure:.2f} Pa prediction (high-fit error: {error:.2f} %)"
 )
 
-error = (
-    abs(
-        TMAP8_prediction_T1173_P5e4_atomic_fraction
-        - analytical_equation_T1173_P5e4_atomic_fraction
-    )
-    / analytical_equation_T1173_P5e4_atomic_fraction
-    * 100
-)
-h = plt.scatter(
+add_tmap_point(
+    TMAP8_prediction_T1173_P5e4_temperature,
     TMAP8_prediction_T1173_P5e4_pressure,
     TMAP8_prediction_T1173_P5e4_atomic_fraction,
-    marker="x",
-    color="k",
-    s=90,
-)
-tmap_high_handles.append(h)
-tmap_high_labels.append(
-    f"{TMAP8_prediction_T1173_P5e4_temperature} K and {TMAP8_prediction_T1173_P5e4_pressure:.2f} Pa prediction (high-fit error: {error:.2f} %)"
 )
 
-# plot low-pressure TMAP8 predictions using the lower fit with star marker and collect handles
+# Existing low-predictions loop (also auto-classified; will fall into low/plateau/high groups as appropriate)
 for item in low_predictions:
     T = item["T"]
     P = item["P"]
     xH = item["xH"]
-    err = item["error_pct"]
+    add_tmap_point(T, P, xH)
 
+<<<<<<< HEAD
     label_txt = (
         f"{T} K and {P:.2f} Pa prediction (low-fit error: {err:.2f} %)"
         if np.isfinite(err)
@@ -756,6 +967,12 @@ plt.text(
 plt.legend(bbox_to_anchor=(1.1, 1.05))
 =======
 >>>>>>> fdf51b49 (Improvement to low pressure fit and corrections to python file)
+=======
+# CHANGED: swapped axis labels and moved log scale to y-axis
+plt.xlabel("Atom Ratio (-)")
+plt.ylabel("Pressure (Pa)")
+plt.yscale("log")
+>>>>>>> 2f64bdd9 (Including full ranges PCT modelling for YHx)
 plt.grid(True)
 plt.tight_layout()
 
@@ -768,6 +985,16 @@ for h, l in zip(high_data_handles, high_data_labels):
     combined_handles.append(h)
     combined_labels.append(l)
 for h, l in zip(high_fit_handles, high_fit_labels):
+    combined_handles.append(h)
+    combined_labels.append(l)
+
+# NEW: Plateau region fits (distinct group, shown in between)
+for h, l in zip(plateau_fit_handles, plateau_fit_labels):
+    combined_handles.append(h)
+    combined_labels.append(l)
+
+# NEW: TMAP8 Plateau predictions (keep alongside plateau fits)
+for h, l in zip(tmap_plat_handles, tmap_plat_labels):
     combined_handles.append(h)
     combined_labels.append(l)
 
@@ -800,7 +1027,6 @@ legend = plt.legend(
     borderaxespad=0.0,  # reduce extra padding between axes and legend
 )
 
-
 plt.savefig("YHx_PCT_fit_2D.png", bbox_inches="tight", dpi=300)
 plt.close(fig)
 
@@ -808,16 +1034,27 @@ plt.close(fig)
 print("temperatures (K) and RMSE High values: ", RMSE_values_high)
 
 # print the average RMSE value
-average_rmse = np.mean(list(RMSE_values_high.values()))
-print(f"Average RMSE: {average_rmse:.2f}")
-
+average_rmse = (
+    np.mean(list(RMSE_values_high.values())) if len(RMSE_values_high) > 0 else np.nan
+)
+print(
+    f"Average RMSE (High): {average_rmse:.2f}"
+    if np.isfinite(average_rmse)
+    else "Average RMSE (High): n/a"
+)
 
 # print the Low RMSE values for each temperature
 print("temperatures (K) and RMSE Low values: ", RMSE_values_low)
 
 # print the average RMSE value
-average_rmse = np.mean(list(RMSE_values_low.values()))
-print(f"Average RMSE: {average_rmse:.2f}")
+average_rmse = (
+    np.mean(list(RMSE_values_low.values())) if len(RMSE_values_low) > 0 else np.nan
+)
+print(
+    f"Average RMSE (Low): {average_rmse:.2f}"
+    if np.isfinite(average_rmse)
+    else "Average RMSE (Low): n/a"
+)
 
 
 # ------------------------------------------------------------------------------
@@ -843,24 +1080,25 @@ for i, expData in enumerate(list_expData):
 
 plt.yscale("log")
 plt.xlabel("Atom Ratio (-)")
-plt.ylabel("Partial Pressure (Pa)")
+plt.ylabel("Pressure (Pa)")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.savefig("YHx_PCT_Data.png", dpi=300)
 plt.close(fig)
 
-
 # ------------------------------------------------------------------------------
 # Raw plot (experimental data as solid lines) + Ar_Max_Low_P(T) dashed line
-# with two legends: temperature legend outside-top, ar-max fit legend inside
+# + Ar_Min_High_P(T) dashed line, with two legends:
+#   - temperature legend outside-top
+#   - fit legend inside
 # ------------------------------------------------------------------------------
 
 fig = plt.figure(figsize=(10, 6))
 ax = plt.gca()
 
 
-# If not already defined earlier in your script:
+# --- Provided low-pressure AR limit function ---
 def ar_max_low_p(T):
     """
     Temperature-dependent maximum atom ratio for the low-pressure branch:
@@ -870,8 +1108,19 @@ def ar_max_low_p(T):
     return 1.01e-6 * (T**2) - 2.55e-3 * T + 2.156
 
 
-# Collect for the dashed line (x: atom ratio threshold, y: plateau pressure)
-ar_line_x, ar_line_y, temp_order = [], [], []
+# --- Provided high-pressure AR minimum function ---
+def ar_min_high_p(T):
+    """
+    Temperature-dependent minimum atom ratio for the high-pressure branch:
+    Ar_Min_High_P(T) = -1.01e-6 * T^2 + 2.55e-3 * T - 0.5616
+    """
+    T = float(T)
+    return -1.01e-6 * (T**2) + 2.55e-3 * T - 0.5616
+
+
+# Collect for dashed lines (x: atom ratio threshold, y: plateau pressure)
+ar_max_x, ar_max_y, temp_order = [], [], []
+ar_min_x, ar_min_y = [], []
 
 # Collect temperature plot handles for the outside legend
 temp_handles, temp_labels = [], []
@@ -893,31 +1142,47 @@ for i, expData in enumerate(list_expData):
     temp_handles.append(ln_temp)
     temp_labels.append(f"{int(T)} K")
 
-    # Build dashed line point for this temperature
-    ar_line_x.append(ar_max_low_p(T))
-    ar_line_y.append(float(p0_lim_func(T)))  # plateau pressure fit
+    # Build dashed line points for this temperature
+    # Use the same plateau pressure fit (p0_lim_func) for the y-values
+    p0_T = float(p0_lim_func(T))
+    ar_max_x.append(ar_max_low_p(T))
+    ar_max_y.append(p0_T)
+
+    ar_min_x.append(ar_min_high_p(T))
+    ar_min_y.append(p0_T)
+
     temp_order.append(T)
 
-# Sort dashed line by temperature to ensure a clean curve
+# Sort dashed lines by temperature to ensure clean curves
 order = np.argsort(np.array(temp_order))
-ar_line_x = np.array(ar_line_x)[order]
-ar_line_y = np.array(ar_line_y)[order]
+ar_max_x = np.array(ar_max_x)[order]
+ar_max_y = np.array(ar_max_y)[order]
+ar_min_x = np.array(ar_min_x)[order]
+ar_min_y = np.array(ar_min_y)[order]
 
-# Plot the dashed line (ar max vs plateau p0)
-(ar_handle,) = ax.plot(
-    ar_line_x,
-    ar_line_y,
+# Plot the dashed lines
+(ar_max_handle,) = ax.plot(
+    ar_max_x,
+    ar_max_y,
     linestyle="--",
     color="k",
     linewidth=1.6,
     label="Fitted Maximum Atomic Ratio in the Low‑Pressure Regime",
 )
+(ar_min_handle,) = ax.plot(
+    ar_min_x,
+    ar_min_y,
+    linestyle="--",
+    color="purple",
+    linewidth=1.6,
+    label="Fitted Minimum Atomic Ratio in the High‑Pressure Regime",
+)
 
 # Axes formatting
 ax.set_yscale("log")
 ax.set_xlabel("Atom Ratio (-)")
-ax.set_ylabel("Partial Pressure (Pa)")
-ax.grid(True)
+ax.set_ylabel("Pressure (Pa)")
+ax.grid(True, which="both", linestyle=":", alpha=0.6)
 
 # -------------------- Legends --------------------
 # 1) Outside-top temperature legend (use fig.legend and leave margin at top)
@@ -935,17 +1200,229 @@ legend_temp = fig.legend(
 # Make room at the top for the outside legend
 plt.tight_layout(rect=[0, 0, 1, 0.94])
 
-# 2) Inside axes legend for the dashed Ar_Max_Low_P fit
+# 2) Inside axes legend for both dashed fits
 legend_ar = ax.legend(
-    handles=[ar_handle],
-    labels=["Fitted Maximum Atomic Ratio in the Low‑Pressure Regime"],
+    handles=[ar_max_handle, ar_min_handle],
+    labels=[
+        "Fitted Maximum Atomic Ratio in the Low‑Pressure Regime",
+        "Fitted Minimum Atomic Ratio in the High‑Pressure Regime",
+    ],
     loc="best",
     fontsize=9,
     frameon=True,
 )
 
+# --- Annotate the equations on the axes (top-left corner) ---
+eqn_max = r"Ar$_{\rm Max,LowP}$(T) = 1.01×10$^{-6}$·T$^2$ − 2.55×10$^{-3}$·T + 2.156"
+eqn_min = r"Ar$_{\rm Min,HighP}$(T) = −1.01×10$^{-6}$·T$^2$ + 2.55×10$^{-3}$·T − 0.5616"
+ax.text(0.02, 0.97, eqn_max, transform=ax.transAxes, fontsize=9, va="top", color="k")
+ax.text(
+    0.02, 0.90, eqn_min, transform=ax.transAxes, fontsize=9, va="top", color="purple"
+)
+
 # Save
-plt.savefig("YHx_PCT_Data_Vs_ArMaxFit.png", dpi=300, bbox_inches="tight")
+plt.savefig("YHx_PCT_Plateau_EndPoints_comparison.png", dpi=300, bbox_inches="tight")
+plt.close(fig)
+
+
+# ------------------------------------------------------------------------------
+#                   PLOTTING THE PLATEAU REGION FIT VERSUS PCT DATA
+# ------------------------------------------------------------------------------
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# --- Plateau-region log-linear fit (your function) ---
+def atom_ratio_plateau_region_fit(T, P):
+    T = float(T)
+    p0 = float(p0_lim_func(T))  # plateau pressure reference
+    denom = max(tolerance * p0, 1e-20)
+    arg = np.maximum(np.asarray(P, dtype=float) / denom, 1e-12)
+    return (1.325 - 2.177e-04 * T) + (3.495 - 1.44e-03 * T) * np.log(arg)
+
+
+# ---------------------- Compute AR bounds ----------------------------
+
+# Use the minimum temperature across datasets for the lower bound
+all_T = [float(expData["Temperature (K)"].iloc[0]) for expData in list_expData]
+min_T = float(np.min(all_T))
+max_T = float(np.max(all_T))
+ar_lower = float(ar_max_low_p(min_T))
+ar_upper = float(ar_min_high_p(max_T))
+
+# ---------------------- Plotting ----------------------------
+
+fig, ax = plt.subplots(figsize=(10, 8))
+
+full_color = (0.55, 0.55, 0.55, 0.30)
+fit_linewidth = 2.2
+
+for i, expData in enumerate(list_expData):
+
+    T = float(expData["Temperature (K)"].iloc[0])
+
+    try:
+        color_T = color_for_T(T, i)
+    except NameError:
+        color_T = None
+
+    # --- Experimental data (scatter) UNCHANGED ---
+    AR = expData["Atom Ratio (-)"].values.astype(float)
+    P = expData["Partial Pressure (Pa)"].values.astype(float)
+    ax.scatter(AR, P, s=10, alpha=full_color[3], color=full_color[:3])
+
+    # --- Fitted curve (plateau-region model), CLIPPED to [ar_lower, ar_upper] ---
+    p0_T = float(p0_lim_func(T))
+
+    # Pressure span around p0(T); adjust factors to widen/narrow window if needed
+    P_line = np.logspace(
+        np.log10(max(p0_T / 2.5, 1e-12)), np.log10(max(p0_T * 2.5, 1e-12)), 400
+    )
+
+    AR_line = atom_ratio_plateau_region_fit(T, P_line)
+
+    # Clip the fit curve to the requested AR range only
+    mask_fit = np.isfinite(AR_line) & (AR_line >= ar_lower) & (AR_line <= ar_upper)
+    if np.any(mask_fit):
+        ax.plot(
+            AR_line[mask_fit],
+            P_line[mask_fit],
+            "-",
+            linewidth=fit_linewidth,
+            color=color_T,
+            label=f"{int(T)} K",
+        )
+
+
+# ---------------------- Axes & styling ----------------------------
+ax.set_yscale("log")
+ax.set_ylabel("Pressure (Pa)")
+ax.set_xlabel("Atom Ratio (–)")
+ax.set_title(
+    "Plateau-Region AR(P,T): Fit Curves Clipped to Specified AR Range\n(Experimental Data Unchanged)"
+)
+ax.grid(True, which="both", ls="--", alpha=0.4)
+
+ax.legend(bbox_to_anchor=(1.04, 1.0), fontsize=9)
+plt.tight_layout()
+
+# --- Equation textbox (fit model) ---
+eqn_text = (
+    r"$\mathrm{AR}(P,T) = (1.325 - 2.177\times 10^{-4}\,T)"
+    r" + (5.265 - 2.17\times 10^{-3}\,T)\,\ln\!\left(\frac{P}{1.10\,p_0(T)}\right)$"
+    "\n"
+    rf"Fit shown only for $AR \in [{ar_lower:.3f},\,{ar_upper:.3f}]$ (lower bound at $T_{{\min}}={min_T:.0f}\,\mathrm{{K}}$)"
+)
+ax.text(
+    0.02,
+    0.98,
+    eqn_text,
+    transform=ax.transAxes,
+    fontsize=10,
+    va="top",
+    ha="left",
+    color="black",
+    bbox=dict(
+        boxstyle="round", facecolor="white", alpha=0.85, edgecolor="gray", pad=0.35
+    ),
+)
+
+# Save & show
+plt.savefig("YHx_PCT_AR_plateau_fit.png", dpi=300, bbox_inches="tight")
+plt.close(fig)
+
+
+"""
+• Plots exp scatter vs TMAP8 dashed
+• Calculates MAPE on overlapping atomic‑ratio range
+"""
+
+from pathlib import Path
+
+gold_dir = os.path.join(folderPath, "gold")
+
+EPS = 1e-12
+
+
+def compute_mape(ar_t, p_t, ar_e, p_e):
+    # Sort the TMAP8 curve
+    ar_t = ar_t[np.argsort(ar_t)]
+    p_t = p_t[np.argsort(ar_t)]
+    # Sort the Experimental curve
+    ar_e = ar_e[np.argsort(ar_e)]
+    p_e = p_e[np.argsort(p_e)]
+
+    # Determine the overlapping x-range between the two curves
+    lo = max(ar_e.min(), ar_t.min())
+    hi = min(ar_e.max(), ar_t.max())
+
+    # Keep only experimental points that fall within the overlapping range
+    mask = (ar_e >= lo) & (ar_e <= hi)
+    ar_e2 = ar_e[mask]
+    p_e2 = p_e[mask]
+
+    # Interpolate experimental curve values at the x-locations of TMAP8 curves
+    p_interp = np.interp(ar_e2, ar_t, p_t)
+    return np.mean(np.abs((p_interp - p_e2) / p_e2)) * 100
+
+
+fig, ax = plt.subplots(figsize=(12, 8))
+
+
+for i, Tk in enumerate(temperature_list):
+
+    exp_subset = list_expData[i]  # get the correct experimental data
+
+    ar_exp = exp_subset["Atom Ratio (-)"].to_numpy()
+    p_exp = exp_subset["Partial Pressure (Pa)"].to_numpy()
+
+    # Clean experimental arrays
+    mask_e = np.isfinite(ar_exp) & np.isfinite(p_exp) & (p_exp > EPS)
+    ar_exp, p_exp = ar_exp[mask_e], p_exp[mask_e]
+    ord_e = np.argsort(ar_exp)
+    ar_exp, p_exp = ar_exp[ord_e], p_exp[ord_e]
+
+    # ---------------------------
+    # Load TMAP8
+    # ---------------------------
+    tmap_name = f"YHx_PCT_Low_to_High_{int(Tk)}K.csv"
+    tmap_path = os.path.join(gold_dir, tmap_name)
+    df_tmap = pd.read_csv(tmap_path)
+
+    ar_tmap = (
+        df_tmap["atomic_fraction_H_enclosure_2_at_interface"].astype(float).to_numpy()
+    )
+    p_tmap = df_tmap["pressure_H2_enclosure_1_at_interface"].astype(float).to_numpy()
+
+    mask = np.isfinite(ar_tmap) & np.isfinite(p_tmap) & (p_tmap > 1e-12)
+    ar_tmap = ar_tmap[mask]
+    p_tmap = p_tmap[mask]
+
+    # ---------------------------
+    # MAPE
+    # ---------------------------
+    mape = compute_mape(ar_tmap, p_tmap, ar_exp, p_exp)
+
+    # --- Plot ---
+    ax.scatter(ar_exp, p_exp, s=28, label=f"Exp {int(Tk)}.15 K")
+    order = np.argsort(ar_tmap)
+    ax.plot(
+        ar_tmap[order],
+        p_tmap[order],
+        ls="--",
+        lw=2.0,
+        label=f"TMAP8 {int(Tk)}.15 K (err={mape:.2f}%)",
+    )
+
+# --- Finalize figure ---
+ax.set_yscale("log")
+ax.set_xlabel("Atom Ratio (–)")
+ax.set_ylabel("Pressure (Pa)")
+ax.grid(True, which="both", ls="--", alpha=0.6)
+ax.legend(fontsize=9, loc="best", ncol=2)
+fig.tight_layout()
+
+fig.savefig("PCT_all_temperatures_experimental_vs_TMAP8_YHx.png", dpi=300)
 plt.close(fig)
 
 # print the RMSE values for each temperature
