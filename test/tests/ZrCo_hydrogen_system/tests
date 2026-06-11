@@ -4,8 +4,8 @@
   [ZrCoHx_PCT_csv]
     type = CSVDiff
     input = ZrCoHx_PCT.i
+    cli_args = "initial_atomic_fraction=2.5"
     csvdiff = ZrCoHx_PCT_out.csv
-    max_parallel = 1 # see #200
     requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature.'
   []
   [ZrCoHx_PCT_exodus]
@@ -16,103 +16,173 @@
     should_execute = false # this test relies on the output files from ZrCoHx_PCT_csv, so it shouldn't be run twice
     requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature and generate an exodus file.'
   []
-  ##  HIGH PRESSURE TESTING #####################
-  [ZrCoHx_PCT_T433_1E4P_csv]
+  [ZrCoHx_PCT_T423_1E4P_csv]
     type = CSVDiff
     input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T433_1E4P_out
-                temperature=433.15
+    cli_args = "output_file_base=ZrCoHx_PCT_T423_1E4P_out
+                temperature=423.15
                 initial_pressure_H2_enclosure_1=1e4
                 initial_atomic_fraction=2.5
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T433_1E4P_out.csv
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=433.15 K.'
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = ZrCoHx_PCT_T423_1E4P_out.csv
+    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=423.15 K.'
   []
-  [ZrCoHx_PCT_T433_3E4P_csv]
+  [ZrCoHx_PCT_T524_5E2P_csv]
     type = CSVDiff
     input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T433_3E4P_out
-                temperature=433.15
+    cli_args = "output_file_base=ZrCoHx_PCT_T524_5E2P_out
+                temperature=524.15
+                initial_pressure_H2_enclosure_1=5e2
+                initial_atomic_fraction=0.2
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = ZrCoHx_PCT_T524_5E2P_out.csv
+    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e2 Pa and T=524.15 K.'
+  []
+  [ZrCoHx_PCT_T524_3E4P_csv]
+    type = CSVDiff
+    input =ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_T524_3E4P_out
+                temperature=524.15
                 initial_pressure_H2_enclosure_1=3e4
-                initial_atomic_fraction=2
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T433_3E4P_out.csv
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e4 Pa and T=433.15 K.'
+                initial_atomic_fraction=1.6
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = ZrCoHx_PCT_T524_3E4P_out.csv
+    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e4 Pa and T=524.15 K.'
   []
-  [ZrCoHx_PCT_T604_5E4P_csv]
+  [ZrCoHx_PCT_T604_5E2P_csv]
     type = CSVDiff
     input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T604_5E4P_out
+    cli_args = "output_file_base=ZrCoHx_PCT_T604_5E2P_out
+                temperature=604.15
+                initial_pressure_H2_enclosure_1=5e2
+                initial_atomic_fraction=0.3
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = ZrCoHx_PCT_T604_5E2P_out.csv
+    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e2 Pa and T=604.15 K.'
+  []
+  [ZrCoHx_PCT_T604_1E4P_csv]
+    type = CSVDiff
+    input =ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_T604_5E4P_out
                 temperature=604.15
                 initial_pressure_H2_enclosure_1=5e4
-                initial_atomic_fraction=1.8
-                Executioner/num_steps=200'
+                initial_atomic_fraction=2.0
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = ZrCoHx_PCT_T604_5E4P_out.csv
-    max_parallel = 1 # see #200
     requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e4 Pa and T=604.15 K.'
   []
-    [ZrCoHx_PCT_T573_1E4P_csv]
+  [ZrCoHx_PCT_Low_to_High_423K_csv]
     type = CSVDiff
-    input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T573_1E4P_out
-                temperature=573.15
-                initial_pressure_H2_enclosure_1=1e4
-                initial_atomic_fraction=1.41
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T573_1E4P_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=573.15 K.'
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_423K
+                temperature=423.15
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_423K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=423.15 K with an initial pressure of starting at P=20 Pa.'
   []
-    ##  LOW PRESSURE TESTING #####################
-   [ZrCoHx_PCT_T573_1E3P_csv]
+  [ZrCoHx_PCT_Low_to_High_524K_csv]
     type = CSVDiff
-    input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T573_1E3P_out
-                temperature=573.15
-                initial_pressure_H2_enclosure_1=1e3
-                initial_atomic_fraction=0.4
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T573_1E3P_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e3 Pa and T=573.15 K.'
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_524K
+                temperature=524.15
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_524K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=524.15 K with an initial pressure of starting at P=20 Pa.'
   []
-   [ZrCoHx_PCT_T604_1E4P_csv]
+  [ZrCoHx_PCT_Low_to_High_544K_csv]
     type = CSVDiff
-    input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T604_1E4P_out
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_544K
+                temperature=544.15
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_544K.csv
+    requirement ='The system shall be able to model the entire PCT curves of ZrCoHx at T=544.15 K with an initial pressure of starting at P=20 Pa.'
+  []
+  [ZrCoHx_PCT_Low_to_High_564K_csv]
+    type = CSVDiff
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_564K
+                temperature=564.15
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_564K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=564.15 K with an initial pressure of starting at P=20 Pa.'
+  []
+  [ZrCoHx_PCT_Low_to_High_584K_csv]
+    type = CSVDiff
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_584K
+                temperature=584.15
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_584K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=584.15 K with an initial pressure of starting at P=20 Pa.'
+  []
+  [ZrCoHx_PCT_Low_to_High_604K_csv]
+    type = CSVDiff
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_604K
                 temperature=604.15
-                initial_pressure_H2_enclosure_1=1e4
-                initial_atomic_fraction=0.45
-                Executioner/num_steps=300'
-    csvdiff = ZrCoHx_PCT_T604_1E4P_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=604.15 K.'
+                initial_pressure_H2_enclosure_1=25
+                dt_init=1e-3
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_604K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=604.15 K with an initial pressure of starting at P=20 Pa.'
   []
-   [ZrCoHx_PCT_T604_6E3P_csv]
+  [ZrCoHx_PCT_Low_to_High_624K_csv]
     type = CSVDiff
-    input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T604_6E3P_out
-                temperature=604.15
-                initial_pressure_H2_enclosure_1=6e3
-                initial_atomic_fraction=0.4
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T604_6E3P_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=6e3 Pa and T=604.15 K.'
+    input = ZrCoHx_PCT.i
+    cli_args = "output_file_base=ZrCoHx_PCT_Low_to_High_624K
+                temperature=624.15
+                dt_init=1e-3
+                initial_pressure_H2_enclosure_1=25
+                diffusivity_Do=100
+                reaction_rate_0=3.9e20
+                simulation_time=3000
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-4
+                Executioner/nl_abs_tol=4e-17"
+    csvdiff = ZrCoHx_PCT_Low_to_High_624K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=624.15 K with an initial pressure of starting at P=20 Pa.'
   []
-   [ZrCoHx_PCT_T433_1E2P_csv]
-    type = CSVDiff
-    input =ZrCoHx_PCT.i
-    cli_args = 'output_file_base=ZrCoHx_PCT_T433_1E2P_out
-                temperature=433.15
-                initial_pressure_H2_enclosure_1=1e2
-                initial_atomic_fraction=0.3
-                Executioner/num_steps=200'
-    csvdiff = ZrCoHx_PCT_T433_1E2P_out.csv
-    max_parallel = 1 # see #200
-    requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e2 Pa and T=433.15 K.'
-  []
-  ############## END OF LOW PRESSURE TESTING
   [ZrCoHx_PCT_comparison]
     type = RunCommand
     command = 'python3 comparison_ZrCoHx_PCT.py'
