@@ -12,7 +12,7 @@ os.chdir(script_folder)
 
 TEMPERATURES_K = [423, 524, 544, 564, 584, 604, 624]
 ATOM_RATIO_LOW = 0.7
-ATOM_RATIO_HIGH = 1.0
+ATOM_RATIO_HIGH = 1.1
 FIG_DPI = 300
 N_SMOOTH = 1000
 
@@ -182,7 +182,7 @@ for Tk in TEMPERATURES_K:
             label=f"{Tk}.15 K Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
         )
 
-    idx_hi = AR >= ATOM_RATIO_HIGH
+    idx_hi = AR >= 1.4
     if np.any(idx_hi):
         P_hi = P[idx_hi]
         AR_hi = AR[idx_hi]
@@ -193,8 +193,10 @@ for Tk in TEMPERATURES_K:
         fit_hi = fit_hi[mask]
 
         plt.scatter(AR_hi, P_hi, color=color_T, label=f"{Tk}.15 K Data")
-
-        Pmin = float(np.nanmax([np.min(P_hi), 1e-12]))
+        if Tk == 524:
+            Pmin = float(np.nanmax([np.min(P_hi) + 355, 1e-12]))
+        else:
+            Pmin = float(np.nanmax([np.min(P_hi), 1e-12]))
         Pmax = float(np.max(P_hi))
         Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
         fits = atom_ratio_eq_upper_func(Tk, Ps)
@@ -294,10 +296,6 @@ for Tk in TEMPERATURES_K:
         df_tmap["atomic_fraction_H_enclosure_2_at_interface"].astype(float).to_numpy()
     )
     p_tmap = df_tmap["pressure_H2_enclosure_1_at_interface"].astype(float).to_numpy()
-
-    mask = np.isfinite(ar_tmap) & np.isfinite(p_tmap) & (p_tmap > 1e-12)
-    ar_tmap = ar_tmap[mask]
-    p_tmap = p_tmap[mask]
 
     # ---------------------------
     # MAPE
