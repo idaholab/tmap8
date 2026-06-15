@@ -33,7 +33,7 @@ diffusivity_ratio_gas_ZrCoHx = '${fparse initial_concentration_H_enclosure_2 / i
 reaction_rate_0 = '${units 3.9e8 1/s}' #
 reaction_rate_Ea = '${units 1.2437 eV -> J}'#
 # Domain size and mesh parameters
-domain_length = '${units 1 m}'
+domain_length = '${units 0.20 m}'
 num_nodes = 100
 
 # time
@@ -321,8 +321,8 @@ output_file_base = 'ZrCoHx_PCT_out'
   dtmax = ${dt_max}
   nl_max_its = 50
   l_max_its = 30
-  nl_rel_tol = 1e-4
-  nl_abs_tol = 4e-17
+  nl_rel_tol = 1e-7
+  nl_abs_tol = 4e-12
   scheme = 'bdf2'
   solve_type = 'Newton'
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_type -snes_type'
