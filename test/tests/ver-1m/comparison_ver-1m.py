@@ -126,9 +126,11 @@ locations = np.linspace(0, fuel_radius, 101)  # m
 
 # Steady state concentration profiles
 if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
-    huang_df = f"../../../../test/tests/ver-1m/gold/ver-1m_huang_ss_data.csv"
+    huang_csv = f"../../../../test/tests/ver-1m/gold/ver-1m_huang_ss_data.csv"
 else:  # if in test folder
-    huang_df = f"./gold/ver-1m_huang_ss_data.csv"
+    huang_csv = f"./gold/ver-1m_huang_ss_data.csv"
+
+huang_df = pd.read_csv(huang_csv)
 
 fig = plt.figure(figsize=(10, 8))
 gs = gridspec.GridSpec(2, 2, wspace=0.25, hspace=0.25)
