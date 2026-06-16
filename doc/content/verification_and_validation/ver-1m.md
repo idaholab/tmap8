@@ -109,7 +109,7 @@ where T(r) is the temperature profile and K is determined from mass conservation
 
 [ver-1m_comparison_analytical_temperature_location.png] shows the comparison of the TMAP8 calculation and the analytical solution for the temperature as a function of the distance from the center. The TMAP8 prediction matches the analytical solution with excellent agreement for each linear heating rate, yielding a maximum root mean square percentage error (RMSPE) of RMSPE = 0.18 %.
 
-!media comparison_ver-1l.py
+!media comparison_ver-1m.py
        image_name=ver-1m_comparison_analytical_temperature_location.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=ver-1m_comparison_analytical_temperature_location.png
@@ -117,7 +117,7 @@ where T(r) is the temperature profile and K is determined from mass conservation
 
 [ver-1m_comparison_analytical_concentration_location.png] shows the comparison of the TMAP8 calculation and the analytical solution for the concentration profile as a function of the distance from the center. The TMAP8 prediction matches the analytical solution with excellent agreement for each linear heating rate, with a maximum RMSPE of 0.02 %. Results from literature [!cite](huang01102000) are also shown as a comparison.
 
-!media comparison_ver-1l.py
+!media comparison_ver-1m.py
        image_name=ver-1m_comparison_analytical_concentration_location.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=ver-1m_comparison_analytical_concentration_location.png
