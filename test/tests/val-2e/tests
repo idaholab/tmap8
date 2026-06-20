@@ -38,6 +38,7 @@
     csvdiff = val-2ec_out.csv
     cli_args = 'temperature="${units 865 K}" slab_thickness="${units 2.5e-5 m -> mum}" file_name="val-2ec_out"'
     requirement = 'The system shall be able to model permeation of Deuterium from a 0.025 mm thin membrane at 865 K to generate CSV data for use in comparisons with the experimental data.'
+    rel_err = 2e-5
   []
   [val-2ec]
     type = Exodiff
@@ -47,6 +48,7 @@
     exodiff = val-2ec_out.e
     cli_args = 'temperature="${units 865 K}" slab_thickness="${units 2.5e-5 m -> mum}" file_name="val-2ec_out"'
     requirement = 'The system shall be able to model permeation of Deuterium from a 0.025 mm thin membrane at 865 K and generate an exodus file.'
+    rel_err = 2e-5
   []
   [val-2ed_csvdiff]
     type = CSVDiff
@@ -67,6 +69,7 @@
     input = val-2ee.i
     csvdiff = val-2ee_out.csv
     requirement = 'The system shall be able to model permeation of mixture gas from a 0.025 mm thin membrane at 870 K using ratedep boundary conditions to generate CSV data for use in comparisons with the experimental data.'
+    rel_err = 2e-5
   []
   [val-2ee]
     type = Exodiff
@@ -75,6 +78,7 @@
     should_execute = False  # this test relies on the output files from val-2ee_csvdiff, so it shouldn't be run twice
     exodiff = val-2ee_out.e
     requirement = 'The system shall be able to model permeation of mixture gas with chemical reaction from a 0.025 mm thin membrane at 870 K using ratedep boundary conditions and generate an exodus file.'
+    rel_err = 2e-5
   []
   [ver-2e_comparison]
     type = RunCommand
