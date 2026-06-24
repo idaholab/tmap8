@@ -85,7 +85,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // Low pressure (LP) Branch
   const ADReal af_LP_grid =
-      0.7 - 1.0 / (5e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+      0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
                                    log(max(limit_pressure - neighbor_pressure, 1e-10))));
 
@@ -103,7 +103,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal P_b = beta_corr * limit_pressure; // HP
 
   // LP value at P_a (same formula as LP branch)
-  const ADReal af_a = 0.7 - 1.0 / (5e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+  const ADReal af_a = 0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
                                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
                                                    log(max(limit_pressure - P_a, 1e-10))));
 
@@ -124,7 +124,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal af_mid_here = m0 + m1 * log(max(neighbor_pressure, 1e-10));
 
   // -------------------------------
-  // Smooth blending in log-space (LP ↔ mid ↔ HP)
+  // Smooth blending in log-space (LP to mid to HP)
   // -------------------------------
   // Base widths (tunable)
   const Real base_delta_alpha_log = 0.08; // typical: 0.05–0.12
@@ -135,8 +135,8 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal x_beta = log(max(beta_corr, 1.0)); // log(beta(T))
 
   // Sigmoid steps (AD-safe)
-  const ADReal s_alpha = 1.0 / (1.0 + exp(-(x - x_alpha) / base_delta_alpha_log)); // LP→mid
-  const ADReal s_beta = 1.0 / (1.0 + exp(-(x - x_beta) / base_delta_beta_log));    // mid→HP
+  const ADReal s_alpha = 1.0 / (1.0 + exp(-(x - x_alpha) / base_delta_alpha_log)); // LP to mid
+  const ADReal s_beta = 1.0 / (1.0 + exp(-(x - x_beta) / base_delta_beta_log));    // mid to HP
 
   // Weights
   ADReal w_LP = 1.0 - s_alpha;             // Low pressure weights
