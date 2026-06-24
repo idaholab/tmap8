@@ -42,7 +42,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
   []
   [Scaled_Tritium_Flux]
     type = ParsedPostprocessor
-    expression = '5.01e-24 * Tritium_SideFluxIntegral'
+    expression = '${diffusivity_fixed} * Tritium_SideFluxIntegral'
     pp_names = Tritium_SideFluxIntegral
     execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
   []
@@ -52,86 +52,6 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
     boundary = '2to1'
     diffusivity = thermal_conductivity_CuCrZr
     variable = temperature
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_temperature_W]
-    type = ElementExtremeValue
-    block = 4
-    variable = 'temperature'
-    value_type = max
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_temperature_Cu]
-    type = ElementExtremeValue
-    block = 3
-    variable = 'temperature'
-    value_type = max
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_temperature_CuCrZr]
-    type = ElementExtremeValue
-    block = 2
-    variable = 'temperature'
-    value_type = max
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [avg_temperature_W]
-    type = ElementAverageValue
-    variable = temperature
-    block = 4
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [avg_temperature_Cu]
-    type = ElementAverageValue
-    variable = temperature
-    block = 3
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [avg_temperature_CuCrZr]
-    type = ElementAverageValue
-    variable = temperature
-    block = 2
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_concentration_W]
-    type = ElementExtremeValue
-    variable = 'C_total_W'
-    value_type = max
-    block = 4
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_concentration_Cu]
-    type = ElementExtremeValue
-    variable = 'C_total_Cu'
-    value_type = max
-    block = 3
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [max_concentration_CuCrZr]
-    type = ElementExtremeValue
-    variable = 'C_total_CuCrZr'
-    value_type = max
-    block = 2
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [area_W]
-    type = VolumePostprocessor
-    block = 4
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [area_Cu]
-    type = VolumePostprocessor
-    block = 3
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [area_CuCrZr]
-    type = VolumePostprocessor
-    block = 2
-    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
-  []
-  [total_retention]
-    type = SumPostprocessor
-    values = 'ScInt_C_total_W ScInt_C_total_Cu ScInt_C_total_CuCrZr'
     execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
   []
 

@@ -265,6 +265,33 @@
     value = Int_C_total_W
     scaling_factor = ${scaling_factor}
   []
+  [max_concentration_W]
+    type = ElementExtremeValue
+    variable = 'C_total_W'
+    value_type = max
+    block = 4
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [max_temperature_W]
+    type = ElementExtremeValue
+    block = 4
+    variable = 'temperature'
+    value_type = max
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+  [avg_temperature_W]
+    type = ElementAverageValue
+    variable = temperature
+    block = 4
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [area_W]
+    type = VolumePostprocessor
+    block = 4
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
   # ############################################################ Postprocessors for Cu (block = 3)
   [Int_C_mobile_Cu]
     type = ElementIntegralVariablePostprocessor
@@ -295,6 +322,33 @@
     type = ScalePostprocessor
     value = Int_C_total_Cu
     scaling_factor = ${scaling_factor}
+  []
+  [max_concentration_Cu]
+    type = ElementExtremeValue
+    variable = 'C_total_Cu'
+    value_type = max
+    block = 3
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [max_temperature_Cu]
+    type = ElementExtremeValue
+    block = 3
+    variable = 'temperature'
+    value_type = max
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+  [avg_temperature_Cu]
+    type = ElementAverageValue
+    variable = temperature
+    block = 3
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [area_Cu]
+    type = VolumePostprocessor
+    block = 3
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
   []
   # ############################################################ Postprocessors for CuCrZr (block = 2)
   [Int_C_mobile_CuCrZr]
@@ -327,7 +381,40 @@
     value = Int_C_total_CuCrZr
     scaling_factor = ${scaling_factor}
   []
+  [max_concentration_CuCrZr]
+    type = ElementExtremeValue
+    variable = 'C_total_CuCrZr'
+    value_type = max
+    block = 2
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [max_temperature_CuCrZr]
+    type = ElementExtremeValue
+    block = 2
+    variable = 'temperature'
+    value_type = max
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+  [avg_temperature_CuCrZr]
+    type = ElementAverageValue
+    variable = temperature
+    block = 2
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
+  [area_CuCrZr]
+    type = VolumePostprocessor
+    block = 2
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
   ############################################################ Postprocessors for others
+  [total_retention]
+    type = SumPostprocessor
+    values = 'ScInt_C_total_W ScInt_C_total_Cu ScInt_C_total_CuCrZr'
+    execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
+  []
+
   [dt]
     type = TimestepSize
   []
