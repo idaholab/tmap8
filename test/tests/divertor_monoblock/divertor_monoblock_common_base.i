@@ -92,7 +92,7 @@ plasma_max_t_flux = ${fparse 50 / 100 * plasma_max_flux}
 # Assuming 0.1% of incident tritium is retained in the divertor, leading to a retained tritium surface flux of 5.0e20 at/m^2/s
 plasma_max_retained_t_flux = ${fparse 0.1 / 100 * plasma_max_t_flux}
 # For the normalized atomic-fraction variable used here, the equivalent Neumann flux is J / N_W = 7.89e-9 m/s
-plasma_max_retained_t_surface_flux = '${fparse plasma_max_retained_t_flux / tungsten_atomic_density}' # normalized surface flux [m/s]
+plasma_max_retained_t_surface_flux = '${fparse plasma_max_retained_t_flux / tungsten_atomic_density}' # normalized surface flux (m/s)
 plasma_min_retained_t_surface_flux = '${units 0.0 m/s}'
 
 # For postprocessor scaling
