@@ -58,7 +58,7 @@ The results of the high pressure test for ($T$, $P$) =(598.15 K, $1 \times 10^{3
        image_name=Zr2FeHx_PCT_fit_2D.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=Zr2FeHx_PCT_fit_2D
-       caption=PCT data for  $Zr_{2}FeH_{x}$ from [!cite](yang2025potential) implemented in TMAP8, and test results.
+       caption=PCT data for  Zr$_{2}$FeH$_{x}$ from [!cite](yang2025potential) implemented in TMAP8, and test results.
 
 
 ### Overall PCT Testing

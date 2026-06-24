@@ -1,6 +1,6 @@
 [Tests]
   design = 'InterfaceDiffusion.md ADMatInterfaceReactionZr2FeHxPCT.md MatDiffusion.md TimeDerivative.md'
-  issues = '#364'
+  issues = '#261'
   [Zr2FeHx_PCT_csv]
     type = CSVDiff
     input = Zr2FeHx_PCT.i

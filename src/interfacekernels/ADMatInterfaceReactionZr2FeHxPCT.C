@@ -45,7 +45,7 @@ ADReal
 ADMatInterfaceReactionZr2FeHxPCT::computeQpResidual(Moose::DGResidualType type)
 {
   // Variables
-  ADReal limit_pressure = 5.; // lower pressure limit of fit
+  ADReal limit_pressure = 5.; // lower pressure limit of fit in Pa
   ADReal r = 0.;
 
   using std::exp;
