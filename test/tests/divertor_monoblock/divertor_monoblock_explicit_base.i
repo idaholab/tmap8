@@ -224,7 +224,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
   [heat_conduction_W]
     type = HeatConduction
     variable = temperature
-    diffusion_coefficient = thermal_conductivity_W
+    thermal_conductivity = thermal_conductivity_W
     block = 4
     extra_vector_tags = ref
   []
@@ -260,7 +260,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
   [heat_conduction_Cu]
     type = HeatConduction
     variable = temperature
-    diffusion_coefficient = thermal_conductivity_Cu
+    thermal_conductivity = thermal_conductivity_Cu
     block = 3
     extra_vector_tags = ref
   []
@@ -296,7 +296,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
   [heat_conduction_CuCrZr]
     type = HeatConduction
     variable = temperature
-    diffusion_coefficient = thermal_conductivity_CuCrZr
+    thermal_conductivity = thermal_conductivity_CuCrZr
     block = 2
     extra_vector_tags = ref
   []
