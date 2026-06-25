@@ -56,9 +56,9 @@ The verification focuses on two aspects of the solution: (1) the temporal evolut
 \begin{equation}
 \label{eq:Nernst_Plank_analytical}
 C = \frac{C_0}{2}\left[
-\exp(ax)\,\erfc\left(\frac{x + aDt}{2\sqrt{Dt}}\right)
+\exp(ax)\,\text{erfc}\left(\frac{x + aDt}{2\sqrt{Dt}}\right)
 +
-\erfc\left(\frac{x - aDt}{2\sqrt{Dt}}\right)
+\text{erfc}\left(\frac{x - aDt}{2\sqrt{Dt}}\right)
 \right],
 \end{equation}
 

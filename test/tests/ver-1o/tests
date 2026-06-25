@@ -20,6 +20,6 @@
     type = RunCommand
     command = 'python3 comparison_ver-1o.py'
     requirement = 'The system shall be able to compare the half-slab Joule-heating temperature transient against the analytical constant-source slab solution in a temperature-rise history figure and a two-time profile figure for case 1o.'
-    required_python_packages = 'matplotlib numpy pandas'
+    required_python_packages = 'matplotlib numpy pandas glob os'
   []
 []

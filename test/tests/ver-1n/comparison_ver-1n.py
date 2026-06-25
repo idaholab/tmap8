@@ -40,7 +40,7 @@ tmap_concentration_on_distance_case2 = (
 # ============================ TMAP8 result - time =========================== #
 
 if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
-    csv_folder = "../../../../test/tests/ver-1b/gold/ver-1n_out.csv"
+    csv_folder = "../../../../test/tests/ver-1n/gold/ver-1n_out.csv"
 else:  # if in test folder
     csv_folder = "./gold/ver-1n_out.csv"
 tmap_sol = pd.read_csv(csv_folder)

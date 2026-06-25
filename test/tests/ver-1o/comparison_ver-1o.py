@@ -2,14 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
-from pathlib import Path
+import glob
 
 # Use larger fonts everywhere (~2x matplotlib default of 10) per reviewer request
 plt.rcParams.update({"font.size": 15})
 
 # Changes working directory to script directory (for consistent MooseDocs usage)
-SCRIPT_FOLDER = Path(__file__).resolve().parent
-os.chdir(str(SCRIPT_FOLDER))
+script_folder = os.path.dirname(__file__)
+os.chdir(script_folder)
 
 # ===============================================================================
 # Physical constants and material properties
@@ -92,19 +92,21 @@ def get_analytical_delta_t_history(time_s):
 # ===============================================================================
 # Extract TMAP8 results
 
-if "/tmap8/doc/" in str(SCRIPT_FOLDER).lower():  # if in documentation folder
-    results_folder = (SCRIPT_FOLDER / "../../../../test/tests/ver-1o/gold").resolve()
+if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
+    results_folder = "../../../../test/tests/ver-1o/gold"
 else:  # if in test folder
-    results_folder = SCRIPT_FOLDER / "gold"
+    results_folder = "./gold"
 
 # one CSV per profile time, named by sync time and timestep index
 profile_csvs = {
-    t: next(results_folder.glob(f"ver-1o_vector_postproc_{int(t)}s_line_*.csv"))
+    t: glob.glob(
+        os.path.join(results_folder, f"ver-1o_vector_postproc_{int(t)}s_line_*.csv")
+    )[0]
     for t in PROFILE_TIMES
 }
 
 # time-history postprocessor output
-time_data = pd.read_csv(results_folder / "ver-1o_out.csv")
+time_data = pd.read_csv(os.path.join(results_folder, "ver-1o_out.csv"))
 time_history = time_data["time"].to_numpy(dtype=float)
 tmap_delta_t_history = (
     time_data["delta_T"].to_numpy(dtype=float)
@@ -124,18 +126,6 @@ history_rmse = np.sqrt(
     )
 )
 history_rmspe = history_rmse * 100.0 / np.mean(analytical_delta_t_history[history_mask])
-
-# print(f"Using results folder: {results_folder}")
-# print(f"Time-history RMSPE = {history_rmspe:.4f} %")
-# for time_s in PROFILE_TIMES:
-#     line_csv = profile_csvs[time_s]
-#     line_data = pd.read_csv(line_csv)
-#     x_m = line_data["x"].to_numpy(dtype=float) * 1e-6
-#     tmap_temperature = line_data["temperature"].to_numpy(dtype=float)
-#     analytical_temperature = get_analytical_solution(x_m, time_s)
-#     rmse = np.sqrt(np.mean((tmap_temperature - analytical_temperature) ** 2))
-#     rmspe = rmse * 100.0 / np.mean(analytical_temperature)
-#     print(f"Profile RMSPE at t = {time_s:.0f} s: {rmspe:.4f} % ({line_csv.name})")
 
 # ===============================================================================
 # Plot temperature-rise history
