@@ -30,7 +30,7 @@ W_cond_factor = 1.0
 Functions/timestep_function/expression := "if(t<2e4, 500, if(t<(2e4+${peak_duration}+1), 0.10, 500))"
 Functions/retained_t_surface_flux_function/expression := "if(t<2e4, ${plasma_max_retained_t_surface_flux}, if(t<(2e4+${peak_duration}), "
                  "${peak_value}/${plasma_max_heat}*${plasma_max_retained_t_surface_flux}, 0.1*${plasma_max_retained_t_surface_flux}))"
-Functions/temperature_flux_bc_function/expression := "if(t<2e4, 1.0e7, if(t<(2e4+${peak_duration}), ${peak_value}, 1.0e6))"
+Functions/temperature_flux_bc_function/expression := "if(t<2e4, ${plasma_max_heat}, if(t<(2e4+${peak_duration}), ${peak_value}, 0.1*${plasma_max_heat}))"
 Functions/temperature_inner_function/expression := ${coolant_temperature}
 
 Functions/temperature_steady_state/expression := "-1.59786e4*x^2  -1.11629611e4*x + 4.84297313e2 + 1.9491599e6*y^2 + 1.55723201e4*y "

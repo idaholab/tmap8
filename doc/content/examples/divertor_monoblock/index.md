@@ -201,7 +201,7 @@ as a simplification of the complex plasma implantation and recombination phenome
 which would otherwise require a more detailed near-surface implantation model and increase computational costs.
 
 !alert warning title=Updated tritium retained surface flux value from [!cite](Shimada2024114438)
-Since publication, the input file has been updated to fix a typo in [!cite](Shimada2024114438), where the retained tritium surface flux was divided by the thickness of the first mesh layer ($dx = 1 \times 10^{-4}$ m), leading to a flux of 7.89 $\times$ 10$^{-13}$ $\cdot$s$^{-1}$ instead of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$. The updated input files now use the corrected value of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$.
+Since publication, the input file has been updated to fix a typo in [!cite](Shimada2024114438), where the retained tritium surface flux was multiplied by the thickness of the first mesh layer ($dx = 1 \times 10^{-4}$ m), leading to a flux of 7.89 $\times$ 10$^{-13}$ s$^{-1}$ instead of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$. The updated input files now use the corrected value of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$.
 
 !alert warning title=Small typo fixed for the heat flux from [!cite](Shimada2024114438)
 Since publication, the input file has been updated to fix a small typo that has a minor, almost insignificant effect on the results. The typo set the heat flux to be equal to 300 W/m$^2$ while the pulse was off, as opposed to being equal to 0 W/m$^2$. This was likely due to a mistake in using the off-pulse temperature of the cooling channel (300 K) rather than the zero flux. The change from 300 W/m$^2$ to 0 W/m$^2$ was observed to be negligible, which is attributed to the fact that 300 W/m$^2$ is a small value in this scenario. For context, the maximum heat flux value is 1 $\times 10^{7}$ W/m$^2$. The current version of the input file uses 0 W/m$^2$.
@@ -270,7 +270,7 @@ to avoid the convergence issue associated with calculating two significantly dif
 
 !listing test/tests/divertor_monoblock/divertor_monoblock.i link=false block=InterfaceKernels
 
-## Postprocessors
+### Postprocessors
 
 !style halign=left
 Relevant postprocessors have been added to characterize temperatures, fluxes and concentrations of tritium at various points in the model.
