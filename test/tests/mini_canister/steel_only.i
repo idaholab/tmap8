@@ -102,8 +102,6 @@ estimated_pressure_gas = '${units ${fparse 24*0.10} psi -> Pa}'
   [simulated_diffusion_length] # x-intercept of tangent line at interface
     type = ParsedPostprocessor
     expression = '-interface_concentration/gradient_left_boundary'
-    constant_expressions = ${inner_radius}
-    constant_names = interface_location
     pp_names = 'interface_concentration gradient_left_boundary'
     outputs = csv
   []
