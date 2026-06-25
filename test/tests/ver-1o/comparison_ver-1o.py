@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 # Use larger fonts everywhere (~2x matplotlib default of 10) per reviewer request
-plt.rcParams.update({'font.size': 15})
+plt.rcParams.update({"font.size": 15})
 
 # Changes working directory to script directory (for consistent MooseDocs usage)
 SCRIPT_FOLDER = Path(__file__).resolve().parent
@@ -28,8 +28,12 @@ PROFILE_TIMES = (1000.0, 20000.0)  # s, output times for spatial profile compari
 
 SPECIFIC_HEAT = SPECIFIC_HEAT_MOLAR / MOLAR_MASS_BCY20  # J/kg/K
 THERMAL_DIFFUSIVITY = THERMAL_CONDUCTIVITY / (DENSITY * SPECIFIC_HEAT)  # m^2/s
-HEAT_SOURCE = SIGMA_REF * (VOLTAGE_TOTAL / FULL_LENGTH) ** 2  # W/m^3, uniform Joule source
-LAMBDA_N = (np.arange(NUM_SERIES_TERMS, dtype=float) + 0.5) * np.pi  # eigenvalues: (n+1/2)*pi
+HEAT_SOURCE = (
+    SIGMA_REF * (VOLTAGE_TOTAL / FULL_LENGTH) ** 2
+)  # W/m^3, uniform Joule source
+LAMBDA_N = (
+    np.arange(NUM_SERIES_TERMS, dtype=float) + 0.5
+) * np.pi  # eigenvalues: (n+1/2)*pi
 
 # ===============================================================================
 # Analytical solution functions
@@ -84,6 +88,7 @@ def get_analytical_delta_t_history(time_s):
     )
     return delta_t
 
+
 # ===============================================================================
 # Extract TMAP8 results
 
@@ -113,7 +118,10 @@ tmap_delta_t_history = (
 analytical_delta_t_history = get_analytical_delta_t_history(time_history)
 history_mask = time_history > 0.0
 history_rmse = np.sqrt(
-    np.mean((tmap_delta_t_history[history_mask] - analytical_delta_t_history[history_mask]) ** 2)
+    np.mean(
+        (tmap_delta_t_history[history_mask] - analytical_delta_t_history[history_mask])
+        ** 2
+    )
 )
 history_rmspe = history_rmse * 100.0 / np.mean(analytical_delta_t_history[history_mask])
 
