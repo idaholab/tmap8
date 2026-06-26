@@ -10,7 +10,7 @@ F = '${fparse N_a * q}'
 
 # Pressure conditions
 pressure_high = '${units 100 Pa}'
-pressure_low = '${units 0 Pa}'
+pressure_low = '${units 1e-6 Pa}'
 
 # Temperature conditions
 temperature = '${units 773 K}' # 500 C

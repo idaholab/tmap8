@@ -91,13 +91,13 @@ T(x) = T_{\mathrm{wall}} + \frac{\dot{q}_J}{\kappa}\!\left(\ell x - \frac{x^2}{2
 
 ## Results
 
-[ver-1o_comparison_temperature_history] compares the maximum temperature rise history, $\Delta T_{\max}(t)$, predicted by TMAP8 against the analytical solution evaluated at the insulated face $x=L$. The TMAP8 result closely matches the analytical solution, with an RMSPE of 0.50%.
+[ver-1o_comparison_temperature_history] compares the maximum temperature rise history, $\Delta T_{\max}(t)$, predicted by TMAP8 against the analytical solution evaluated at the insulated face $x = L$. The TMAP8 result closely matches the analytical solution, with an RMSPE of 0.50%.
 
 !media comparison_ver-1o.py
        image_name=ver-1o_comparison_temperature_history.png
        style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=ver-1o_comparison_temperature_history
-       caption=Comparison of the TMAP8 transient maximum temperature rise history with the analytical half-slab solution for a constant Joule-heating source, prescribed surface temperature at $x=0$, and insulated symmetry plane at $x=L$.
+       caption=Comparison of the TMAP8 transient maximum temperature rise history with the analytical half-slab solution for a constant Joule-heating source, prescribed surface temperature at $x = 0$, and insulated symmetry plane at $x = L$.
 
 [ver-1o_comparison_temperature_profiles] compares the transient temperature profiles at $t = 1000$ s and $t = 20000$ s with the analytical solution. The simulated profiles show excellent agreement with the analytical solution, with RMSPE values below 0.01% at both times.
 
