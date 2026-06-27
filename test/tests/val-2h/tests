@@ -1,0 +1,112 @@
+[Tests]
+  design = 'SideSetsBetweenSubdomainsGenerator.md InterfaceSorption.md'
+  issues = '#193'
+    [val-2h]
+      type = CSVDiff
+      input = val-2h.i
+      cli_args = "simulation_time=1e-5
+                  Outputs/file_base=val-2h_out_light"
+      csvdiff = val-2h_out_light.csv
+      requirement = 'The system shall be able to model the light test for the transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 823 K and 1210 Pa.'
+    []
+    [val-2h_823K_1210Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_823K_1210Pa_out.csv
+      cli_args = 'temperature_exp="${units 823 K}" initial_pressure="${units 1210 Pa}" Outputs/file_base="val-2h_823K_1210Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 823 K and 1210 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_873K_1210Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_873K_1210Pa_out.csv
+      cli_args = 'temperature_exp="${units 873 K}" initial_pressure="${units 1210 Pa}" Outputs/file_base="val-2h_873K_1210Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 873 K and 1210 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_923K_1210Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_923K_1210Pa_out.csv
+      cli_args = 'temperature_exp="${units 923 K}" initial_pressure="${units 1210 Pa}" Outputs/file_base="val-2h_923K_1210Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 923 K and 1210 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_973K_1210Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_973K_1210Pa_out.csv
+      cli_args = 'temperature_exp="${units 973 K}" initial_pressure="${units 1210 Pa}" Outputs/file_base="val-2h_973K_1210Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 973 K and 1210 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_873K_538Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_873K_538Pa_out.csv
+      cli_args = 'temperature_exp="${units 873 K}" initial_pressure="${units 538 Pa}" Outputs/file_base="val-2h_873K_538Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 873 K and 538 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_923K_538Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_923K_538Pa_out.csv
+      cli_args = 'temperature_exp="${units 923 K}" initial_pressure="${units 538 Pa}" Outputs/file_base="val-2h_923K_538Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 923 K and 538 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_973K_538Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_973K_538Pa_out.csv
+      cli_args = 'temperature_exp="${units 973 K}" initial_pressure="${units 538 Pa}" Outputs/file_base="val-2h_973K_538Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 973 K and 538 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_923K_316Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_923K_316Pa_out.csv
+      cli_args = 'temperature_exp="${units 923 K}" initial_pressure="${units 316 Pa}" Outputs/file_base="val-2h_923K_316Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 923 K and 316 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_973K_316Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_973K_316Pa_out.csv
+      cli_args = 'temperature_exp="${units 973 K}" initial_pressure="${units 316 Pa}" Outputs/file_base="val-2h_973K_316Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 973 K and 316 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+    [val-2h_973K_170Pa]
+      type = CSVDiff
+      heavy = true
+      input = val-2h.i
+      csvdiff = val-2h_973K_170Pa_out.csv
+      cli_args = 'temperature_exp="${units 973 K}" initial_pressure="${units 170 Pa}" Outputs/file_base="val-2h_973K_170Pa_out"'
+      requirement = 'The system shall be able to model transient diffusion through a crucible containing molten salt with a constant concentration boundary condition as the species source, for 973 K and 170 Pa.'
+      max_time = 3600
+      min_parallel = 10
+    []
+[]
