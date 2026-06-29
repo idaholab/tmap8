@@ -26,11 +26,12 @@ elm_value = ${units 1147 MW/m^2 -> W/m^2}
 elm_duration = ${units 1.32 ms -> s}
 W_cond_factor = 1.0
 
-Functions/mobile_flux_bc_function/expression := "if(t<2e2, (${base_power}*7.9e-13/1e7),
+# scales the BCs bases on the new base power
+Functions/retained_t_surface_flux_function/expression := "if(t<2e2, (${base_power}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat}),
 if(t<(2e2+${elm_duration}*1/3),
-(${base_power}*7.9e-13/1e7)+(t-2e2)/(${elm_duration}*1/3)*((${elm_value}*7.9e-13/1e7)-(${base_power}*7.9e-13/1e7)),
+(${base_power}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})+(t-2e2)/(${elm_duration}*1/3)*((${elm_value}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})-(${base_power}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})),
 if(t<(2e2+(${elm_duration}*1/3)+(${elm_duration}*2/3)),
-(${elm_value}*7.9e-13/1e7)-(t-2e2-(${elm_duration}*1/3))/(${elm_duration}*2/3)*((${elm_value}*7.9e-13/1e7)-(${base_power}*7.9e-13/1e7)), (${base_power}*7.9e-13/1e7))))"
+(${elm_value}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})-(t-2e2-(${elm_duration}*1/3))/(${elm_duration}*2/3)*((${elm_value}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})-(${base_power}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat})), (${base_power}*${plasma_max_retained_t_surface_flux}/${plasma_max_heat}))))"
 Functions/temperature_inner_function/expression := "${coolant_temperature}"
 Executioner/petsc_options_iname := '-pc_type'
 Executioner/petsc_options_value := 'lu'
@@ -72,7 +73,7 @@ Postprocessors/temperature_tube/execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
 Postprocessors/timestep_max_pp/execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
 # There is a lot of overlap with the divertor monoblock case, but the terms defined there for the temperature profile and tritium flux are unused here.
 # Add them to the dummy postprocessor so the parser does not complain.
-Postprocessors/unused_parameters/expression := '${plasma_max_flux} + ${plasma_min_flux} + ${temperature_initial} + ${temperature_coolant_max} + ${num_sectors}
+Postprocessors/unused_parameters/expression := '${plasma_max_retained_t_surface_flux} + ${plasma_min_retained_t_surface_flux} + ${temperature_initial} + ${temperature_coolant_max} + ${num_sectors}
  + ${rings_H2O} + ${rings_CuCrZr} + ${rings_Cu} + ${rings_W}'
 
 [Postprocessors]

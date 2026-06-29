@@ -61,7 +61,7 @@ C_mobile_CuCrZr_init = 1.0e-15 # at.fraction
       initial_condition = ${C_mobile_W_init}
 
       neumann_boundaries = 'top'
-      boundary_fluxes = 'mobile_flux_bc_function'
+      boundary_fluxes = 'retained_t_surface_flux_function'
     []
     [Cu]
       variable_name = 'C_mobile_Cu'

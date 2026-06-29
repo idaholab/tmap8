@@ -189,14 +189,19 @@ During the steady-state plasma discharge, we set a heat flux of 10 MW$\cdot$m$^{
 and a cooling temperature of 552 K at the inner CuCrZr tube (at $r = 6.0$ mm).
 We assume a 100% T plasma with a 5.0 $\times$ 10$^{23}$ m$^{-2}$$\cdot$s$^{-1}$ plasma particle flux
 (which is half of the full 1.0 $\times$ 10$^{24}$ m$^{-2}$$\cdot$s$^{-1}$ DT plasma particle flux),
-and only 0.1% of the incident plasma particle flux (5.0 $\times$ 10$^{20}$ m$^{-2}$$\cdot$s$^{-1}$)
-entered the first layer of mesh at the exposed surface ($y = 14.0$ mm) as in [!cite](Shimada2024114438).
+and only 0.1% of the incident plasma particle flux is treated as a retained tritium surface flux at
+the exposed surface ($y = 14.0$ mm), corresponding to 5.0 $\times$ 10$^{20}$ m$^{-2}$$\cdot$s$^{-1}$.
+For the normalized atomic-fraction variable used in the input file, this boundary condition is written as a
+Neumann flux of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$.
 The solute T atom concentration is set to zero at the inner CuCrZr tube (at $r = 6.0$ mm).
 
 We treated this plasma exposure by setting the flux BC of the
 solute T atom concentration at the exposed surface ($y = 14.0$ mm)
 as a simplification of the complex plasma implantation and recombination phenomena,
-which would require a very fine mesh and increase computational costs.
+which would otherwise require a more detailed near-surface implantation model and increase computational costs.
+
+!alert warning title=Updated tritium retained surface flux value from [!cite](Shimada2024114438)
+Since publication, the input file has been updated to fix a typo in [!cite](Shimada2024114438), where the retained tritium surface flux was multiplied by the thickness of the first mesh layer ($dx = 1 \times 10^{-4}$ m), leading to a flux of 7.89 $\times$ 10$^{-13}$ s$^{-1}$ instead of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$. The updated input files now use the corrected value of 7.89 $\times$ 10$^{-9}$ m$\cdot$s$^{-1}$.
 
 !alert warning title=Small typo fixed for the heat flux from [!cite](Shimada2024114438)
 Since publication, the input file has been updated to fix a small typo that has a minor, almost insignificant effect on the results. The typo set the heat flux to be equal to 300 W/m$^2$ while the pulse was off, as opposed to being equal to 0 W/m$^2$. This was likely due to a mistake in using the off-pulse temperature of the cooling channel (300 K) rather than the zero flux. The change from 300 W/m$^2$ to 0 W/m$^2$ was observed to be negligible, which is attributed to the fact that 300 W/m$^2$ is a small value in this scenario. For context, the maximum heat flux value is 1 $\times 10^{7}$ W/m$^2$. The current version of the input file uses 0 W/m$^2$.
@@ -246,7 +251,7 @@ The diffusivity is defined as $D=D_0 \exp⁡(-E_D/k_B/T)$ and the solubility is 
 !listing test/tests/divertor_monoblock/divertor_monoblock.i link=false block=Materials
 
 
-# Interface Kernels
+### Interface Kernels
 
 !style halign=left
 TMAP8 assumes equilibrium between the chemical potentials of the diffusing species similar to how
@@ -265,45 +270,10 @@ to avoid the convergence issue associated with calculating two significantly dif
 
 !listing test/tests/divertor_monoblock/divertor_monoblock.i link=false block=InterfaceKernels
 
-
-### Numerical method
-
-!style halign=left
-We use a standard preconditioner: the [“single matrix preconditioner”](SingleMatrixPreconditioner.md).
-The Newton method is used to model the [transient](Transient.md) tritium and thermal transport in a 2D monoblock.
-It is important to note that MOOSE is equipped with the built-in Message Passing Interface (MPI) protocol,
-as tritium and thermal transport analysis of fifty 1,600-second cycle plasma discharges in the 2D monoblock is
-performed in under 2 hours using a single device/computer (3.5 GHz Apple M2 Pro, 10-Core CPU/16-Core GPU) with this MPI feature.
-
-!listing test/tests/divertor_monoblock/divertor_monoblock.i link=false block=Executioner
-
-
-## Results
+### Postprocessors
 
 !style halign=left
-The simulation results from this example are shown in [fig:results2D_a] and [fig:results2D_b].
-For more results, information, and discussion about the results for this example case and
-their significance, the reader is referred to [!cite](Shimada2024114438).
-
-!media examples/figures/divertor_monoblock_results_2D_a.png
-  id=fig:results2D_a
-  caption=Tritium concentration profile in W (left), Cu (center), and CuCrZr (right) after ten 1,600-second cycles ($t = 14912$ s). This corresponds to Fig. 4A in [!cite](Shimada2024114438).
-  style=display:block;margin-left:auto;margin-right:auto;width:40%
-
-!media examples/figures/divertor_monoblock_results_2D_b.png
-  id=fig:results2D_b
-  caption=Tritium concentration profile in W (left), Cu (center), and CuCrZr (right) after fifty 1,600-second cycles ($t = 78912$ s). This corresponds to Fig. 4B in [!cite](Shimada2024114438).
-  style=display:block;margin-left:auto;margin-right:auto;width:40%
-
-!alert warning title=The exodus file in `gold` is a smaller version of the output
-The input file [/divertor_monoblock.i] returns the outputs that were used in [!cite](Shimada2024114438). However, a slightly modified version of this input is run in [/divertor_monoblock/tests] as part of TMAP8's [Software Quality Assurance](sqa/index.md exact=True) process: It simulates only one pulse cycle, has a coarser mesh, and outputs the results less regularly to limit the file size. As a result, the exodus file in the test `gold` directory is a smaller version of the output generated when running the full input file.
-
-Note that the current model has been utilized in a follow up study to perform a sensitivity study on material properties and operation conditions, for which the documentation is available [here](examples/divertor_monoblock/sensitivity.md exact=True).
-
-## Postprocessors
-
-!style halign=left
-Relevant postprocessors have been added to characterize temperatures, fluxes and concentrations of tritium at various points in the model. 
+Relevant postprocessors have been added to characterize temperatures, fluxes and concentrations of tritium at various points in the model.
 
 First, we add a postprocessor to track the flux across the CuCrZr boundary, and scale it to obtain a total flux
 
@@ -347,6 +317,42 @@ And the total area (2D volume) each material occupies
 
 !listing test/tests/divertor_monoblock/divertor_monoblock.i block=Postprocessors/total_retention link=false
 
+### Numerical method
+
+!style halign=left
+We use a standard preconditioner: the [“single matrix preconditioner”](SingleMatrixPreconditioner.md).
+The Newton method is used to model the [transient](Transient.md) tritium and thermal transport in a 2D monoblock.
+It is important to note that MOOSE is equipped with the built-in Message Passing Interface (MPI) protocol,
+as tritium and thermal transport analysis of fifty 1,600-second cycle plasma discharges in the 2D monoblock is
+performed in under 2 hours using a single device/computer (3.5 GHz Apple M2 Pro, 10-Core CPU/16-Core GPU) with this MPI feature.
+
+!listing test/tests/divertor_monoblock/divertor_monoblock.i link=false block=Executioner
+
+
+## Results
+
+!style halign=left
+The simulation results from this example are shown in [fig:results2D_a] and [fig:results2D_b].
+For more results, information, and discussion about the results for this example case and
+their significance, the reader is referred to [!cite](Shimada2024114438).
+
+!media examples/figures/divertor_monoblock_results_2D_a.png
+  id=fig:results2D_a
+  caption=Tritium concentration profile in W (left), Cu (center), and CuCrZr (right) after ten 1,600-second cycles ($t = 14912$ s). This corresponds to Fig. 4A in [!cite](Shimada2024114438). The input files have been updated since publication and will provide different results (see warning below).
+  style=display:block;margin-left:auto;margin-right:auto;width:40%
+
+!media examples/figures/divertor_monoblock_results_2D_b.png
+  id=fig:results2D_b
+  caption=Tritium concentration profile in W (left), Cu (center), and CuCrZr (right) after fifty 1,600-second cycles ($t = 78912$ s). This corresponds to Fig. 4B in [!cite](Shimada2024114438). The input files have been updated since publication and will provide different results (see warning below).
+  style=display:block;margin-left:auto;margin-right:auto;width:40%
+
+!alert warning title=Updated results since publication of [!cite](Shimada2024114438).
+As detailed in the `Boundary conditions and history` section above, the BCs for tritium influx and heat flux have been updated since publication of [!cite](Shimada2024114438) to fix typos. While the heat flux correction only has very minor effects, the new tritium flux is 4 orders of magnitude larger than in [!cite](Shimada2024114438), leading to higher tritium concentrations, overall retention, and losses to the coolant side.
+
+!alert warning title=The exodus file in `gold` is a smaller version of the output
+The input file [/divertor_monoblock.i] returns the outputs updated from [!cite](Shimada2024114438). However, a slightly modified version of this input is run in [/divertor_monoblock/tests] as part of TMAP8's [Software Quality Assurance](sqa/index.md exact=True) process: It simulates only one pulse cycle, has a coarser mesh, and outputs the results less regularly to limit the file size. As a result, the exodus file in the test `gold` directory is a smaller version of the output generated when running the full input file.
+
+Note that the current model has been utilized in a follow up study to perform a sensitivity study on material properties and operation conditions, for which the documentation is available [here](examples/divertor_monoblock/sensitivity.md exact=True).
 
 ## Complete input file
 

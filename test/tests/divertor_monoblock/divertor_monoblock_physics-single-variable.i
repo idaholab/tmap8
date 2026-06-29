@@ -49,7 +49,7 @@ C_mobile_init = 1.0e-20 # at.fraction
       initial_condition = ${C_mobile_init}
 
       neumann_boundaries = 'top'
-      boundary_fluxes = 'mobile_flux_bc_function'
+      boundary_fluxes = 'retained_t_surface_flux_function'
     []
   []
   [SpeciesTrapping]

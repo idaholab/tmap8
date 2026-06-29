@@ -19,7 +19,6 @@
 ### ScInt_          Scaled and integrated
 
 temperature_top_val = ${units 10 MW/m^2}
-C_mob_W_top_flux_val = 7.90e-13 # normalized units
 temperature_tube_val = ${units 552 K}
 
 [Controls]
@@ -32,13 +31,15 @@ temperature_tube_val = ${units 552 K}
 ### This input uses the `!include` feature to incorporate other input files
 !include divertor_monoblock_explicit_base.i
 
+retained_t_surface_flux_val = ${plasma_max_retained_t_surface_flux} # normalized surface flux [m/s]
+
 # Geometry and design
 num_sectors := 12
 rings_CuCrZr := 6
 rings_Cu := 4
 rings_W := 22
 
-Functions/mobile_flux_bc_function/expression := '${fparse C_mob_W_top_flux_val}'
+Functions/retained_t_surface_flux_function/expression := '${fparse retained_t_surface_flux_val}'
 Functions/temperature_flux_bc_function/expression := '${fparse temperature_top_val}'
 Functions/temperature_inner_function/expression := '${fparse temperature_tube_val}'
 Functions/timestep_function/expression := 'if(t<100, 25, 400)'
@@ -72,7 +73,7 @@ Postprocessors/timestep_max_pp/execute_on = 'MULTIAPP_FIXED_POINT_END FINAL'
 # Need to add unused parameters from the divertor monoblock case to the dummy postprocessor
 Postprocessors/unused_parameters/expression := '${num_sectors} + ${rings_H2O} + ${rings_CuCrZr} + ${rings_Cu} + ${rings_W}
                   + ${temperature_coolant_max} + ${plasma_max_heat} + ${plasma_min_heat}
-                  + ${plasma_max_flux} + ${plasma_min_flux}'
+                  + ${plasma_max_retained_t_surface_flux} + ${plasma_min_retained_t_surface_flux}'
 
 Variables/temperature/initial_condition= ${temperature_initial}
 

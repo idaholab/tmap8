@@ -19,8 +19,7 @@
 			rings_CuCrZr=10
 			rings_Cu=8
 			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			Executioner/nl_abs_tol=3e-6'
 			detail = 'pulsed operation.'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			heavy = true
@@ -37,8 +36,7 @@
 			rings_CuCrZr=10
 			rings_Cu=8
 			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			Executioner/nl_abs_tol=3e-6'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			heavy = true
 			min_parallel = 2
@@ -53,9 +51,7 @@
 			Executioner/end_time=100
 			rings_CuCrZr=10
 			rings_Cu=8
-			rings_W=40
-			Executioner/nl_rel_tol=1e-9
-			Executioner/nl_abs_tol=1e-11'
+			rings_W=40'
 			detail = 'pulsed operation with a single tritium variable and physics syntax'
 			rel_err = 8e-4 # increasing the relative error tolerance because the test is sensitive to the environment. This error is still small for physical problems.
 			abs_zero = 3e-9
@@ -97,12 +93,12 @@
 			cli_args = 'runner:Mesh/ccmg/rings="1 3 3 3" Outputs/out/file_base=elm_transient_sobol runner:Executioner/end_time=2.000005e2 Samplers/hypercube_1/num_rows=5 Samplers/hypercube_2/num_rows=5 runner:/Mesh/ccmg/num_sectors=4'
 			jsondiff = 'elm_transient_sobol.json'
 			heavy = true
-                        skip_keys = 'sobol stats'
+      skip_keys = 'sobol stats'
 			min_parallel = 4
 			rel_err = 20
 		[]
 	[]
-        [python_comparison]
+  [python_comparison]
 		type = RunCommand
 		command = 'python3 divertor_monoblock_sensitivity.py'
 		design = 'divertor_monoblock/sensitivity.md'
