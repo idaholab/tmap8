@@ -1,0 +1,30 @@
+[Tests]
+  design = 'mini_canister/index.md'
+  issues = '#293'
+  [steel_only_csvdiff_const_pressure]
+    type = CSVDiff
+    input = 'steel_only.i'
+    cli_args = 'pressure_function=constant_pressure'
+    csvdiff = steel_only_out_constant_pressure.csv
+    requirement = 'The system shall be able to model hydrogen permeation through the steel walls of the SRNL mini-canister with a constant-pressure boundary condition'
+  []
+  [steel_only_csvdiff_SRNL_pressure]
+    type = CSVDiff
+    input = 'steel_only.i'
+    cli_args = 'pressure_function=SRNL_pressure'
+    csvdiff = steel_only_out_SRNL_pressure.csv
+    requirement = 'The system shall be able to model hydrogen permeation through the steel walls of the SRNL mini-canister with a data-fit function'
+  []
+  [gas_steel_csvdiff]
+    type = CSVDiff
+    input = 'gas_steel.i'
+    csvdiff = gas_steel_out.csv
+    requirement = 'The system shall be able to model hydrogen generation and permeation through the gas chamber and steel walls of the SRNL mini-canister'
+  []
+  [gas_steel_comparison]
+    type = RunCommand
+    command = 'python3 comparison_mini_canister.py'
+    requirement = 'The system shall be able to generate figures with the simulation results when modeling hydrogen generation and permeation through the gas chamber and steel walls of the SRNL mini-canister'
+    required_python_packages = 'matplotlib numpy os pandas'
+  []
+[]

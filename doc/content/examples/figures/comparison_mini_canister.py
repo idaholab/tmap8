@@ -1,0 +1,1 @@
+../../../../test/tests/mini_canister/comparison_mini_canister.py

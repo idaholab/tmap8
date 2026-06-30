@@ -1,0 +1,27 @@
+# This input files provides the model parameter values for the SRNL mini-canister example case.
+# Parameters needed for both models are included in mini_canister_base.i
+# Parameters needed for only one model are supplied in their respectivesteel_only.i or gas_steel.i are specified in
+
+# Geometry
+inner_radius = '${units 1.415 in -> mm}' # Radius of canister containing gases
+steel_thickness = '${units 0.085 in -> mm}' # Thickness of steel enclosure
+height = '${units 7.06 in -> mm}'
+
+
+# Misc
+temperature = '${units 313.15 K}' # INL Report: Section 2.3
+ideal_gas_constant = '${units 8.31446261815324 J/K/mol -> J/K/mumol}' # Note: InterfaceSorption uses in J/K/mol value from PhysicalConstants namespace
+
+# Sandia Technical Reference: Hydrogen Diffusivity & Solubility in 304 Stainless Steel
+diffusivity_preexponential_factor_in_steel = '${units 0.20e-6 m^2/s -> mm^2/day}'
+diffusivity_activation_energy_in_steel = '${units 49.3 kJ/mol -> J/mumol}'
+diffusivity_H_in_steel = '${units ${fparse diffusivity_preexponential_factor_in_steel * exp(-diffusivity_activation_energy_in_steel/(ideal_gas_constant*temperature))} mm^2/day}'
+solubility_preexponential_factor_in_steel = '${units 266e-6 mumol/mm^3/Pa^(1/2)}' # Units are mumol/mm^3/sqrt(Pa) due to Sievert's law in EquilibriumBC
+solubility_activation_energy_in_steel = '${units 6.86 kJ/mol -> J/mol}' # J/mol needed since InterfaceSorption uses ideal_gas_constant in J/K/mol from PhysicalConstants namespace
+
+# Numerics
+num_elements_steel = 1500
+endtime = '${units 0.25 year -> day}'
+dt_start = '${units 300 s -> day}'
+dt_max = '${units 7 day}'
+dt_min = '${units 1 s -> day}'
