@@ -4,19 +4,30 @@ N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from PhysicalConstants.
 boltzmann_constant = '${units 1.380649e-23 J/K}' # Boltzmann constant from PhysicalConstants.h
 
 # Simulation conditions and material properties
-temperature = '${units 1173.15 K}'
+temperature = '${units 1523.15 K}'
 density_Y = '${units 48605 mol/m^3}'
-initial_pressure_H2_enclosure_1 = '${units 1e4 Pa}'
+
+
+
+
+initial_pressure_H2_enclosure_1 = '${units 2e2 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
-initial_atomic_fraction = 1.8 # (-)
+#initial_atomic_fraction = 0.2# (-)
+
+plateau_pressure_YH = '${units ${fparse exp(-26.1 + 3.88e-2 * temperature - 9.7e-6 * temperature^2)} Pa}'
+#Ar_Max_LP_fit = ' ${fparse 2.156 - 2.556e-03 * temperature + 1.01e-06 * temperature^2} '
+initial_atomic_fraction = '${fparse (2.156 - 2.556e-03 * temperature + 1.01e-06 * temperature^2)  - 10*(1e-03 + exp(-50.0 + 5.73e-02 * temperature + (0.8296 - 2.69e-03 * temperature ) * log(max( plateau_pressure_YH-initial_pressure_H2_enclosure_1, 1e-10))))^(-1)}'
+
+
+
+
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_Y} mol/m^3}'
 
 # diffusivity from Majer et al., Journal of Alloys and Compounds 330-332 (2002) 438-442.
 diffusivity_Do = '${units 1 m^2/s}'
 diffusivity_Ea = '${units 0.38 eV -> J}'
-
-diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 100}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
-# Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540
+diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 10}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
+# Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540.
 reaction_rate_0 = '${units 4.95e5 1/s}'
 reaction_rate_Ea = '${units 1.52 eV -> J}'
 
@@ -25,17 +36,24 @@ domain_length = '${units 1 m}'
 num_nodes = 10
 
 # time
-simulation_time = '${units 1e9 s}'
-dt_max = '${fparse simulation_time/100}'
+simulation_time = '${units 300 s}'
+dt_max = '${fparse simulation_time/10}'
 dt_init = '${units 1e-3 s}'
-tau_constant_BC = '${fparse dt_init*2e-2}' # the smaller, the faster the up-ramp for the pressure BC
+
+# Linear pressure ramp settings for the boundary condition
+pressure_E = '${units 1e5 Pa}'            # target/end pressure
+P_rate = '${units ${fparse (pressure_E - initial_pressure_H2_enclosure_1 )/simulation_time} Pa/s}'  # linear ramp rate
+
 
 # convergence parameters
 lower_value_threshold_concentration_enclosure_1 = -1e-20
 lower_value_threshold_concentration_enclosure_2 = -1e-20
 
+
+
+
 # file base
-output_file_base = 'YHx_PCT_out'
+output_file_base = 'YHx_PCT_Low_to_High_1173K'
 
 [Mesh]
   [generated]
@@ -112,11 +130,14 @@ output_file_base = 'YHx_PCT_out'
   []
 []
 
+
 [Functions]
-  [function_BC_concentration_H_enclosure_1]
+
+  [./function_BC_concentration_H_enclosure_1]
     type = ParsedFunction
-    expression = 'exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'
-  []
+    expression = '(${initial_pressure_H2_enclosure_1 } + t*${P_rate}) * 2.0 / (8.3145 * ${temperature})'
+  [../]
+
 []
 
 [Kernels]
@@ -172,6 +193,7 @@ output_file_base = 'YHx_PCT_out'
     block = 1
     execute_on = 'initial timestep_end'
   []
+
 []
 
 [Materials]
@@ -310,14 +332,12 @@ output_file_base = 'YHx_PCT_out'
   nl_max_its = 16
   l_max_its = 30
   nl_rel_tol = 1e-4
-  nl_abs_tol = 4e-9
+  nl_abs_tol = 4e-12
   scheme = 'bdf2'
   solve_type = 'Newton'
-  petsc_options_iname = '-pc_type -pc_factor_mat_solver_type -snes_type'
-  petsc_options_value = 'lu       mumps                      vinewtonrsls' # This petsc option helps prevent negative concentrations with bounds'
+  petsc_options_iname = '-pc_type -sub_pc_type -snes_type'
+  petsc_options_value = 'asm      lu           vinewtonrsls' # This petsc option helps prevent negative concentrations with bounds'
   line_search = 'none'
-  automatic_scaling = true
-  compute_scaling_once = true
   [TimeStepper]
     type = IterationAdaptiveDT
     dt = ${dt_init}

@@ -29,8 +29,6 @@ ADMatInterfaceReactionYHxPCT::validParams()
       "forward_rate", "kf", "Forward reaction rate coefficient (1/s).");
   params.addParam<MaterialPropertyName>(
       "backward_rate", "kb", "Backward reaction rate coefficient (1/s).");
-  params.addParam<bool>(
-      "silence_warnings", false, "Whether to silence correlation out of bound warnings");
   return params;
 }
 
@@ -39,31 +37,44 @@ ADMatInterfaceReactionYHxPCT::ADMatInterfaceReactionYHxPCT(const InputParameters
     _neighbor_temperature(this->template coupledGenericValue<true>("neighbor_temperature")),
     _density(getADMaterialProperty<Real>("density")),
     _kf(getADMaterialProperty<Real>("forward_rate")),
-    _kb(getNeighborADMaterialProperty<Real>("backward_rate")),
-    _silence_warnings(getParam<bool>("silence_warnings"))
+    _kb(getNeighborADMaterialProperty<Real>("backward_rate"))
 {
 }
 
 ADReal
 ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
 {
+
+  // Variables
+  ADReal r = 0;
+
+  // tolerance for the pressure being closed to the plateau region
+  const Real tolerance = 1.15; // %
   using std::exp;
   using std::log;
   using std::max;
   using std::pow;
-  ADReal r = 0;
 
-  // Calculate the equilibrium concentration value based on PCT curve
-  // (/2 because two atoms for a molecule) (pressure in Pa)
+  // Gas pressure (Pa): R * T * c / 2 (two atoms per molecule)
   auto neighbor_pressure =
       PhysicalConstants::ideal_gas_constant * _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2;
 
   // Calculate the value of the pressures for the phase transition plateau (pressure in Pa)
   auto limit_pressure = exp(-26.1 + 3.88e-2 * _neighbor_temperature[_qp] -
-                            9.7e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
+                            9.70e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
+
+  // define atomic fraction variable
+  ADReal atomic_fraction = 0.0;
+
+  // define atomic ratio maximum fit variable for the low and high pressure region, respectively
+  ADReal Ar_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -
+                         2.56e-3 * _neighbor_temperature[_qp] + 2.16;
+
+  ADReal Ar_Min_HP_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
+                         2.55e-3 * _neighbor_temperature[_qp] - 5.61e-01;
 
   // return warning if the PCT curves is used out of bounds (pressure in Pa)
-  if (!_silence_warnings && ((neighbor_pressure < limit_pressure) || (neighbor_pressure > 1.e6)))
+  if (((neighbor_pressure < 1e2) || (neighbor_pressure > 2.e5)))
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
                              "Pa and temperature ",
@@ -72,11 +83,31 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                              "documentation for YHxPCT material."));
 
   // Calculate the atomic fraction based on the PCT curve
-  auto atomic_fraction =
-      2. - pow(1. + exp(21.6 - 0.0225 * _neighbor_temperature[_qp] +
-                        (-0.0445 + 7.18e-4 * _neighbor_temperature[_qp]) *
-                            (log(max(neighbor_pressure - limit_pressure, 1e-10)))),
-               -1);
+  if (neighbor_pressure / limit_pressure > 1.15)
+  {
+    atomic_fraction =
+        2. -
+        1.0015 * pow(Ar_Min_HP_fit + exp(24.89 - 2.53e-02 * _neighbor_temperature[_qp] +
+                                         (-3.98e-01 + 0.001 * _neighbor_temperature[_qp]) *
+                                             log(max(neighbor_pressure - limit_pressure, 1e-10))),
+                     -1);
+  }
+  else if (neighbor_pressure / limit_pressure < 1.05)
+  {
+    // Low pressure region
+    atomic_fraction = Ar_Max_LP_fit -
+                      10 * pow(1e-03 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
+                                           (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
+                                               log(max(limit_pressure - neighbor_pressure, 1e-10))),
+                               -1);
+  }
+  else
+  {
+    // Plateau Region
+    atomic_fraction = 1.33 - 2.18e-04 * _neighbor_temperature[_qp] +
+                      (1.06e01 - 4.35e-03 * _neighbor_temperature[_qp]) *
+                          log(neighbor_pressure / (tolerance * limit_pressure));
+  }
 
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];
