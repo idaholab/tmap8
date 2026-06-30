@@ -34,8 +34,8 @@ reference_temperature = '${units ${fparse coolant_water_temperature  + (linear_h
 
 # time
 end_time = '${fparse ${hours}*3600}'
-dt_max = 10000
-dt_init = 0.01
+dt_max = ${units 10000 s}
+dt_init = ${units 0.01 s}
 
 # file base
 output_file_base = 'ver-1m_out_${LHR}'
@@ -79,8 +79,8 @@ output_file_base = 'ver-1m_out_${LHR}'
 []
 
 [Variables]
-  [temperature ]
-    initial_condition = '${reference_temperature }'
+  [temperature]
+    initial_condition = '${reference_temperature}'
   []
   [hydrogen_concentration]
     initial_condition = '${initial_atomic_fraction}'

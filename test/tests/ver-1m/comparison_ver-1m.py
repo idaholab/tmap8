@@ -76,7 +76,7 @@ def analytical_solution_ss_concentration(
     """
     Analytical solution of hydrogen diffusion with Soret effect.
 
-    Solve steady state diffusion equation with soret term across the center of a
+    Solve steady state diffusion equation with Soret term across the center of a
     fuel pin, with an imposed temperature profile and initial uniform hydrogen distribution
 
     Args:
