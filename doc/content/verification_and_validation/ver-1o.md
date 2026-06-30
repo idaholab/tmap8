@@ -1,12 +1,12 @@
 # ver-1o
 
-# Joule Heating in a Proton-Conducting Ceramic Slab under Applied Voltage
+# Joule Heating in a Slab under Applied Voltage
 
 ## Case Description
 
 This verification case isolates the temperature response caused by Joule heating in a one-dimensional proton-conducting ceramic (PCC) slab under an applied voltage. In PCC membranes, the electrical current induced by an applied voltage generates Joule heating, which can increase the local temperature and influence hydrogen-isotope transport. This case verifies the thermal part of the voltage-assisted PCC model independently against an analytical solution for a slab with a uniform volumetric heat source.
 
-This verification case use a 5 mm half-domain that represents one half of the original 10 mm membrane. The left boundary is held at a prescribed wall temperature, and the right boundary is adiabatic to represent the symmetry plane at the slab centerline. The same electric field as the original full-domain configuration is retained by using a 20 V drop across the full 10 mm membrane.
+This verification case uses a 5 mm half-domain that represents one half of the original 10 mm membrane. The left boundary is held at a prescribed wall temperature, and the right boundary is adiabatic to represent the symmetry plane at the slab centerline. The same electric field as the original full-domain configuration is retained by using a 20 V drop across the full 10 mm membrane.
 
 ## Case Set Up
 
@@ -18,14 +18,14 @@ The heat equation with a Joule heating source is
 = \kappa \frac{\partial^2 T}{\partial x^2} + \dot{q}_J,
 \end{equation}
 
-where $\rho$ is the density, $c_p$ is the specific heat capacity, $\kappa$ is the thermal conductivity, and $\dot{q}_J$ is the volumetric Joule heating rate. The Joule heating is computed from a constant electrical conductivity and a constant applied electric field,
+where $\rho$ is the density, $c_p$ is the specific heat capacity, $T$ is the temperature, $t$ is the time, $\kappa$ is the thermal conductivity, and $\dot{q}_J$ is the volumetric Joule heating rate. The Joule heating is computed from a constant electrical conductivity and a constant applied electric field,
 
 \begin{equation}
 \label{eq:ver-1o_joule}
 \dot{q}_J = \sigma E^2 = \sigma \left(\frac{V_{\mathrm{full}}}{L_{\mathrm{full}}}\right)^2,
 \end{equation}
 
-where $\sigma$ is the electrical conductivity, $V_{\mathrm{full}}$ is the voltage drop across the full slab, and $L_{\mathrm{full}}$ is the full slab thickness. The half-domain solved in TMAP8 has thickness $L = L_{\mathrm{full}}/2$, with boundary conditions
+where $\sigma$ is the electrical conductivity, $E$ is the magnitude of the applied electric field, $V_{\mathrm{full}}$ is the voltage drop across the full slab, and $L_{\mathrm{full}}$ is the full slab thickness. The half-domain solved in TMAP8 has thickness $L = L_{\mathrm{full}}/2$, with boundary conditions
 
 \begin{equation}
 \label{eq:ver-1o_bcs}
@@ -91,7 +91,7 @@ T(x) = T_{\mathrm{wall}} + \frac{\dot{q}_J}{\kappa}\!\left(\ell x - \frac{x^2}{2
 
 ## Results
 
-[ver-1o_comparison_temperature_history] compares the maximum temperature rise history, $\Delta T_{\max}(t)$, predicted by TMAP8 against the analytical solution evaluated at the insulated face $x = L$. The TMAP8 result closely matches the analytical solution, with an RMSPE of 0.50%.
+[ver-1o_comparison_temperature_history] compares the maximum temperature rise history, $\Delta T_{\max}(t)$, predicted by TMAP8 against the analytical solution evaluated at the insulated face $x = L$. The TMAP8 result closely matches the analytical solution, with a root mean square error (RMSPE) of 0.50%.
 
 !media comparison_ver-1o.py
        image_name=ver-1o_comparison_temperature_history.png
@@ -110,6 +110,6 @@ T(x) = T_{\mathrm{wall}} + \frac{\dot{q}_J}{\kappa}\!\left(\ell x - \frac{x^2}{2
 ## Input Files
 
 !style halign=left
-The input file for this case can be found at [/ver-1o.i]. More information about the changes can be found in the test specification file for this case [/ver-1o/tests].
+The input file for this case can be found at [/ver-1o.i]. More information about how this is used as a TMAP8 test can be found in the test specification file for this case [/ver-1o/tests].
 
 !bibtex bibliography

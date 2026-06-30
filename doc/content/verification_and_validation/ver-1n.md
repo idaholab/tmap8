@@ -1,12 +1,12 @@
 # ver-1n
 
-# Diffusion Problem under Applied Voltage with Constant Source Boundary Condition
+# Voltage-Assisted Transport with Constant Source Boundary Condition
 
 ## Case Description
 
 This verification case considers one-dimensional deuterium diffusion under an applied voltage through a semi-infinite proton-conducting ceramic (PCC) layer with a constant source at one boundary. PCC materials selectively transport hydrogen isotopes (protium, deuterium, and tritium) at temperatures around 600 $^\circ$C through ionic conduction of hydroxyl defects. This proton-hopping mechanism can be substantially enhanced by applying an electric field, enabling active pumping of hydrogen isotopes across the membrane, even without pressure gradients.
 
-The purpose of this case is to isolate and verify the voltage-assisted migration term in the Nernst--Planck equation. Trapping is excluded, and the Sieverts's boundary conditions are imposed on upstream and downstream surfaces to simplified the comparison with the analytical solution.
+The purpose of this case is to isolate and verify the voltage-assisted migration term in the Nernst--Planck equation. To simplify the comparison with the analytical solution, trapping is excluded, and Sieverts's boundary conditions are imposed on upstream and downstream surfaces.
 
 ## Case Set Up
 
@@ -69,11 +69,11 @@ where
 a = \frac{zF}{RT}\frac{\partial \phi}{\partial x}.
 \end{equation}
 
-Here, $z=1$ is the charge number of the mobile hydroxyl defect carrying the hydrogen isotope. The semi-infinite approximation is valid over the simulated time range because the characteristic diffusion length $\sqrt{Dt}\approx 0.14$~mm remains much smaller than the 10 mm membrane thickness.
+Here, $z=1$ is the charge number of the mobile hydroxyl defect carrying the hydrogen isotope. The semi-infinite approximation is valid over the simulated time range because the characteristic diffusion length $\sqrt{Dt}\approx 0.14$ mm remains much smaller than the 10 mm membrane thickness.
 
 ## Results
 
-[ver-1n_comparison_time] compares the TMAP8 results and the analytical solution as a function of time at $x = 0.1$ mm and $x = 0.5$ mm. The TMAP8 calculations closely match the analytical solution at both locations, with RMSPE values of 0.14% and 0.51%, respectively.
+[ver-1n_comparison_time] compares the TMAP8 results and the analytical solution as a function of time at $x = 0.1$ mm and $x = 0.5$ mm. The TMAP8 calculations closely match the analytical solution at both locations, with root mean square percentage error (RMSPE) values of 0.14% and 0.51%, respectively.
 
 !media comparison_ver-1n.py
        image_name=ver-1n_comparison_time.png
@@ -91,6 +91,6 @@ As a second check, [ver-1n_comparison_location] compares the concentration as a 
 ## Input Files
 
 !style halign=left
-The input file for this case can be found at [/ver-1n.i]. More information about the changes can be found in the test specification file for this case [/ver-1n/tests].
+The input file for this case can be found at [/ver-1n.i]. More information about how this is used as a TMAP8 test can be found in the test specification file for this case [/ver-1n/tests].
 
 !bibtex bibliography

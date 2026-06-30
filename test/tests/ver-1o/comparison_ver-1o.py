@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import glob
 
-# Use larger fonts everywhere (~2x matplotlib default of 10) per reviewer request
+# Define font size
 plt.rcParams.update({"font.size": 15})
 
 # Changes working directory to script directory (for consistent MooseDocs usage)
