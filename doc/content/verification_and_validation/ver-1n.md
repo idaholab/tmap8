@@ -20,18 +20,18 @@ C_0 = K_s \sqrt{P},
 
 where $C_0$ is the concentration on the upstream side, $K_s$ is the Sieverts' solubility, and $P$ is the upstream deuterium pressure. The downstream concentration is set to 0.
 
-In the PCC membrane, deuterium occupy charged hydroxyl defects. For the voltage-assisted transport verification, the transported deuterium species is treated as a positively charged mobile species with charge number $z=1$. The one-dimensional Nernst--Planck governing equation is
+In the PCC membrane, deuterium occupy charged hydroxyl defects. For the voltage-assisted transport verification, the transported deuterium species is treated as a positively charged mobile species with charge number $z=1$. The Nernst--Planck governing equation is
 
 \begin{equation}
 \label{eq:Nernst_Plank}
 \frac{\partial C}{\partial t}
 =
-\frac{\partial}{\partial x}\left(D\frac{\partial C}{\partial x}\right)
+\nabla \cdot \left(D\nabla C\right)
 +
-\frac{\partial}{\partial x}\left(\frac{CDF}{RT}\frac{\partial \phi}{\partial x}\right),
+\nabla \cdot \left(\frac{CDF}{RT}\nabla \phi\right),
 \end{equation}
 
-where $C$ is the concentration of deuterium in the sample, $D$ is the deuterium diffusivity, $F$ is the Faraday constant, $R$ is the ideal gas constant, $T$ is the temperature, $\phi$ is the electric potential applied across the sample, $x$ is the distance from the source boundary, and $t$ is time.
+where $C$ is the concentration of deuterium in the sample, $D$ is the deuterium diffusivity, $F$ is the Faraday constant, $R$ is the ideal gas constant, $T$ is the temperature, $\phi$ is the electric potential applied across the sample, and $t$ is time. In this verification case, the equation is solved in one dimension, with $x$ representing distance from the source boundary.
 
 The model parameters used in the verification case are shown in [ver-1n_set_up_values]. The deuterium solubility and diffusivity are taken from [!cite](hossain2020evaluation). The applied voltage is 20 V across the 10 mm membrane.
 

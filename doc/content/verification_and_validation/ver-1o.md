@@ -15,7 +15,7 @@ The heat equation with a Joule heating source is
 \begin{equation}
 \label{eq:ver-1o_heat}
 \rho c_p \frac{\partial T}{\partial t}
-= \kappa \frac{\partial^2 T}{\partial x^2} + \dot{q}_J,
+= \nabla \cdot \left(\kappa \nabla T\right) + \dot{q}_J,
 \end{equation}
 
 where $\rho$ is the density, $c_p$ is the specific heat capacity, $T$ is the temperature, $t$ is the time, $\kappa$ is the thermal conductivity, and $\dot{q}_J$ is the volumetric Joule heating rate. The Joule heating is computed from a constant electrical conductivity and a constant applied electric field,
@@ -29,19 +29,20 @@ where $\sigma$ is the electrical conductivity, $E$ is the magnitude of the appli
 
 \begin{equation}
 \label{eq:ver-1o_bcs}
-T(0,t) = T_{\mathrm{wall}},
+T = T_{\mathrm{wall}} \quad \mathrm{on}\ \Gamma_{\mathrm{wall}},
 \qquad
-\left.\frac{\partial T}{\partial x}\right|_{x=L} = 0.
+\nabla T \cdot \mathbf{n} = 0 \quad \mathrm{on}\ \Gamma_{\mathrm{sym}},
 \end{equation}
+where $\mathbf{n}$ is the unit normal vector pointing perpendicular to the boundary surface.
 
-The imposed voltage profile in the input file is
+The imposed electric potential is
 
 \begin{equation}
 \label{eq:ver-1o_voltage_profile}
-\phi(x) = V_{\mathrm{left}} - \left(\frac{V_{\mathrm{full}}}{L_{\mathrm{full}}}\right)x,
+\phi(\mathbf{x}) = V_{\mathrm{left}} - \mathbf{E} \cdot \left(\mathbf{x} - \mathbf{x}_{\mathrm{left}}\right),
 \end{equation}
 
-so the electric field magnitude is constant across the domain. Because the conductivity and electric field are both constant, $\dot{q}_J$ is uniform in space.
+where $\mathbf{E}$ is the constant applied electric-field vector and $\mathbf{x}_{\mathrm{left}}$ is a point on the prescribed-voltage boundary. In this one-dimensional verification case, this reduces to $\phi(x) = V_{\mathrm{left}} - (V_{\mathrm{full}}/L_{\mathrm{full}})x$. Because the conductivity and electric field are both constant, $\dot{q}_J$ is uniform in space.
 
 The model parameters used in this case are listed in [ver-1o_set_up_values]. The thermal properties of the BCY20 membrane are taken from [!cite](yamanaka2003thermophysical). The remaining parameters are selected to simplify the verification problem. The electrical conductivity is set to a constant reference value, and the thermal conductivity $\kappa$ is deliberately set lower than the physical BCY20 value to produce a meaningful temperature rise for verification purposes.
 

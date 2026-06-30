@@ -21,6 +21,7 @@ diffusion_energy_PCC = '${units ${fparse 0.74 * eV_to_J * N_a} J/mol}'
 solubility_pre_PCC = '${units ${fparse 1.06 * N_a / 1e18} at/mum^3/Pa^0.5}' # at/m^3/Pa^0.5 -> at/mum^3/Pa^0.5
 solubility_energy_PCC = '${units 7726.21 J/mol}'
 solubility_order = .5 # Here, we use Sievert's law
+charge_number = 1
 V_current = '${units 20 V}'
 
 # Important times
@@ -134,7 +135,7 @@ num_nodes = 1000
     coupled_variables = 'deuterium_concentration_PCC'
     functor_names = 'diffusivity_PCC_func'
     functor_symbols = 'diffusivity'
-    expression = 'diffusivity * ${F} * deuterium_concentration_PCC / ${R} / ${temperature}'
+    expression = 'diffusivity * ${charge_number} * ${F} * deuterium_concentration_PCC / ${R} / ${temperature}'
     outputs = all
   []
 []
@@ -205,7 +206,7 @@ num_nodes = 1000
   [exodus]
     type = Exodus
     output_material_properties = true
-    # time_step_interval = 20
+    time_step_interval = 5
   []
   [vector_postproc_30s]
     type = CSV

@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import glob
+import re
 
 # Define font size
 plt.rcParams.update({"font.size": 15})
@@ -11,20 +12,166 @@ plt.rcParams.update({"font.size": 15})
 script_folder = os.path.dirname(__file__)
 os.chdir(script_folder)
 
+
+def get_repo_relative_path(test_path):
+    if "/tmap8/doc/" in script_folder.lower():
+        return os.path.join("../../../../test/tests/ver-1o", test_path)
+    return os.path.join(".", test_path)
+
+
+def strip_inline_comment(line):
+    in_quote = None
+    for index, character in enumerate(line):
+        if character in ("'", '"'):
+            if in_quote == character:
+                in_quote = None
+            elif in_quote is None:
+                in_quote = character
+        elif character == "#" and in_quote is None:
+            return line[:index]
+    return line
+
+
+def search_parameter(path, visited, parameter_name):
+    if path in visited:
+        return None
+    visited.add(path)
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            stripped = strip_inline_comment(line).strip()
+            if stripped.startswith("!include "):
+                include_name = stripped.split(maxsplit=1)[1]
+                include_path = os.path.join(os.path.dirname(path), include_name)
+                result = search_parameter(include_path, visited, parameter_name)
+                if result is not None:
+                    return result
+            if stripped.startswith(f"{parameter_name} ="):
+                return stripped.split("=", maxsplit=1)[1].strip().strip("'")
+    return None
+
+
+def get_raw_parameter_value(parameter_name, source_file="ver-1o.i"):
+    parameters_file = get_repo_relative_path(source_file)
+    result = search_parameter(parameters_file, set(), parameter_name)
+    if result is None:
+        raise KeyError(
+            f"Could not find parameter {parameter_name} in {parameters_file}"
+        )
+    return result
+
+
+def get_raw_block_parameter(block_name, parameter_name, source_file="ver-1o.i"):
+    parameters_file = get_repo_relative_path(source_file)
+    active = False
+    depth = 0
+    with open(parameters_file, encoding="utf-8") as handle:
+        for line in handle:
+            stripped = strip_inline_comment(line).strip()
+            if not active and stripped == f"[{block_name}]":
+                active = True
+                depth = 1
+                continue
+            if not active:
+                continue
+            if stripped == "[]":
+                depth -= 1
+                if depth == 0:
+                    break
+                continue
+            if stripped.startswith("[") and stripped.endswith("]"):
+                depth += 1
+                continue
+            if stripped.startswith(f"{parameter_name} ="):
+                return stripped.split("=", maxsplit=1)[1].strip().strip("'")
+    raise KeyError(
+        f"Could not find parameter {parameter_name} in block {block_name}"
+    )
+
+
+def evaluate_fparse_expression(expression, source_file):
+    safe_namespace = {
+        "exp": np.exp,
+        "sqrt": np.sqrt,
+        "pi": np.pi,
+    }
+    names = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", expression))
+    for name in names:
+        if name not in safe_namespace:
+            safe_namespace[name] = get_numeric_parameter(name, source_file)
+    return eval(expression, {"__builtins__": {}}, safe_namespace)
+
+
+def resolve_fparse(value, source_file):
+    pattern = re.compile(r"\$\{fparse ([^{}]+)\}")
+    while True:
+        match = pattern.search(value)
+        if match is None:
+            return value
+        parsed_value = evaluate_fparse_expression(match.group(1), source_file)
+        value = value[: match.start()] + str(parsed_value) + value[match.end() :]
+
+
+def parse_numeric_value(value, source_file="ver-1o.i", output_unit=None):
+    value = value.strip().strip("'")
+    if value.startswith("${") and value.endswith("}"):
+        inner_value = value[2:-1].strip()
+        if inner_value.startswith("units "):
+            units_expr = resolve_fparse(inner_value[len("units ") :].strip(), source_file)
+            match = re.fullmatch(r"(.+?)\s+(\S+)(?:\s*->\s*(\S+))?", units_expr)
+            if not match:
+                raise ValueError(f"Unsupported units expression: {value}")
+            numeric_value = float(match.group(1))
+            from_unit = match.group(2)
+            to_unit = match.group(3)
+            target_unit = output_unit
+            if target_unit is None:
+                if to_unit is None or from_unit == to_unit:
+                    return numeric_value
+                target_unit = to_unit
+            if from_unit == target_unit:
+                return numeric_value
+            supported_conversions = {
+                ("mm", "m"): 1e-3,
+                ("m", "mum"): 1e6,
+                ("mum", "m"): 1e-6,
+                ("g/mol", "kg/mol"): 1e-3,
+                ("g/cm^3", "kg/m^3"): 1e3,
+                ("g/m^3", "kg/m^3"): 1e-3,
+                ("A/V/m", "S/m"): 1.0,
+                ("A/V/m", "A/V/mum"): 1e-6,
+                ("A/V/mum", "S/m"): 1e6,
+            }
+            factor = supported_conversions.get((from_unit, target_unit))
+            if factor is None:
+                raise ValueError(f"Unsupported conversion in units expression: {value}")
+            return numeric_value * factor
+        if inner_value.startswith("fparse "):
+            return evaluate_fparse_expression(inner_value[len("fparse ") :], source_file)
+        return get_numeric_parameter(inner_value, source_file, output_unit)
+    return float(value)
+
+
+def get_numeric_parameter(parameter_name, source_file="ver-1o.i", output_unit=None):
+    raw_value = get_raw_parameter_value(parameter_name, source_file)
+    return parse_numeric_value(raw_value, source_file, output_unit)
+
 # ===============================================================================
 # Physical constants and material properties
 
-HALF_LENGTH = 5.0e-3  # m, half-slab thickness (symmetry domain)
-FULL_LENGTH = 10.0e-3  # m, full PCC slab thickness
-SURFACE_TEMPERATURE = 773.0  # K, prescribed left-surface temperature
-THERMAL_CONDUCTIVITY = 0.014  # W/m/K
-SIGMA_REF = 1e-03  # S/m, electrical conductivity
-VOLTAGE_TOTAL = 20.0  # V, voltage drop across the full 10 mm slab
-DENSITY = 6.154e3  # kg/m^3
-SPECIFIC_HEAT_MOLAR = 120.0  # J/mol/K
-MOLAR_MASS_BCY20 = 283.42e-3  # kg/mol
+FULL_LENGTH = get_numeric_parameter("full_length", output_unit="m")
+HALF_LENGTH = FULL_LENGTH / 2.0
+SURFACE_TEMPERATURE = get_numeric_parameter("temperature_surface")
+THERMAL_CONDUCTIVITY = get_numeric_parameter("thermal_conductivity_SI")
+SIGMA_REF = get_numeric_parameter("sigma_ref", output_unit="S/m")
+VOLTAGE_TOTAL = get_numeric_parameter("V_full")
+DENSITY = get_numeric_parameter("density_BCY20", output_unit="kg/m^3")
+SPECIFIC_HEAT_MOLAR = get_numeric_parameter("specific_heat_molar")
+MOLAR_MASS_BCY20 = get_numeric_parameter("molar_mass_BCY20", output_unit="kg/mol")
 NUM_SERIES_TERMS = 2000  # number of Fourier series terms for convergence
-PROFILE_TIMES = (1000.0, 20000.0)  # s, output times for spatial profile comparison
+PROFILE_TIMES = (
+    float(get_raw_block_parameter("vector_postproc_1000s", "sync_times")),
+    float(get_raw_block_parameter("vector_postproc_20000s", "sync_times")),
+)
 
 SPECIFIC_HEAT = SPECIFIC_HEAT_MOLAR / MOLAR_MASS_BCY20  # J/kg/K
 THERMAL_DIFFUSIVITY = THERMAL_CONDUCTIVITY / (DENSITY * SPECIFIC_HEAT)  # m^2/s
@@ -92,10 +239,7 @@ def get_analytical_delta_t_history(time_s):
 # ===============================================================================
 # Extract TMAP8 results
 
-if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
-    results_folder = "../../../../test/tests/ver-1o/gold"
-else:  # if in test folder
-    results_folder = "./gold"
+results_folder = get_repo_relative_path("gold")
 
 # one CSV per profile time, named by sync time and timestep index
 profile_csvs = {
@@ -171,7 +315,7 @@ plt.close(fig)
 # Plot spatial temperature profiles at selected times
 
 fig, ax_profiles = plt.subplots(figsize=(6.5, 5.5))
-profile_colors = {1000.0: "C0", 20000.0: "C1"}
+profile_colors = {PROFILE_TIMES[0]: "C0", PROFILE_TIMES[1]: "C1"}
 for time_s in PROFILE_TIMES:
     line_csv = profile_csvs[time_s]
     line_data = pd.read_csv(line_csv)
