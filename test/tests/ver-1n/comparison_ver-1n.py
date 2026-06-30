@@ -85,9 +85,7 @@ def get_raw_block_parameter(block_name, parameter_name, source_file="ver-1n.i"):
                 continue
             if stripped.startswith(f"{parameter_name} ="):
                 return stripped.split("=", maxsplit=1)[1].strip().strip("'")
-    raise KeyError(
-        f"Could not find parameter {parameter_name} in block {block_name}"
-    )
+    raise KeyError(f"Could not find parameter {parameter_name} in block {block_name}")
 
 
 def evaluate_fparse_expression(expression, source_file):
@@ -118,7 +116,9 @@ def parse_numeric_value(value, source_file="ver-1n.i", output_unit=None):
     if value.startswith("${") and value.endswith("}"):
         inner_value = value[2:-1].strip()
         if inner_value.startswith("units "):
-            units_expr = resolve_fparse(inner_value[len("units ") :].strip(), source_file)
+            units_expr = resolve_fparse(
+                inner_value[len("units ") :].strip(), source_file
+            )
             match = re.fullmatch(r"(.+?)\s+(\S+)(?:\s*->\s*(\S+))?", units_expr)
             if not match:
                 raise ValueError(f"Unsupported units expression: {value}")
@@ -145,7 +145,9 @@ def parse_numeric_value(value, source_file="ver-1n.i", output_unit=None):
                 raise ValueError(f"Unsupported conversion in units expression: {value}")
             return numeric_value * factor
         if inner_value.startswith("fparse "):
-            return evaluate_fparse_expression(inner_value[len("fparse ") :], source_file)
+            return evaluate_fparse_expression(
+                inner_value[len("fparse ") :], source_file
+            )
         return get_numeric_parameter(inner_value, source_file, output_unit)
     return float(value)
 
@@ -158,6 +160,7 @@ def get_numeric_parameter(parameter_name, source_file="ver-1n.i", output_unit=No
 def get_point_x_m(block_name, source_file="ver-1n.i"):
     raw_point = get_raw_block_parameter(block_name, "point", source_file).strip("'")
     return float(raw_point.split()[0]) * 1e-6
+
 
 # ========================== TMAP8 result - location ========================= #
 
@@ -212,13 +215,13 @@ Pressure_high = get_numeric_parameter("pressure_high")
 V = get_numeric_parameter("V_current")
 L = get_numeric_parameter("length", output_unit="m")
 F = get_numeric_parameter("F")
-diffusivity = (
-    get_numeric_parameter("diffusion_pre_PCC", output_unit="m^2/s")
-    * np.exp(-get_numeric_parameter("diffusion_energy_PCC") / R / Temperature)
+diffusivity = get_numeric_parameter("diffusion_pre_PCC", output_unit="m^2/s") * np.exp(
+    -get_numeric_parameter("diffusion_energy_PCC") / R / Temperature
 )  # m^2/s
-solubility = (
-    get_numeric_parameter("solubility_pre_PCC", output_unit="atom/m^3/Pa^0.5")
-    * np.exp(-get_numeric_parameter("solubility_energy_PCC") / R / Temperature)
+solubility = get_numeric_parameter(
+    "solubility_pre_PCC", output_unit="atom/m^3/Pa^0.5"
+) * np.exp(
+    -get_numeric_parameter("solubility_energy_PCC") / R / Temperature
 )  # atom/m^3/Pa^0.5
 z = get_numeric_parameter("charge_number")
 # derivative parameters

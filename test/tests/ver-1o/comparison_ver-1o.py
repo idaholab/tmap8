@@ -83,9 +83,7 @@ def get_raw_block_parameter(block_name, parameter_name, source_file="ver-1o.i"):
                 continue
             if stripped.startswith(f"{parameter_name} ="):
                 return stripped.split("=", maxsplit=1)[1].strip().strip("'")
-    raise KeyError(
-        f"Could not find parameter {parameter_name} in block {block_name}"
-    )
+    raise KeyError(f"Could not find parameter {parameter_name} in block {block_name}")
 
 
 def evaluate_fparse_expression(expression, source_file):
@@ -116,7 +114,9 @@ def parse_numeric_value(value, source_file="ver-1o.i", output_unit=None):
     if value.startswith("${") and value.endswith("}"):
         inner_value = value[2:-1].strip()
         if inner_value.startswith("units "):
-            units_expr = resolve_fparse(inner_value[len("units ") :].strip(), source_file)
+            units_expr = resolve_fparse(
+                inner_value[len("units ") :].strip(), source_file
+            )
             match = re.fullmatch(r"(.+?)\s+(\S+)(?:\s*->\s*(\S+))?", units_expr)
             if not match:
                 raise ValueError(f"Unsupported units expression: {value}")
@@ -146,7 +146,9 @@ def parse_numeric_value(value, source_file="ver-1o.i", output_unit=None):
                 raise ValueError(f"Unsupported conversion in units expression: {value}")
             return numeric_value * factor
         if inner_value.startswith("fparse "):
-            return evaluate_fparse_expression(inner_value[len("fparse ") :], source_file)
+            return evaluate_fparse_expression(
+                inner_value[len("fparse ") :], source_file
+            )
         return get_numeric_parameter(inner_value, source_file, output_unit)
     return float(value)
 
@@ -154,6 +156,7 @@ def parse_numeric_value(value, source_file="ver-1o.i", output_unit=None):
 def get_numeric_parameter(parameter_name, source_file="ver-1o.i", output_unit=None):
     raw_value = get_raw_parameter_value(parameter_name, source_file)
     return parse_numeric_value(raw_value, source_file, output_unit)
+
 
 # ===============================================================================
 # Physical constants and material properties
