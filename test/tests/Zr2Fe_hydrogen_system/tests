@@ -1,0 +1,133 @@
+[Tests]
+  design = 'InterfaceDiffusion.md ADMatInterfaceReactionZr2FeHxPCT.md MatDiffusion.md TimeDerivative.md'
+  issues = '#261'
+  [Zr2FeHx_PCT_csv]
+    type = CSVDiff
+    input = Zr2FeHx_PCT.i
+    csvdiff = Zr2FeHx_PCT_out.csv
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature.'
+  []
+  [Zr2FeHx_PCT_exodus]
+    type = Exodiff
+    input = Zr2FeHx_PCT.i
+    exodiff = Zr2FeHx_PCT_out.e
+    prereq = Zr2FeHx_PCT_csv
+    should_execute = false # this test relies on the output files from Zr2FeHx_PCT_csv, so it shouldn't be run twice
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature and generate an exodus file.'
+  []
+  [Zr2FeHx_PCT_T598_P1e03_csv]
+    type = CSVDiff
+    input = Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_T598_P1e03_out
+                ${dt_init}=1e1
+                temperature=598.15
+                initial_pressure_H2_enclosure_1=1e3
+                initial_atomic_fraction=3.0
+                Executioner/num_steps=150
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = Zr2FeHx_PCT_T598_P1e03_out.csv
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e3 Pa and T=598.15 K.'
+
+  []
+  [Zr2FeHx_PCT_T623_P1e04_csv]
+    type = CSVDiff
+    input = Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_T623_P1e04_out
+                temperature=623.15
+                initial_pressure_H2_enclosure_1=1e4
+                initial_atomic_fraction=3.7
+                Executioner/num_steps=200
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = Zr2FeHx_PCT_T623_P1e04_out.csv
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=623.15.15 K.'
+  []
+  [Zr2FeHx_PCT_T648_P1e02_csv]
+    type = CSVDiff
+    input = Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_T648_P1e02_out
+                temperature=648.15
+                initial_pressure_H2_enclosure_1=1e2
+                initial_atomic_fraction=1.85
+                Executioner/num_steps=200
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = Zr2FeHx_PCT_T648_P1e02_out.csv
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e2 Pa and T=648.15 K.'
+  []
+  [Zr2FeHx_PCT_T648_P1e05_csv]
+    type = CSVDiff
+    input = Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_T648_P1e05_out
+                temperature=648.15
+                initial_pressure_H2_enclosure_1=1e5
+                initial_atomic_fraction=3.0
+                Executioner/num_steps=200
+                Functions/function_BC_concentration_H_enclosure_1/expression='exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+    csvdiff = Zr2FeHx_PCT_T648_P1e05_out.csv
+    requirement = 'The system shall be able to model the PCT curves of Zr2FeHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e5 Pa and T=648.15 K.'
+  []
+  [Zr2FeHx_PCT_error_low_pressure]
+    type = RunException
+    input = Zr2FeHx_PCT.i
+    cli_args = 'initial_pressure_H2_enclosure_1=1'
+    expect_err = 'In Zr2FeHxPCT: pressure'
+    requirement = 'The system shall be able to return a warning when the pressure and temperature are outside the range of validity of the Zr2FeHxPCT model (pressure too low).'
+  []
+  [Zr2FeHx_PCT_error_high_pressure]
+    type = RunException
+    input = Zr2FeHx_PCT.i
+    cli_args = 'initial_pressure_H2_enclosure_1=1e6'
+    expect_err = 'In Zr2FeHxPCT: pressure'
+    requirement = 'The system shall be able to return a warning when the pressure and temperature are outside the range of validity of the Zr2FeHxPCT model (pressure too high).'
+  []
+  [Zr2FeHx_PCT_Low_to_High_598K_csv]
+    type = CSVDiff
+    input =  Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_Low_to_High_598K
+                temperature=598.15
+                initial_pressure_H2_enclosure_1=7
+                diffusivity_Do=100
+                reaction_rate_0=4.28e08
+                simulation_time=100
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((4e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-5
+                Executioner/nl_abs_tol=4e-7"
+    csvdiff = Zr2FeHx_PCT_Low_to_High_598K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of Zr2FeHx at T=598.15 K with an initial pressure of starting at P=7 Pa.'
+  []
+  [Zr2FeHx_PCT_Low_to_High_623K_csv]
+    type = CSVDiff
+    input =  Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_Low_to_High_623K
+                temperature=623.15
+                initial_pressure_H2_enclosure_1=7
+                diffusivity_Do=100
+                reaction_rate_0=4.28e08
+                simulation_time=100
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((4e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-5
+                Executioner/nl_abs_tol=4e-7"
+    csvdiff = Zr2FeHx_PCT_Low_to_High_623K.csv
+    requirement = 'The system shall be able to model the entire PCT curves of Zr2FeHx at T=623.15 K with an initial pressure of starting at P=7 Pa.'
+  []
+  [Zr2FeHx_PCT_Low_to_High_648K_csv]
+    type = CSVDiff
+    input =  Zr2FeHx_PCT.i
+    cli_args = "output_file_base=Zr2FeHx_PCT_Low_to_High_648K
+                temperature=648.15
+                initial_pressure_H2_enclosure_1=7
+                diffusivity_Do=100
+                reaction_rate_0=4.28e08
+                simulation_time=100
+                Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((4e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
+                Executioner/nl_rel_tol=1e-5
+                Executioner/nl_abs_tol=4e-7"
+    csvdiff = Zr2FeHx_PCT_Low_to_High_648K.csv
+    requirement ='The system shall be able to model the entire PCT curves of Zr2FeHx at T=648.15 K with an initial pressure of starting at P=7 Pa.'
+  []
+  [Zr2FeHx_PCT_comparison]
+    type = RunCommand
+    command = 'python3 comparison_Zr2FeHx_PCT.py'
+    requirement = 'The system shall be able to generate comparison plots between experimental PCT curves, the model used in TMAP8, and TMAP8 predictions for Zr2Fe.'
+    required_python_packages = 'matplotlib numpy pandas os git'
+  []
+[]
