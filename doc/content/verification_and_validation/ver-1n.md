@@ -31,7 +31,7 @@ In the PCC membrane, deuterium occupy charged hydroxyl defects. For the voltage-
 \nabla \cdot \left(\frac{CDF}{RT}\nabla \phi\right),
 \end{equation}
 
-where $C$ is the concentration of deuterium in the sample, $D$ is the deuterium diffusivity, $F$ is the Faraday constant, $R$ is the ideal gas constant, $T$ is the temperature, $\phi$ is the electric potential applied across the sample, and $t$ is time. In this verification case, the equation is solved in one dimension, with $x$ representing distance from the source boundary.
+where $C$ is the concentration of deuterium in the sample, $D$ is the deuterium diffusivity, $F$ is the Faraday constant, $R$ is the ideal gas constant, $T$ is the temperature, $\phi$ is the electric potential applied across the sample, and $t$ is time. In this verification case, the equation is solved in one dimension, with $x$ representing the distance from the source boundary.
 
 The model parameters used in the verification case are shown in [ver-1n_set_up_values]. The deuterium solubility and diffusivity are taken from [!cite](hossain2020evaluation). The applied voltage is 20 V across the 10 mm membrane.
 
