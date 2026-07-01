@@ -1,0 +1,25 @@
+[Tests]
+  design = 'HeatConduction.md HeatConductionTimeDerivative.md HeatSource.md'
+  issues = '#426'
+  verification = 'ver-1o.md'
+  [ver-1o]
+    type = 'Exodiff'
+    input = 'ver-1o.i'
+    exodiff = 'ver-1o_exodus.e'
+    requirement = "The system shall model Joule heating in a PCC slab under a constant electric field and reproduce the transient and steady temperature field for a case with a prescribed left-surface temperature and an insulated right boundary."
+  []
+  [ver-1o_csvdiff]
+    type = 'CSVDiff'
+    input = 'ver-1o.i'
+    csvdiff = 'ver-1o_out.csv'
+    should_execute = False
+    prereq = 'ver-1o'
+    requirement = "The system shall output correct CSV data for the slab Joule-heating temperature verification case with a prescribed left-surface temperature and an insulated right boundary."
+  []
+  [ver-1o_comparison]
+    type = RunCommand
+    command = 'python3 comparison_ver-1o.py'
+    requirement = 'The system shall be able to compare the half-slab Joule-heating temperature transient against the analytical constant-source slab solution in a temperature-rise history figure and a two-time profile figure for case 1o.'
+    required_python_packages = 'matplotlib numpy pandas glob os'
+  []
+[]
