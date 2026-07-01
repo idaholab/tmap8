@@ -1,0 +1,41 @@
+[Tests]
+  design = 'EquilibriumBC.md'
+  verification = 'ver-1n.md'
+  issues = '#426'
+  [ver-1n]
+    type = Exodiff
+    input = ver-1n.i
+    exodiff = ver-1n_exodus.e
+    requirement = 'The system shall be able to model deuterium diffusion under applied voltage through a slab with a constant concentration boundary condition as the species source.'
+  []
+  [ver-1n_csvdiff]
+    type = CSVDiff
+    input = ver-1n.i
+    should_execute = False  # this test relies on the output files from ver-1n, so it shouldn't be run twice
+    csvdiff = ver-1n_out.csv
+    requirement = 'The system shall be able to model deuterium diffusion under applied voltage through a slab with a constant concentration boundary condition as the species source to generate CSV data for use in comparisons with the analytic solution over time.'
+    prereq = ver-1n
+  []
+  [ver-1n_lineplot1]
+    type = CSVDiff
+    input = ver-1n.i
+    should_execute = False  # this test relies on the output files from ver-1n, so it shouldn't be run twice
+    csvdiff = ver-1n_vector_postproc_30s_line_0015.csv
+    requirement = 'The system shall be able to model deuterium diffusion under applied voltage through a slab with a constant concentration boundary condition as the species source to generate concentration CSV data of point 1 for use in comparisons with the analytic solution over depth.'
+    prereq = ver-1n
+  []
+  [ver-1n_lineplot2]
+    type = CSVDiff
+    input = ver-1n.i
+    should_execute = False  # this test relies on the output files from ver-1n, so it shouldn't be run twice
+    csvdiff = ver-1n_vector_postproc_500s_line_0066.csv
+    requirement = 'The system shall be able to model deuterium diffusion under applied voltage through a slab with a constant concentration boundary condition as the species source to generate concentration CSV data of point 2 for use in comparisons with the analytic solution over depth.'
+    prereq = ver-1n
+  []
+  [ver-1n_comparison]
+    type = RunCommand
+    command = 'python3 comparison_ver-1n.py'
+    requirement = 'The system shall be able to generate comparison plots between the analytical solution and simulated solution of verification case 1n, modeling deuterium diffusion under applied voltage through a slab with a constant concentration boundary condition as the species source.'
+    required_python_packages = 'matplotlib numpy pandas scipy os'
+  []
+[]
