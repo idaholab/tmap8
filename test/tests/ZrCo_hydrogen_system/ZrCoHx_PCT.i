@@ -1,16 +1,24 @@
+###########################################
+# Testing PCT ZrCoHx modelling capability and performance
+# This input file works in two independent ways:
+# (A) : Evaluate the equilibrium of hydrogen and ZrCo at a set Pressure boundary and Temperature
+# (B) : Evaluate the equilibrium of hydrogen and ZrCo at an increasing Pressure boundary and set Temperature
+###########################################
+
 # Physical constants
 R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from PhysicalConstants.h
 N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from PhysicalConstants.h
 boltzmann_constant = '${units 1.380649e-23 J/K}' # Boltzmann constant from PhysicalConstants.h
 
 ## Simulation conditions and material properties
-temperature = '${units 433.15 K}'
+temperature = '${units 423.15 K}'
 density_ZrCo = '${units 51579.35 mol/m^3}'
 
 
-initial_pressure_H2_enclosure_1 = '${units 1e4 Pa}'
+initial_pressure_H2_enclosure_1 = '${units 2e4 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
-initial_atomic_fraction =  2.5 # (-)
+
+initial_atomic_fraction = '${fparse 0.7  - (5e-03 + exp(-4.37 + 1.3408e-02 * temperature + (-8.217e-02 - 3.9745e-04 * temperature ) * log(max( (exp(-9.4114 + 3.3226e-02 * temperature - 3.2909e-06 * temperature^2))-initial_pressure_H2_enclosure_1, 1e-10))))^(-1)}'
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_ZrCo} mol/m^3}'
 
 # diffusivity from:
@@ -19,20 +27,20 @@ initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*
 diffusivity_Do = '${units 1.53e-7 m^2/s}'
 diffusivity_Ea = '${units 0.61 eV -> J}'
 
-diffusivity_ratio_gas_ZrCoHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 10}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
+diffusivity_ratio_gas_ZrCoHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 100}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
 # Surface reaction rate from Jat, Ram Avtar, et al. Hydrogen Sorption–Desorption Studies on ZrCo–Hydrogen System. Zotero.
 
 reaction_rate_0 = '${units 3.9e8 1/s}' #
 reaction_rate_Ea = '${units 1.2437 eV -> J}'#
 # Domain size and mesh parameters
-domain_length = '${units 1 m}'
+domain_length = '${units 0.20 m}'
 num_nodes = 100
 
 # time
 simulation_time = '${units 1e9 s}'
 dt_max = '${fparse simulation_time/100}'
 dt_init = '${units 1e-4 s}'
-tau_constant_BC = '${fparse dt_init*2e-2}' # the smaller, the faster the up-ramp for the pressure BC
+
 
 # convergence parameters
 lower_value_threshold_concentration_enclosure_1 = -1e-20
@@ -119,7 +127,7 @@ output_file_base = 'ZrCoHx_PCT_out'
 [Functions]
   [function_BC_concentration_H_enclosure_1]
     type = ParsedFunction
-    expression = 'exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'
+    expression = 'exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'
   []
 []
 
@@ -311,14 +319,14 @@ output_file_base = 'ZrCoHx_PCT_out'
   type = Transient
   end_time = ${simulation_time}
   dtmax = ${dt_max}
-  nl_max_its = 16
+  nl_max_its = 50
   l_max_its = 30
-  nl_rel_tol = 1e-4
+  nl_rel_tol = 1e-7
   nl_abs_tol = 4e-12
   scheme = 'bdf2'
   solve_type = 'Newton'
-  petsc_options_iname = '-pc_type -sub_pc_type -snes_type'
-  petsc_options_value = 'asm      lu           vinewtonrsls' # This petsc option helps prevent negative concentrations with bounds'
+  petsc_options_iname = '-pc_type -pc_factor_mat_solver_type -snes_type'
+  petsc_options_value = 'lu       mumps                      vinewtonrsls' # This petsc option helps prevent negative concentrations with bounds'
   line_search = 'none'
   [TimeStepper]
     type = IterationAdaptiveDT
@@ -334,5 +342,8 @@ output_file_base = 'ZrCoHx_PCT_out'
 [Outputs]
   file_base = ${output_file_base}
   csv = true
-  exodus = true
+  [exodus]
+    type = Exodus
+    execute_on = 'timestep_end'
+  []
 []
