@@ -28,7 +28,7 @@ gap_thermal_conductivity = '${units ${fparse gap_conductance*gap_thickness} W/m^
 
 # limiting diffusivity from  G Majer et al 1994 J. Phys.: Condens. Matter 6 2935
 diffusivity_D0 = '${units 1.53e-7 m^2/s}'
-diffusivity_Ea = '${units 0 eV}' # this value does not impact the steady state solution, so the limiting diffusivity is assumed in all cases.
+diffusivity_Ea = '${units 0 eV}' # The diffusion coefficient does not impact the steady state solution, it only changes the time to reach steady state, so the limiting diffusivity is assumed in all cases.
 
 reference_temperature = '${units ${fparse coolant_water_temperature  + (linear_heating_rate/(2*pi*fuel_thermal_conductivity))} K}'
 

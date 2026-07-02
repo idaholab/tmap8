@@ -210,12 +210,6 @@ fig.text(
     fontsize=12,
 )
 
-fig.suptitle(
-    "Comparison of Analytical and TMAP8 Steady-State Concentration Profiles",
-    fontsize=14,
-    fontweight="bold",
-)
-
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.95))
 
@@ -281,12 +275,6 @@ for ax, LHR, label in zip(axes, LHRs, panel_labels):
 
 fig.text(0.5, 0.04, "Distance from Pin Center (mm)", ha="center", fontsize=12)
 fig.text(0.04, 0.5, "Temperature (K)", va="center", rotation="vertical", fontsize=12)
-
-fig.suptitle(
-    "Comparison of Analytical and TMAP8 Steady-State Temperature Profiles",
-    fontsize=14,
-    fontweight="bold",
-)
 
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.95))

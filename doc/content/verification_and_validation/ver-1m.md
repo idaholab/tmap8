@@ -4,7 +4,7 @@
 
 ## General Case Description
 
-This verification case is taken from [!cite](huang01102000) and considers hydrogen diffusion through a uranium zirconium hydride (UZrH) fuel pellet under the influence of a temperature gradient. The driving forces of hydrogen migration are Fickian diffusion (which was verified in other verification cases including [ver-1b](ver-1b.md) and [ver-1dd](ver-1dd.md)), and the Soret effect (which was verified in [ver-1l](ver-1l.mb)). The temperature profile in the fuel is calculated from conduction with heat generation, which is verified in [ver-1fa](ver-1fa.mb). However, in this case, steady state solution is assumed for heat conduction. The novelty of this verification case is the coupling of these phenomena. 
+This verification case is taken from [!cite](huang01102000) and considers hydrogen diffusion through a uranium zirconium hydride (UZrH) fuel pellet under the influence of a temperature gradient. The driving forces of hydrogen migration are Fickian diffusion (which was verified in other verification cases including [ver-1b](ver-1b.md) and [ver-1dd](ver-1dd.md)), and the Soret effect (which was verified in [ver-1l](ver-1l.mb)). The temperature profile in the fuel is calculated from conduction with heat generation, which is verified in [ver-1fa](ver-1fa.mb). However, in this case, steady state solution is assumed for heat conduction. The novelty of this verification case is the coupling of these phenomena.
 
 Fickian diffusion describes mass transport due to a concentration gradient, while the Soret effect describes species migration in response to a temperature gradient. This coupling of transport along thermal and mass gradients can be important for metal hydride moderators for fission reactors because temperature gradients are created by fission in the core which can cause the hydrogen to migrate through the moderator and impact the overall reactivity.
 
@@ -14,8 +14,8 @@ In this problem, hydrogen diffuses radially through a UZrH fuel pin under a temp
 
 This verification case models radial hydrogen diffusion through a two-dimensional pin of radius $r = 0.005$ m with a temperature distribution across the domain, calculated from the heat conduction equation:
 
-\begin{equation} \label{eq:thermal_equation}
-\rho C_P \frac{d T}{d t} = \nabla \cdot k \nabla T + q''',
+\begin{equation}
+    \rho C_P \frac{d T}{d t} = \nabla \cdot k \nabla T + q''',
 \end{equation}
 
 where $T$ is the temperature, $\rho$ is the density, $C_P$ is the specific heat, $k$ is the thermal conductivity, and $q'''$ is the internal volumetric heat generation rate.
@@ -26,7 +26,7 @@ The outer boundary of the fuel pellet is impermeable (zero hydrogen flux) and th
 
 The governing equation for the coupled Fickian diffusion and the Soret effect is described as:
 
-\begin{equation} \label{eq:hydrogen_diffusion}
+\begin{equation}
     \frac{\partial c_H}{\partial t} = \nabla\cdot\left[-D\left(\nabla c_H+\frac{Q^\ast c_H}{RT^2}\nabla T\right)\right],
 \end{equation}
 
@@ -47,7 +47,7 @@ The material properties and case parameters are provided in [ver-1m_set_up_value
 | $t_g$        | Gap thickness                      | 0.0001   | m           | [!cite](huang01102000) |
 | $t_c$        | Cladding thickness                 | 0.001    | m           | [!cite](huang01102000) |
 | $k_f$        | Fuel thermal conductivity          | 17.6     | W/mK        | [!cite](huang01102000) |
-| $k_c$        | Cladding thermal conductivity      | 16.5     | W/mK        | Estimate
+| $k_c$        | Cladding thermal conductivity      | 16.5     | W/mK        | [!cite](harvey_engineering_1982) |
 | $C_g$        | Gap conductance                    | 7381     | W/m$^2$K    | [!cite](huang01102000) |
 | $h_c$        | Coolant heat transfer coefficient  | 18000    | W/m$^2$K    | Estimate
 | $T_{\infty}$ | Temperature of coolant             | 563.15   | K           | [!cite](huang01102000) |
@@ -58,7 +58,7 @@ The material properties and case parameters are provided in [ver-1m_set_up_value
 | $R$          | Gas constant                       | 8.31446261815324    | J/mol/K      | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | LHR          | Linear heating rate                | 150-300  | W/cm        | [!cite](huang01102000) |
 
-Note: The diffusion coefficient is technically different for each linear heating rate as calculated by the equation above, but the value does not impact the steady state solution, so the limiting diffusivity is assumed in all cases.
+Note: The diffusion coefficient is technically different for each linear heating rate as calculated by the equation above. The steady state solution comes from the balance of the concentration driven and thermodiffusion terms, which are both multiplied by the diffusion coefficient. The diffusion coeffient changes the time it takes to reach steady state, but does not change the ratio between the two terms. As a result, the value does not impact the steady state solution, so the limiting diffusivity is assumed in all cases.
 
 The verification focuses on two aspects of the solution: (1) the steady state temperature profile and (2) the final steady state spatial hydrogen concentration profile.
 
@@ -77,7 +77,7 @@ Using symmetry tells that conduction from the center is equivalent in all direct
       T_f(r) = T_c -\frac{q'}{4\pi k_fr_f^2}r^2,
 \end{equation}
 
-where $T_c$ is the centerline temperature of the fuel in K, which can be calculated by a thermal resistor model:
+where $T_c$ is the centerline temperature of the fuel in K. This can be calculated by a thermal resistor model,as shown in [!cite](todreas_nuclear_1990):
 
 \begin{equation}
       T_c = T_\infty + q' \left[\frac{1}{2 \pi r_f h_g} + \frac{ln(\frac{r_{co}}{r_{ci}})}{2 \pi k_c} + \frac{1}{2 \pi r_{co} h_w} + \frac{1}{4 \pi r_f^2} \right].
@@ -115,7 +115,7 @@ where $T(r)$ is the temperature profile and K is determined from mass conservati
        id=ver-1m_comparison_analytical_temperature_location.png
        caption=Comparison of TMAP8 calculation with the analytical solution for steady state temperature profile.
 
-[ver-1m_comparison_analytical_concentration_location.png] shows the comparison of the TMAP8 calculation and the analytical solution for the concentration profile as a function of the distance from the center. The TMAP8 prediction matches the analytical solution with excellent agreement for each linear heating rate, with a maximum RMSPE of 0.02 %. Results from [!cite](huang01102000) are also shown as a comparison.
+[ver-1m_comparison_analytical_concentration_location.png] shows the comparison of the TMAP8 calculation and the analytical solution for the concentration profile as a function of the distance from the center. The TMAP8 prediction matches the analytical solution with excellent agreement for each linear heating rate, with a maximum RMSPE of 0.02 %. The hydrogen concentration profiles for each linear heating rate were extracted from Fig. 3 in [!cite](huang01102000) using an automated plot digitizer and the results are also shown as a comparison.
 
 !media comparison_ver-1m.py
        image_name=ver-1m_comparison_analytical_concentration_location.png
@@ -123,6 +123,7 @@ where $T(r)$ is the temperature profile and K is determined from mass conservati
        id=ver-1m_comparison_analytical_concentration_location.png
        caption=Comparison of TMAP8 calculation with the analytical solution and literature results for steady state concentration profile.
 
+The data reproduced from [!cite](huang01102000) does not match with the analytical solution. One potential reason for this disagreement is that extracting the data from the figure in the paper introduces some error. Because the results differ more for the center of the fuel, it is also hypothesized that the boundary conditions were applied differently in [!cite](huang01102000). Although [!cite](huang01102000) state using a null Neumann boundary condition, which would be consistent with the analytical solution, the results do not consistently show a null flux at the fuel center.
 
 ## Input files
 
