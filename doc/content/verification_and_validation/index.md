@@ -37,8 +37,9 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | ver-1kc-2 | [Sieverts’ Law Boundaries with Chemical Reaction and No Volumetric Source](ver-1kc-2.md)            |
 | ver-1kd   | [Sieverts’ Law Boundaries with Chemical Reaction and Volumetric Source](ver-1kd.md)                 |
 | ver-1l    | [Diffusion with Soret Effect](ver-1l.md)                                                            |
-| ver-1n    | [Voltage-Assisted Transport with Constant Source Boundary Condition](ver-1n.md)        |
-| ver-1o    | [Joule Heating in a Slab under Applied Voltage](ver-1o.md)                |
+| ver-1m    | [Heat Transfer and Hydrogen Thermodiffusion in U-ZrH](ver-1m.md)                                    |
+| ver-1n    | [Voltage-Assisted Transport with Constant Source Boundary Condition](ver-1n.md)                     |
+| ver-1o    | [Joule Heating in a Slab under Applied Voltage](ver-1o.md)                                          |
 
 # List of benchmarking cases
 

@@ -1,0 +1,39 @@
+[Tests]
+  design = 'ThermoDiffusion.md MatDiffusion.md TimeDerivative.md'
+  verification = 'ver-1m.md'
+  issues = '#383'
+  [ver_1m_LHR_150_csvdiff]
+    type = CSVDiff
+    input = ver-1m.i
+    cli_args = 'LHR=150 hours=265 output_file_base=ver-1m_out_150'
+    csvdiff = 'ver-1m_out_150_end_hydrogen_profile.csv ver-1m_out_150_end_temperature_profile.csv'
+    requirement = 'The system shall be able to model species Fickian and Soret diffusion with conduction and heat generation for LHR=150 W/cm to generate CSV data for use in comparisons with the analytic solution.'
+  []
+  [ver_1m_LHR_200_csvdiff]
+    type = CSVDiff
+    input = ver-1m.i
+    cli_args = 'LHR=200 hours=165 output_file_base=ver-1m_out_200'
+    csvdiff = 'ver-1m_out_200_end_hydrogen_profile.csv ver-1m_out_200_end_temperature_profile.csv'
+    requirement = 'The system shall be able to model species Fickian and Soret diffusion with conduction and heat generation for LHR=200 W/cm to generate CSV data for use in comparisons with the analytic solution.'
+  []
+  [ver_1m_LHR_250_csvdiff]
+    type = CSVDiff
+    input = ver-1m.i
+    cli_args = 'LHR=250 hours=85 output_file_base=ver-1m_out_250'
+    csvdiff = 'ver-1m_out_250_end_hydrogen_profile.csv ver-1m_out_250_end_temperature_profile.csv'
+    requirement = 'The system shall be able to model species Fickian and Soret diffusion with conduction and heat generation for LHR=250 W/cm to generate CSV data for use in comparisons with the analytic solution.'
+  []
+  [ver_1m_LHR_300_csvdiff]
+    type = CSVDiff
+    input = ver-1m.i
+    cli_args = 'LHR=300 hours=65 output_file_base=ver-1m_out_300'
+    csvdiff = 'ver-1m_out_300_end_hydrogen_profile.csv ver-1m_out_300_end_temperature_profile.csv'
+    requirement = 'The system shall be able to model species Fickian and Soret diffusion with conduction and heat generation for LHR=300 W/cm to generate CSV data for use in comparisons with the analytic solution.'
+  []
+  [ver_1m_comparison]
+    type = RunCommand
+    command = 'python3 comparison_ver-1m.py'
+    requirement = 'The system shall generate comparison plots between analytic predictions and simulated hydrogen redistribution for all LHR values.'
+    required_python_packages = 'matplotlib numpy pandas scipy os'
+  []
+[]
