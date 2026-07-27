@@ -85,7 +85,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // Low pressure (LP) Branch
   const ADReal af_LP_grid =
-      0.7 - 1.0 / (5e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+      0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
                                    log(max(limit_pressure - neighbor_pressure, 1e-10))));
 
@@ -102,12 +102,12 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal P_a = alpha * limit_pressure;     // LP
   const ADReal P_b = beta_corr * limit_pressure; // HP
 
-  // LP value at P_a (same formula as LP branch)
-  const ADReal af_a = 0.7 - 1.0 / (5e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+  // LP value at P_a
+  const ADReal af_a = 0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
                                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
                                                    log(max(limit_pressure - P_a, 1e-10))));
 
-  // HP value at P_b (same formula as HP branch)
+  // HP value at P_b
   const ADReal af_b = 2.7 - 1.45 / (1.00 + exp(6.57 - 2.21e-02 * _neighbor_temperature[_qp] +
                                                (6.52e-01 - 1.17e-05 * _neighbor_temperature[_qp]) *
                                                    log(max(P_b - limit_pressure, 1e-10))));
@@ -143,7 +143,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   ADReal w_mid = s_alpha * (1.0 - s_beta); // Mid pressure weights
   ADReal w_HP = s_beta;                    // High pressure weights
 
-  // Defensive normalization
+  // Normalization
   const ADReal w_sum = w_LP + w_mid + w_HP; // Sum of weights
   w_LP /= w_sum;                            // Ratio of weight for low pressure
   w_mid /= w_sum;                           // Ratio of weight for mid pressure
