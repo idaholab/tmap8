@@ -86,8 +86,8 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Low pressure (LP) Branch
   const ADReal af_LP_grid =
       0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
-                               (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
-                                   log(max(limit_pressure - neighbor_pressure, 1e-10))));
+                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
+                                    log(max(limit_pressure - neighbor_pressure, 1e-10))));
 
   // High pressure (HP) branch
   const ADReal af_HP_grid =
@@ -103,9 +103,10 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal P_b = beta_corr * limit_pressure; // HP
 
   // LP value at P_a
-  const ADReal af_a = 0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
-                                               (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
-                                                   log(max(limit_pressure - P_a, 1e-10))));
+  const ADReal af_a =
+      0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
+                                    log(max(limit_pressure - P_a, 1e-10))));
 
   // HP value at P_b
   const ADReal af_b = 2.7 - 1.45 / (1.00 + exp(6.57 - 2.21e-02 * _neighbor_temperature[_qp] +
