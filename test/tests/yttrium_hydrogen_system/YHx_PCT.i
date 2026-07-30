@@ -8,7 +8,10 @@ temperature = '${units 1173.15 K}'
 density_Y = '${units 48605 mol/m^3}'
 initial_pressure_H2_enclosure_1 = '${units 1e4 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
-initial_atomic_fraction = 1.8 # (-)
+
+
+initial_atomic_fraction = '${fparse (2.156 - 2.556e-03 * temperature + 1.01e-06 * temperature^2)  - 10*(1e-03 + exp(-50.0 + 5.73e-02 * temperature + (0.8296 - 2.69e-03 * temperature ) * log(max( exp(-26.1 + 3.88e-2 * temperature - 9.7e-6 * temperature^2)-initial_pressure_H2_enclosure_1, 1e-10))))^(-1)}'
+
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_Y} mol/m^3}'
 
 # diffusivity from Majer et al., Journal of Alloys and Compounds 330-332 (2002) 438-442.
@@ -28,7 +31,7 @@ num_nodes = 10
 simulation_time = '${units 1e9 s}'
 dt_max = '${fparse simulation_time/100}'
 dt_init = '${units 1e-3 s}'
-tau_constant_BC = '${fparse dt_init*2e-2}' # the smaller, the faster the up-ramp for the pressure BC
+
 
 # convergence parameters
 lower_value_threshold_concentration_enclosure_1 = -1e-20
@@ -115,7 +118,7 @@ output_file_base = 'YHx_PCT_out'
 [Functions]
   [function_BC_concentration_H_enclosure_1]
     type = ParsedFunction
-    expression = 'exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'
+    expression = 'exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'
   []
 []
 
