@@ -4,9 +4,9 @@ N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from TMAP8PhysicalConst
 boltzmann_constant = '${units 1.380649e-23 J/K}' # Boltzmann constant from TMAP8PhysicalConstants.h
 
 # Simulation conditions and material properties
-temperature = '${units 1173.15 K}'
+temperature = '${units 1573.15 K}'
 density_Y = '${units 48605 mol/m^3}'
-initial_pressure_H2_enclosure_1 = '${units 1e4 Pa}'
+initial_pressure_H2_enclosure_1 = '${units 6e2 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
 
 
@@ -15,22 +15,23 @@ initial_atomic_fraction = '${fparse (2.156 - 2.556e-03 * temperature + 1.01e-06 
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_Y} mol/m^3}'
 
 # diffusivity from Majer et al., Journal of Alloys and Compounds 330-332 (2002) 438-442.
-diffusivity_Do = '${units 1 m^2/s}'
+diffusivity_Do = '${units 1.e-8 m^2/s}'
 diffusivity_Ea = '${units 0.38 eV -> J}'
 
-diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 100}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
+diffusivity_ratio_gas_YHx = '${fparse initial_concentration_H_enclosure_2 / initial_concentration_H_enclosure_1 * 10}' # this ratio is large and helps InterfaceDiffusion due to the ratio of concentrations
 # Surface reaction rate from P. W. Fisher, M. Tanase, Journal of Nuclear Materials 122-123 (1984) 1536-1540
 reaction_rate_0 = '${units 4.95e5 1/s}'
 reaction_rate_Ea = '${units 1.52 eV -> J}'
 
 # Domain size and mesh parameters
 domain_length = '${units 1 m}'
-num_nodes = 10
+num_nodes = 8
 
 # time
 simulation_time = '${units 1e9 s}'
 dt_max = '${fparse simulation_time/100}'
-dt_init = '${units 1e-3 s}'
+dt_init = '${units 1e-4 s}'
+tau_constant_BC = '${fparse dt_init*2e-2}' # the smaller, the faster the up-ramp for the pressure BC
 
 
 # convergence parameters
@@ -118,7 +119,7 @@ output_file_base = 'YHx_PCT_out'
 [Functions]
   [function_BC_concentration_H_enclosure_1]
     type = ParsedFunction
-    expression = 'exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'
+    expression = 'exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'
   []
 []
 
@@ -307,13 +308,14 @@ output_file_base = 'YHx_PCT_out'
 []
 
 [Executioner]
-  type = Transient
+ type = Transient
   end_time = ${simulation_time}
   dtmax = ${dt_max}
   nl_max_its = 16
   l_max_its = 30
-  nl_rel_tol = 1e-4
-  nl_abs_tol = 4e-9
+  nl_rel_tol = 1e-7
+  nl_abs_tol = 4e-12
+  num_steps=200
   scheme = 'bdf2'
   solve_type = 'Newton'
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_type -snes_type'

@@ -160,7 +160,7 @@ plt.close(fig)
 
 # ============================================================================ #
 # Colors
-TEMP_COLOR_MAP = {
+TEMPURATE_COLOR_MAP = {
     1173: "#1f77b4",
     1273: "#ff7f0e",
     1373: "#2ca02c",
@@ -169,10 +169,10 @@ TEMP_COLOR_MAP = {
 }
 
 
-def color_for_T(T, idx):
-    Ti = int(T)
-    if Ti in TEMP_COLOR_MAP:
-        return TEMP_COLOR_MAP[Ti]
+def color_for_Temperature(Temperature, idx):
+    Temperature_i = int(Temperature)
+    if Temperature_i in TEMPURATE_COLOR_MAP:
+        return TEMPURATE_COLOR_MAP[Temperature_i]
     palette = plt.cm.tab20
     return palette(idx % 20)
 
@@ -285,10 +285,10 @@ for i, temperature in enumerate(temperature_list):
     expData = list_expData[i]
     pressures = expData["Partial Pressure (Pa)"].to_numpy(dtype=float)
     atom_ratios = expData["Atom Ratio (-)"].to_numpy(dtype=float)
-    color_T = color_for_T(temperature, i)
+    color_Temperature = color_for_Temperature(temperature, i)
 
     # Plot the data points
-    sc = plt.scatter(atom_ratios, pressures, color=color_T, s=16)
+    sc = plt.scatter(atom_ratios, pressures, color=color_Temperature, s=16)
     high_data_handles.append(sc)
     high_data_labels.append(f"{temperature} K Data")
 
@@ -322,7 +322,7 @@ for i, temperature in enumerate(temperature_list):
         (ln_lo,) = plt.plot(
             AR_low_line[mask_low_use],
             P_line[mask_low_use],
-            color=color_T,
+            color=color_Temperature,
             linestyle="--",
             linewidth=1.8,
         )
@@ -338,7 +338,7 @@ for i, temperature in enumerate(temperature_list):
         (ln_hi,) = plt.plot(
             AR_high_line[mask_high_use],
             P_line[mask_high_use],
-            color=color_T,
+            color=color_Temperature,
             linestyle="-",
             linewidth=1.8,
         )
@@ -376,7 +376,7 @@ for i, temperature in enumerate(temperature_list):
     (ln_sweep,) = plt.plot(
         ar_tmap[order_sweep],
         p_tmap[order_sweep],
-        color=color_T,
+        color=color_Temperature,
         linestyle=":",
         linewidth=2.0,
     )
@@ -469,11 +469,11 @@ print(f"TMAP8 low pressure prediction RMSPE: {low_prediction_rmspe:.6f} %")
 fig = plt.figure(figsize=(10, 6))
 for i, expData in enumerate(list_expData):
     T = expData["Temperature (K)"].iloc[0]
-    color_T = color_for_T(T, i)
+    color_T = color_for_Temperature(T, i)
     x = expData["Atom Ratio (-)"].values
     y = expData["Partial Pressure (Pa)"].values
-    plt.scatter(x, y, s=16, label=f"{int(T)} K", color=color_T)
-    plt.plot(x, y, color=color_T)
+    plt.scatter(x, y, s=16, label=f"{int(T)} K", color=color_Temperature)
+    plt.plot(x, y, color=color_Temperature)
 
 plt.yscale("log")
 plt.xlabel("Atom Ratio (-)")
@@ -489,29 +489,31 @@ plt.close(fig)
 fig = plt.figure(figsize=(10, 6))
 ax = plt.gca()
 
-ar_max_x, ar_max_y, temp_order = [], [], []
+ar_max_x, ar_max_y, temperature_order = [], [], []
 ar_min_x, ar_min_y = [], []
-temp_handles, temp_labels = [], []
+temperature_handles, temperature_labels = [], []
 
 for i, expData in enumerate(list_expData):
     T = float(expData["Temperature (K)"].iloc[0])
-    color_T = color_for_T(T, i)
+    color_T = color_for_Temperature(T, i)
 
     x = expData["Atom Ratio (-)"].values.astype(float)
     y = expData["Partial Pressure (Pa)"].values.astype(float)
 
-    (ln_temp,) = ax.plot(x, y, color=color_T, linewidth=1.8, label=f"{int(T)} K")
-    temp_handles.append(ln_temp)
-    temp_labels.append(f"{int(T)} K")
+    (ln_temperature,) = ax.plot(
+        x, y, color=color_Temperature, linewidth=1.8, label=f"{int(T)} K"
+    )
+    temperature_handles.append(ln_temperature)
+    temperature_labels.append(f"{int(T)} K")
 
     p0_T = float(p0_lim_func(T))
     ar_max_x.append(ar_max_low_p(T))
     ar_max_y.append(p0_T)
     ar_min_x.append(ar_min_high_p(T))
     ar_min_y.append(p0_T)
-    temp_order.append(T)
+    temperature_order.append(T)
 
-order = np.argsort(np.array(temp_order))
+order = np.argsort(np.array(temperature_order))
 ar_max_x = np.array(ar_max_x)[order]
 ar_max_y = np.array(ar_max_y)[order]
 ar_min_x = np.array(ar_min_x)[order]
@@ -539,11 +541,11 @@ ax.set_xlabel("Atom Ratio (-)")
 ax.set_ylabel("Partial Pressure (Pa)")
 ax.grid(True, which="both", linestyle=":", alpha=0.6)
 
-ncols_temp = min(len(temp_handles), 5)
+ncols_temperature = min(len(temperature_handles), 5)
 fig.legend(
-    temp_handles,
-    temp_labels,
-    ncols=ncols_temp,
+    temperature_handles,
+    temperature_labels,
+    ncols=ncols_temperature,
     loc="upper center",
     bbox_to_anchor=(0.5, 1.06),
     fontsize=9,
@@ -586,7 +588,7 @@ fit_linewidth = 2.2
 
 for i, expData in enumerate(list_expData):
     T = float(expData["Temperature (K)"].iloc[0])
-    color_T = color_for_T(T, i)
+    color_T = color_for_Temperature(T, i)
 
     AR = expData["Atom Ratio (-)"].values.astype(float)
     P = expData["Partial Pressure (Pa)"].values.astype(float)

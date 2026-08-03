@@ -29,6 +29,8 @@ ADMatInterfaceReactionYHxPCT::validParams()
       "forward_rate", "kf", "Forward reaction rate coefficient (1/s).");
   params.addParam<MaterialPropertyName>(
       "backward_rate", "kb", "Backward reaction rate coefficient (1/s).");
+  params.addParam<bool>(
+      "silence_warnings", false, "Whether to silence correlation out of bound warnings");
   return params;
 }
 
@@ -37,7 +39,8 @@ ADMatInterfaceReactionYHxPCT::ADMatInterfaceReactionYHxPCT(const InputParameters
     _neighbor_temperature(this->template coupledGenericValue<true>("neighbor_temperature")),
     _density(getADMaterialProperty<Real>("density")),
     _kf(getADMaterialProperty<Real>("forward_rate")),
-    _kb(getNeighborADMaterialProperty<Real>("backward_rate"))
+    _kb(getNeighborADMaterialProperty<Real>("backward_rate")),
+    _silence_warnings(getParam<bool>("silence_warnings"))
 {
 }
 
@@ -74,14 +77,15 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                          2.55e-3 * _neighbor_temperature[_qp] - 5.6e-01;
 
   // return warning if the PCT curves is used out of bounds (pressure in Pa)
-  if (((neighbor_pressure < 1e2) || (neighbor_pressure > 2.e5)))
+
+  // return warning if the PCT curves is used out of bounds (pressure in Pa)
+  if (!_silence_warnings && ((neighbor_pressure < 1.e2) || (neighbor_pressure > 1.e6)))
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
                              "Pa and temperature ",
                              _neighbor_temperature[_qp],
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for YHxPCT material."));
-
   // Calculate the atomic fraction based on the PCT curve
   if (neighbor_pressure / limit_pressure > 1.15)
   {
@@ -95,11 +99,12 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   else if (neighbor_pressure / limit_pressure < 1.05)
   {
     // Low pressure region
-    atomic_fraction = Ar_Max_LP_fit -
-                      10 * pow(1.e-03 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
-                                           (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
-                                               log(max(limit_pressure - neighbor_pressure, 1.e-10))),
-                               -1);
+    atomic_fraction =
+        Ar_Max_LP_fit -
+        10 * pow(1.e-03 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
+                              (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
+                                  log(max(limit_pressure - neighbor_pressure, 1.e-10))),
+                 -1);
   }
   else
   {

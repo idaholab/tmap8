@@ -44,4 +44,7 @@ protected:
 
   /// Backward reaction rate coefficient
   const ADMaterialProperty<Real> & _kb;
+
+  /// Flag to silence correlation out of bound warnings
+  const bool _silence_warnings;
 };
