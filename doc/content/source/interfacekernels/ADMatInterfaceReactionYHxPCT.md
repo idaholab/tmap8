@@ -4,16 +4,16 @@
 
 ## Description
 
-The composition of metal hydrides like yttrium hydride ($YH_{x}$) is described by pressure-composition-temperature (PCT) data.
+The composition of metal hydrides like yttrium hydride (YH$_{x}$) is described by pressure-composition-temperature (PCT) data.
 In TMAP8, the PCT curve can be imposed by an interface kernel that then dictates the material composition.
-Hence, the `ADMatInterfaceReactionYHxPCT` interface kernel imposes the surface concentration of H in $YH_{x}$ based on the input pressure (Pa) and temperature (K). `ADMatInterfaceReactionYHxPCT` is related to [ADMatInterfaceReaction.md], but includes the $YH_{x}$ PCT curves.
+Hence, the `ADMatInterfaceReactionYHxPCT` interface kernel imposes the surface concentration of H in YH$_{x}$ based on the input pressure (Pa) and temperature (K). `ADMatInterfaceReactionYHxPCT` is related to [ADMatInterfaceReaction.md], but includes the YH$_{x}$ PCT curves.
  At the interface between a solid (main) and a gas (neighbor), it imposes:
 \begin{equation} \label{eq:test_interfacereactionYHxPCT}
 \frac{d C_s}{dt} = 0 = K_b f_{at}(T,P) \rho -  K_f C_s,
 \end{equation}
 where $C_s$ is the surface H concentration in mol/m$^3$,
 $K_b$ and $K_f$ are the backward and forward surface reaction rate in 1/s, respectively,
-$f_{at}(T,P)$ is the composition in atomic fraction of H in $YH_{x}$ given a gas temperature $T$ and gas pressure $P$,
+$f_{at}(T,P)$ is the composition in atomic fraction of H in YH$_{x}$ given a gas temperature $T$ and gas pressure $P$,
 and $\rho$ is the yttrium molar density in mol/m$^3$.
 
 [YHx_PCT_fit_2D] shows the data used in this interface kernel along with TMAP8 simulation results and analytical fits. The experimental data originates from [!cite](Lundin_1962).
@@ -23,7 +23,7 @@ and $\rho$ is the yttrium molar density in mol/m$^3$.
        image_name=YHx_PCT_fit_2D.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=YHx_PCT_fit_2D
-       caption=PCT data for $YH_{x}$ sampled from [!cite](Lundin_1962) with TMAP8 simulation results and analytical fits.
+       caption=PCT data for YH$_{x}$ sampled from [!cite](Lundin_1962) with TMAP8 simulation results and analytical fits.
 
 
 To incorporate the entire PCT curve in TMAP8, the curve was divided into three regions: the low-pressure (LP) region, the plateau region (PR), and the high-pressure (HP) region. The fitting procedures and the modeling approach for each region are described below.
