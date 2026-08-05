@@ -173,8 +173,10 @@ template <typename T>
 inline T
 computeSolubility(const MooseEnum & model, const T & temperature)
 {
+  using std::pow;
+
   if (model == "Ohira1989")
-    return std::pow(10.0, 1290.0 / temperature + 1.14);
+    return pow(10.0, 1290.0 / temperature + 1.14);
 
   mooseError("Unsupported Li2O solubility model: ", model);
 }
