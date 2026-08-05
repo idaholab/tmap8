@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import gridspec
 
-
 R = 8.31446261815324  # J/mol/K
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -67,7 +66,9 @@ def apply_validation_style():
     )
 
 
-def diffusivity_m2_s(prefactor_m2_s: float, activation_j_mol: float, temperature_k: np.ndarray):
+def diffusivity_m2_s(
+    prefactor_m2_s: float, activation_j_mol: float, temperature_k: np.ndarray
+):
     return prefactor_m2_s * np.exp(-activation_j_mol / (R * temperature_k))
 
 
@@ -177,7 +178,10 @@ def plot_solubility():
         ohira_reported_ks(SOLUBILITY_MODEL["a"], SOLUBILITY_MODEL["b"], temperature)
     )
     ax.plot(
-        inverse_temperature, log_solubility, linewidth=2.0, label=SOLUBILITY_MODEL["label"]
+        inverse_temperature,
+        log_solubility,
+        linewidth=2.0,
+        label=SOLUBILITY_MODEL["label"],
     )
 
     apply_axes_style(
