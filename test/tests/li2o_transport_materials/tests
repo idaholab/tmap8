@@ -1,0 +1,252 @@
+[Tests]
+  design = 'TritiumDiffusivityLi2O.md TritiumSolubilityLi2O.md'
+  issues = '#419'
+
+  [li2o_diffusivity_ohira1989_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Ohira1989
+                AuxKernels/temperature_1/value=600
+                AuxKernels/temperature_2/value=650
+                AuxKernels/temperature_3/value=711
+                Outputs/file_base=li2o_diffusivity_ohira1989_out'
+    csvdiff = li2o_diffusivity_ohira1989_out.csv
+    requirement = 'The system shall compute the Ohira1989 Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanifuji1987_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanifuji1987
+                AuxKernels/temperature_1/value=573
+                AuxKernels/temperature_2/value=750
+                AuxKernels/temperature_3/value=950
+                Outputs/file_base=li2o_diffusivity_tanifuji1987_out'
+    csvdiff = li2o_diffusivity_tanifuji1987_out.csv
+    requirement = 'The system shall compute the Tanifuji1987 Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_kurasawa1991_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Kurasawa1991
+                AuxKernels/temperature_1/value=723.15
+                AuxKernels/temperature_2/value=900
+                AuxKernels/temperature_3/value=1093.15
+                Outputs/file_base=li2o_diffusivity_kurasawa1991_out'
+    csvdiff = li2o_diffusivity_kurasawa1991_out.csv
+    requirement = 'The system shall compute the Kurasawa1991 Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanaka1988grain_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988Grain
+                AuxKernels/temperature_1/value=633.15
+                AuxKernels/temperature_2/value=753.15
+                AuxKernels/temperature_3/value=873.15
+                Outputs/file_base=li2o_diffusivity_tanaka1988grain_out'
+    csvdiff = li2o_diffusivity_tanaka1988grain_out.csv
+    requirement = 'The system shall compute the Tanaka1988Grain Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanaka1988grainboundary_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988GrainBoundary
+                AuxKernels/temperature_1/value=633.15
+                AuxKernels/temperature_2/value=753.15
+                AuxKernels/temperature_3/value=873.15
+                Outputs/file_base=li2o_diffusivity_tanaka1988grainboundary_out'
+    csvdiff = li2o_diffusivity_tanaka1988grainboundary_out.csv
+    requirement = 'The system shall compute the Tanaka1988GrainBoundary Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [li2o_solubility_ohira1989_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989
+                AuxKernels/temperature_1/value=500
+                AuxKernels/temperature_2/value=800
+                AuxKernels/temperature_3/value=1100
+                Outputs/file_base=li2o_solubility_ohira1989_out'
+    csvdiff = li2o_solubility_ohira1989_out.csv
+    requirement = 'The system shall compute the Ohira1989 Li2O tritium solubility model across a wide temperature range and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_ohira1989_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Ohira1989
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_diffusivity_ohira1989_reference_point_out'
+    csvdiff = li2o_diffusivity_ohira1989_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Ohira1989 Li2O tritium diffusivity reference point at 650 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanifuji1987_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Tanifuji1987
+                AuxKernels/set_temperature/value=750
+                Outputs/file_base=li2o_diffusivity_tanifuji1987_reference_point_out'
+    csvdiff = li2o_diffusivity_tanifuji1987_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Tanifuji1987 Li2O tritium diffusivity reference point at 750 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_kurasawa1991_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Kurasawa1991
+                AuxKernels/set_temperature/value=900
+                Outputs/file_base=li2o_diffusivity_kurasawa1991_reference_point_out'
+    csvdiff = li2o_diffusivity_kurasawa1991_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Kurasawa1991 Li2O tritium diffusivity reference point at 900 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanaka1988grain_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Tanaka1988Grain
+                AuxKernels/set_temperature/value=753.15
+                Outputs/file_base=li2o_diffusivity_tanaka1988grain_reference_point_out'
+    csvdiff = li2o_diffusivity_tanaka1988grain_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Tanaka1988Grain Li2O tritium diffusivity reference point at 753.15 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_tanaka1988grainboundary_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Tanaka1988GrainBoundary
+                AuxKernels/set_temperature/value=753.15
+                Outputs/file_base=li2o_diffusivity_tanaka1988grainboundary_reference_point_out'
+    csvdiff = li2o_diffusivity_tanaka1988grainboundary_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Tanaka1988GrainBoundary Li2O tritium diffusivity reference point at 753.15 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_solubility_ohira1989_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_solubility_ohira1989_reference_point_out'
+    csvdiff = li2o_solubility_ohira1989_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Ohira1989 Li2O tritium solubility reference point at 650 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_diffusivity_warning]
+    type = RunApp
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/validity_action=warning
+                AuxKernels/set_temperature/value=599'
+    expect_out = "model 'Ohira1989' is being used outside its documented validity range because temperature 599 K is outside"
+    requirement = 'The system shall return a warning when the Ohira1989 Li2O tritium diffusivity model is used outside its documented temperature range and validity_action=warning.'
+  []
+
+  [li2o_diffusivity_ad_jacobian]
+    type = PetscJacobianTester
+    input = li2o_ad_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Ohira1989
+                Variables/temperature/initial_condition=650'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Ohira1989 Li2O tritium diffusivity material property.'
+  []
+
+  [li2o_solubility_ad_jacobian]
+    type = PetscJacobianTester
+    input = li2o_ad_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989
+                Variables/temperature/initial_condition=650'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Ohira1989 Li2O tritium solubility material property.'
+  []
+
+  [li2o_diffusivity_ohira_low_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Ohira1989 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=599'
+    expect_err = "In li2o_property: model 'Ohira1989' is being used outside its documented validity range because temperature 599"
+    requirement = 'The system shall return a specific error message when the Ohira1989 Li2O tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [li2o_diffusivity_ohira_high_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Ohira1989 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=712'
+    expect_err = "In li2o_property: model 'Ohira1989' is being used outside its documented validity range because temperature 712"
+    requirement = 'The system shall return a specific error message when the Ohira1989 Li2O tritium diffusivity model is used above its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanifuji_low_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanifuji1987 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=572'
+    expect_err = "In li2o_property: model 'Tanifuji1987' is being used outside its documented validity range because temperature 572"
+    requirement = 'The system shall return a specific error message when the Tanifuji1987 Li2O tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanifuji_high_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanifuji1987 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=951'
+    expect_err = "In li2o_property: model 'Tanifuji1987' is being used outside its documented validity range because temperature 951"
+    requirement = 'The system shall return a specific error message when the Tanifuji1987 Li2O tritium diffusivity model is used above its documented temperature range.'
+  []
+
+  [li2o_diffusivity_kurasawa_low_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Kurasawa1991 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=700'
+    expect_err = "In li2o_property: model 'Kurasawa1991' is being used outside its documented validity range because temperature 700"
+    requirement = 'The system shall return a specific error message when the Kurasawa1991 Li2O tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [li2o_diffusivity_kurasawa_high_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Kurasawa1991 Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=1100'
+    expect_err = "In li2o_property: model 'Kurasawa1991' is being used outside its documented validity range because temperature 1100"
+    requirement = 'The system shall return a specific error message when the Kurasawa1991 Li2O tritium diffusivity model is used above its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanaka_grain_low_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988Grain Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=600'
+    expect_err = "In li2o_property: model 'Tanaka1988Grain' is being used outside its documented validity range because temperature 600"
+    requirement = 'The system shall return a specific error message when the Tanaka1988Grain Li2O tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanaka_grain_high_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988Grain Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=900'
+    expect_err = "In li2o_property: model 'Tanaka1988Grain' is being used outside its documented validity range because temperature 900"
+    requirement = 'The system shall return a specific error message when the Tanaka1988Grain Li2O tritium diffusivity model is used above its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanaka_grain_boundary_low_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988GrainBoundary Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=600'
+    expect_err = "In li2o_property: model 'Tanaka1988GrainBoundary' is being used outside its documented validity range because temperature 600"
+    requirement = 'The system shall return a specific error message when the Tanaka1988GrainBoundary Li2O tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [li2o_diffusivity_tanaka_grain_boundary_high_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/model=Tanaka1988GrainBoundary Materials/li2o_property/validity_action=error AuxKernels/set_temperature/value=900'
+    expect_err = "In li2o_property: model 'Tanaka1988GrainBoundary' is being used outside its documented validity range because temperature 900"
+    requirement = 'The system shall return a specific error message when the Tanaka1988GrainBoundary Li2O tritium diffusivity model is used above its documented temperature range.'
+  []
+[]
