@@ -31,17 +31,17 @@ DIFFUSIVITY_MODELS = {
         "temp_range_k": (450.0 + 273.15, 820.0 + 273.15),
         "label": "Kurasawa1991, in-situ single crystal",
     },
-    "Tanaka1988Grain": {
+    "Terai1988Grain": {
         "prefactor_m2_s": 1.27e-9,
         "activation_j_mol": 54.9e3,
         "temp_range_k": (360.0 + 273.15, 600.0 + 273.15),
-        "label": "Tanaka1988Grain, polycrystal grain",
+        "label": "Terai1988Grain, neutron-irradiated polycrystal grain",
     },
-    "Tanaka1988GrainBoundary": {
+    "Terai1988GrainBoundary": {
         "prefactor_m2_s": 1.61e-2,
         "activation_j_mol": 95.1e3,
         "temp_range_k": (360.0 + 273.15, 600.0 + 273.15),
-        "label": "Tanaka1988GrainBoundary, polycrystal grain boundary",
+        "label": "Terai1988GrainBoundary, neutron-irradiated polycrystal grain boundary",
     },
 }
 
@@ -127,7 +127,7 @@ def order_legend_by_reference_y(line_info, reference_temperature_k: float):
 
 
 def plot_diffusivity():
-    fig = plt.figure(figsize=[6.5, 5.5])
+    fig = plt.figure(figsize=[6.5, 7.0])
     gs = gridspec.GridSpec(1, 1)
     ax = fig.add_subplot(gs[0])
     line_info = []
@@ -136,31 +136,37 @@ def plot_diffusivity():
         t_min, t_max = model["temp_range_k"]
         temperature = np.linspace(t_min, t_max, 250)
         inverse_temperature = inverse_temperature_axis(temperature)
-        log_diffusivity = np.log(
-            diffusivity_m2_s(
-                model["prefactor_m2_s"], model["activation_j_mol"], temperature
-            )
+        diffusivity = diffusivity_m2_s(
+            model["prefactor_m2_s"], model["activation_j_mol"], temperature
         )
         (line,) = ax.plot(
-            inverse_temperature, log_diffusivity, linewidth=2.0, label=model["label"]
+            inverse_temperature, diffusivity, linewidth=2.0, label=model["label"]
         )
         line_info.append(
             {
                 "handle": line,
                 "label": model["label"],
                 "temperature_k": temperature,
-                "y_values": log_diffusivity,
+                "y_values": diffusivity,
             }
         )
 
+    ax.set_yscale("log")
     apply_axes_style(
         ax,
         r"1000 / Temperature (K$^{-1}$)",
-        r"$\ln(D \; [m^2/s])$",
+        r"$D$ (m$^2$/s)",
     )
     add_temperature_top_axis(ax, [600.0, 700.0, 800.0, 900.0, 1000.0])
     handles, labels = order_legend_by_reference_y(line_info, 700.0)
-    ax.legend(handles, labels, loc="upper right")
+    ax.legend(
+        handles,
+        labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.15),
+        borderaxespad=0.0,
+        ncol=1,
+    )
     fig.tight_layout()
     fig.savefig(FIG_DIR / "li2o_diffusivity_models.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
