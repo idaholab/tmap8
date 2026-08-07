@@ -53,14 +53,14 @@ diffusivityMetadata(const MooseEnum & model)
             "In-situ release interpretation for single-crystal Li2O under sweep-gas chemistry "
             "effects."};
 
-  if (model == "Tanaka1988Grain")
-    return {"Tanaka et al. (1988/1989)",
+  if (model == "Terai1988Grain")
+    return {"Terai et al. (1988/1989)",
             360.0 + 273.15,
             600.0 + 273.15,
             "Polycrystalline Li2O grain diffusivity from TTTEx analysis."};
 
-  if (model == "Tanaka1988GrainBoundary")
-    return {"Tanaka et al. (1988/1989)",
+  if (model == "Terai1988GrainBoundary")
+    return {"Terai et al. (1988/1989)",
             360.0 + 273.15,
             600.0 + 273.15,
             "Polycrystalline Li2O grain-boundary diffusivity from TTTEx analysis."};
@@ -160,10 +160,10 @@ computeDiffusivity(const MooseEnum & model, const T & temperature)
   if (model == "Kurasawa1991")
     return 2.0e-7 * exp(-81.7e3 / (ideal_gas_constant * temperature));
 
-  if (model == "Tanaka1988Grain")
+  if (model == "Terai1988Grain")
     return 1.27e-9 * exp(-54.9e3 / (ideal_gas_constant * temperature));
 
-  if (model == "Tanaka1988GrainBoundary")
+  if (model == "Terai1988GrainBoundary")
     return 1.61e-2 * exp(-95.1e3 / (ideal_gas_constant * temperature));
 
   mooseError("Unsupported Li2O diffusivity model: ", model);

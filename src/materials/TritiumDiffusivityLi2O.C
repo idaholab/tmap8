@@ -24,11 +24,10 @@ TritiumDiffusivityLi2O::validParams()
       "property_name", "diffusivity", "The regular material property name for the diffusivity.");
   params.addParam<MaterialPropertyName>(
       "ad_property_name", "ad_diffusivity", "The AD material property name for the diffusivity.");
-  params.addRequiredParam<MooseEnum>(
-      "model",
-      MooseEnum("Ohira1989 Tanifuji1987 Kurasawa1991 Tanaka1988Grain "
-                "Tanaka1988GrainBoundary"),
-      "The Li2O tritium diffusivity correlation.");
+  params.addRequiredParam<MooseEnum>("model",
+                                     MooseEnum("Ohira1989 Tanifuji1987 Kurasawa1991 Terai1988Grain "
+                                               "Terai1988GrainBoundary"),
+                                     "The Li2O tritium diffusivity correlation.");
   params.addParam<MooseEnum>("validity_action",
                              MooseEnum("ignore warning error", "warning"),
                              "How the material responds when the selected model is used outside "
