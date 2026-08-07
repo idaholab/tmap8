@@ -46,11 +46,19 @@ DIFFUSIVITY_MODELS = {
 }
 
 
-SOLUBILITY_MODEL = {
-    "a": 1290.0,
-    "b": 1.14,
-    "temp_range_k": (600.0, 711.0),
-    "label": "Ohira1989 tritium, provisional range",
+SOLUBILITY_MODELS = {
+    "Ohira1989Tritium": {
+        "a": 1290.0,
+        "b": 1.14,
+        "temp_range_k": (200.0 + 273.15, 1000.0),
+        "label": "Ohira1989Tritium, tritium in unirradiated single crystal",
+    },
+    "Ohira1989Hydrogen": {
+        "a": 1271.0,
+        "b": 2.33,
+        "temp_range_k": (300.0 + 273.15, 1000.0),
+        "label": "Ohira1989Hydrogen, Hydrogen in unirradiated single crystal",
+    },
 }
 
 
@@ -72,7 +80,7 @@ def diffusivity_m2_s(
     return prefactor_m2_s * np.exp(-activation_j_mol / (R * temperature_k))
 
 
-def ohira_reported_ks(a: float, b: float, temperature_k: np.ndarray):
+def solubility_atm_0_5(a: float, b: float, temperature_k: np.ndarray):
     return 10.0 ** (a / temperature_k + b)
 
 
@@ -176,30 +184,44 @@ def plot_solubility():
     fig = plt.figure(figsize=[6.5, 5.5])
     gs = gridspec.GridSpec(1, 1)
     ax = fig.add_subplot(gs[0])
+    line_info = []
 
-    t_min, t_max = SOLUBILITY_MODEL["temp_range_k"]
-    temperature = np.linspace(t_min, t_max, 250)
-    inverse_temperature = inverse_temperature_axis(temperature)
-    log_solubility = np.log(
-        ohira_reported_ks(SOLUBILITY_MODEL["a"], SOLUBILITY_MODEL["b"], temperature)
-    )
-    ax.plot(
-        inverse_temperature,
-        log_solubility,
-        linewidth=2.0,
-        label=SOLUBILITY_MODEL["label"],
-    )
+    for model in SOLUBILITY_MODELS.values():
+            t_min, t_max = model["temp_range_k"]
+            temperature = np.linspace(t_min, t_max, 250)
+            inverse_temperature = inverse_temperature_axis(temperature)
+            solubility = solubility_atm_0_5(model["a"], model["b"], temperature)
+            (line,) = ax.plot(
+                inverse_temperature, solubility, linewidth=2.0, label=model["label"]
+            )
+            line_info.append(
+                {
+                    "handle": line,
+                    "label": model["label"],
+                    "temperature_k": temperature,
+                    "y_values": solubility,
+                }
+            )
 
-    apply_axes_style(
-        ax,
-        r"1000 / Temperature (K$^{-1}$)",
-        r"$\ln(K_s)$ in reported units",
-    )
-    add_temperature_top_axis(ax, [600.0, 625.0, 650.0, 675.0, 700.0])
-    ax.legend(loc="best")
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / "li2o_solubility_review.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+        ax.set_yscale("log")
+        apply_axes_style(
+            ax,
+            r"1000 / Temperature (K$^{-1}$)",
+            r"$K_s$ (atm$^{1/2}$)",
+        )
+        add_temperature_top_axis(ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0])
+        handles, labels = order_legend_by_reference_y(line_info, 700.0)
+        ax.legend(
+            handles,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+            borderaxespad=0.0,
+            ncol=1,
+        )
+        fig.tight_layout()
+        fig.savefig(FIG_DIR / "li2o_solubility_models.png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
 
 def main():

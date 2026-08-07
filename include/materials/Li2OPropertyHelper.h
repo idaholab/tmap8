@@ -71,13 +71,17 @@ diffusivityMetadata(const MooseEnum & model)
 inline ModelMetadata
 solubilityMetadata(const MooseEnum & model)
 {
-  if (model == "Ohira1989")
+  if (model == "Ohira1989Tritium")
     return {"O'Hira et al. (1989)",
-            -std::numeric_limits<Real>::max(),
-            std::numeric_limits<Real>::max(),
-            "Reduced-species tritium dissolution in single-crystal Li2O. The published "
-            "coefficient form has been implemented directly; the exact reported validity window "
-            "for the solubility fit still needs verification from the primary paper."};
+            200.0 + 273.15,
+            1000.0,
+            "Reduced-species tritium dissolution in single-crystal Li2O."};
+
+  if (model == "Ohira1989Hydrogen")
+    return {"O'Hira et al. (1989)",
+            300.0 + 273.15,
+            1000.0,
+            "Reduced-species hydrogen dissolution in single-crystal Li2O."};
 
   mooseError("Unsupported Li2O solubility model: ", model);
 }
@@ -173,10 +177,13 @@ template <typename T>
 inline T
 computeSolubility(const MooseEnum & model, const T & temperature)
 {
-  using std::pow;
+  using std::exp;
 
-  if (model == "Ohira1989")
-    return pow(10.0, 1290.0 / temperature + 1.14);
+  if (model == "Ohira1989Tritium")
+    return exp(1290.0 / temperature + 1.14);
+
+  if (model == "Ohira1989Hydrogen")
+    return exp(1271.0 / temperature + 2.33);
 
   mooseError("Unsupported Li2O solubility model: ", model);
 }

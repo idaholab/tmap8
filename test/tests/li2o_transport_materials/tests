@@ -130,15 +130,26 @@
     requirement = 'The system shall reproduce an independently calculated Terai1988GrainBoundary Li2O tritium diffusivity reference point at 753.15 K and expose both regular and AD material properties.'
   []
 
-  [li2o_solubility_ohira1989_reference_point]
+  [li2o_solubility_ohira1989tritium_reference_point]
     type = CSVDiff
     input = li2o_single_point_property_base.i
     cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
-                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/model=Ohira1989Tritium
                 AuxKernels/set_temperature/value=650
-                Outputs/file_base=li2o_solubility_ohira1989_reference_point_out'
-    csvdiff = li2o_solubility_ohira1989_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Ohira1989 Li2O tritium solubility reference point at 650 K and expose both regular and AD material properties.'
+                Outputs/file_base=li2o_solubility_ohira1989tritium_reference_point_out'
+    csvdiff = li2o_solubility_ohira1989tritium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Ohira1989Tritium Li2O tritium solubility reference point at 650 K and expose both regular and AD material properties.'
+  []
+
+  [li2o_solubility_ohira1989hydrogen_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989Hydrogen
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_solubility_ohira1989hydrogen_reference_point_out'
+    csvdiff = li2o_solubility_ohira1989hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Ohira1989Hydrogen Li2O hydrogen solubility reference point at 650 K and expose both regular and AD material properties.'
   []
 
   [li2o_diffusivity_ad_jacobian]
