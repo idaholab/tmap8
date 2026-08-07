@@ -73,13 +73,13 @@ solubilityMetadata(const MooseEnum & model)
 {
   if (model == "Ohira1989Tritium")
     return {"O'Hira et al. (1989)",
-            200.0 + 273.15,
+            300.0 + 273.15,
             1000.0,
             "Reduced-species tritium dissolution in single-crystal Li2O."};
 
   if (model == "Ohira1989Hydrogen")
     return {"O'Hira et al. (1989)",
-            300.0 + 273.15,
+            200.0 + 273.15,
             1000.0,
             "Reduced-species hydrogen dissolution in single-crystal Li2O."};
 

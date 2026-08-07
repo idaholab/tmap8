@@ -13,9 +13,9 @@ with a Sieverts-law type coefficient,
 !equation
 C = K_s P^{1/2},
 
-where $K_s$ is provided by the selected literature mdodel.
+where $K_s$ is provided by the selected literature model.
 
-## Modeling Scope 0000000000000 check
+## Modeling Scope
 
 The Li2O literature does not currently support treating all reported chemistry as one scalar solubility model.
 
@@ -36,13 +36,13 @@ The implemented solubility model is summarized in [li2o_solubility_models_table]
 | Enum | Expression used in TMAP8 | Property units | Validity range (K) | Reference | Notes |
 | :- | :- | :- | :- | :- | :- |
 | `Ohira1989Tritium` | $K_{s,T} = \exp(1290/T + 1.14)$ | atm$^{1/2}$ | 573.15-1000 K | [!cite](Ohira1989Li2O) | Reduced-species tritium dissolution in single-crystal Li2O |
-| `Ohira1989hydrogen` | $K_{s,T} = \exp(1271/T + 2.33)$ | atm$^{1/2}$ | 473.15-1000 K | [!cite](Ohira1989Li2O) | Reduced-species hydrogen dissolution in single-crystal Li2O |
+| `Ohira1989Hydrogen` | $K_{s,T} = \exp(1271/T + 2.33)$ | atm$^{1/2}$ | 473.15-1000 K | [!cite](Ohira1989Li2O) | Reduced-species hydrogen dissolution in single-crystal Li2O |
 
 !media plot_li2o_review_models.py
-       image_name=li2o_solubility_review.png
+       image_name=li2o_solubility_models.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=li2o_solubility_models_figure
-       caption=Plot of the implemented `Ohira1989` reduced-species tritium solubility coefficient from [li2o_solubility_models_table] as $\ln(K_s)$ versus $1000/T$. The top axis shows the corresponding temperature in K. The y-axis still reflects the source-reported coefficient form pending final primary-paper unit normalization.
+       caption=Comparison of the implemented Li$_2$O hydrogen isotope solubility correlations from [li2o_solubility_models_table].
 
 The broader Li$_2$O solubility literature also includes H/D reduced-species measurements
 from [!cite](Katsuta1983Li2O) and oxidized LiOH-in-Li$_2$O solution chemistry from

@@ -50,13 +50,13 @@ SOLUBILITY_MODELS = {
     "Ohira1989Tritium": {
         "a": 1290.0,
         "b": 1.14,
-        "temp_range_k": (200.0 + 273.15, 1000.0),
+        "temp_range_k": (300.0 + 273.15, 1000.0),
         "label": "Ohira1989Tritium, tritium in unirradiated single crystal",
     },
     "Ohira1989Hydrogen": {
         "a": 1271.0,
         "b": 2.33,
-        "temp_range_k": (300.0 + 273.15, 1000.0),
+        "temp_range_k": (200.0 + 273.15, 1000.0),
         "label": "Ohira1989Hydrogen, Hydrogen in unirradiated single crystal",
     },
 }
@@ -203,25 +203,25 @@ def plot_solubility():
                 }
             )
 
-        ax.set_yscale("log")
-        apply_axes_style(
-            ax,
-            r"1000 / Temperature (K$^{-1}$)",
-            r"$K_s$ (atm$^{1/2}$)",
-        )
-        add_temperature_top_axis(ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0])
-        handles, labels = order_legend_by_reference_y(line_info, 700.0)
-        ax.legend(
-            handles,
-            labels,
-            loc="upper center",
-            bbox_to_anchor=(0.5, -0.15),
-            borderaxespad=0.0,
-            ncol=1,
-        )
-        fig.tight_layout()
-        fig.savefig(FIG_DIR / "li2o_solubility_models.png", dpi=300, bbox_inches="tight")
-        plt.close(fig)
+    ax.set_yscale("log")
+    apply_axes_style(
+        ax,
+        r"1000 / Temperature (K$^{-1}$)",
+        r"$K_s$ (atm$^{1/2}$)",
+    )
+    add_temperature_top_axis(ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0])
+    handles, labels = order_legend_by_reference_y(line_info, 700.0)
+    ax.legend(
+        handles,
+        labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.15),
+        borderaxespad=0.0,
+        ncol=1,
+    )
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "li2o_solubility_models.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 
 def main():
