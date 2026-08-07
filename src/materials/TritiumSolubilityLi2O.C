@@ -17,15 +17,16 @@ TritiumSolubilityLi2O::validParams()
 {
   auto params = Material::validParams();
   params.addClassDescription(
-      "Computes tritium solubility in Li2O from reduced-species literature correlations and "
-      "provides both regular and AD material properties.");
+      "Computes hydrogen isotope solubility in Li2O from reduced-species literature correlations "
+      "and provides both regular and AD material properties.");
   params.addRequiredCoupledVar("temperature", "The Li2O temperature in K.");
   params.addParam<MaterialPropertyName>(
       "property_name", "solubility", "The regular material property name for the solubility.");
   params.addParam<MaterialPropertyName>(
       "ad_property_name", "ad_solubility", "The AD material property name for the solubility.");
-  params.addParam<MooseEnum>(
-      "model", MooseEnum("Ohira1989", "Ohira1989"), "The Li2O tritium solubility correlation.");
+  params.addParam<MooseEnum>("model",
+                             MooseEnum("Ohira1989Tritium Ohira1989Hydrogen", "Ohira1989"),
+                             "The Li2O hydrogen isotope solubility correlation.");
   params.addParam<MooseEnum>("validity_action",
                              MooseEnum("ignore warning error", "warning"),
                              "How the material responds when the selected model is used outside "
