@@ -25,7 +25,7 @@ TritiumSolubilityLi2O::validParams()
   params.addParam<MaterialPropertyName>(
       "ad_property_name", "ad_solubility", "The AD material property name for the solubility.");
   params.addParam<MooseEnum>("model",
-                             MooseEnum("Ohira1989Tritium Ohira1989Hydrogen", "Ohira1989"),
+                             MooseEnum("Ohira1989Tritium Ohira1989Hydrogen", "Ohira1989Tritium"),
                              "The Li2O hydrogen isotope solubility correlation.");
   params.addParam<MooseEnum>("validity_action",
                              MooseEnum("ignore warning error", "warning"),

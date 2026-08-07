@@ -62,17 +62,30 @@
     requirement = 'The system shall compute the Terai1988GrainBoundary Li2O tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
   []
 
-  [li2o_solubility_ohira1989_csv]
+  [li2o_solubility_ohira1989tritium_csv]
     type = CSVDiff
     input = li2o_three_point_property_base.i
     cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
-                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/model=Ohira1989Tritium
+                AuxKernels/temperature_1/value=600
+                AuxKernels/temperature_2/value=800
+                AuxKernels/temperature_3/value=1000
+                Outputs/file_base=li2o_solubility_ohira1989tritium_out'
+    csvdiff = li2o_solubility_ohira1989tritium_out.csv
+    requirement = 'The system shall compute the Ohira1989 Li2O tritium solubility model across a wide temperature range and expose both regular and AD material properties.'
+  []
+
+  [li2o_solubility_ohira1989hydrogen_csv]
+    type = CSVDiff
+    input = li2o_three_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989Hydrogen
                 AuxKernels/temperature_1/value=500
                 AuxKernels/temperature_2/value=800
-                AuxKernels/temperature_3/value=1100
-                Outputs/file_base=li2o_solubility_ohira1989_out'
-    csvdiff = li2o_solubility_ohira1989_out.csv
-    requirement = 'The system shall compute the Ohira1989 Li2O tritium solubility model across a wide temperature range and expose both regular and AD material properties.'
+                AuxKernels/temperature_3/value=1000
+                Outputs/file_base=li2o_solubility_ohira1989hydrogen_out'
+    csvdiff = li2o_solubility_ohira1989hydrogen_out.csv
+    requirement = 'The system shall compute the Ohira1989 Li2O hydrogen solubility model across a wide temperature range and expose both regular and AD material properties.'
   []
 
   [li2o_diffusivity_ohira1989_reference_point]
@@ -165,9 +178,9 @@
     type = PetscJacobianTester
     input = li2o_ad_property_base.i
     cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
-                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/model=Ohira1989Tritium
                 Variables/temperature/initial_condition=650'
-    requirement = 'The system shall propagate automatic-differentiation derivatives for the Ohira1989 Li2O tritium solubility material property.'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Ohira1989Tritium Li2O tritium solubility material property.'
   []
 
   [li2o_diffusivity_ohira_low_error]
