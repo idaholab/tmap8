@@ -187,21 +187,21 @@ def plot_solubility():
     line_info = []
 
     for model in SOLUBILITY_MODELS.values():
-            t_min, t_max = model["temp_range_k"]
-            temperature = np.linspace(t_min, t_max, 250)
-            inverse_temperature = inverse_temperature_axis(temperature)
-            solubility = solubility_atm_0_5(model["a"], model["b"], temperature)
-            (line,) = ax.plot(
-                inverse_temperature, solubility, linewidth=2.0, label=model["label"]
-            )
-            line_info.append(
-                {
-                    "handle": line,
-                    "label": model["label"],
-                    "temperature_k": temperature,
-                    "y_values": solubility,
-                }
-            )
+        t_min, t_max = model["temp_range_k"]
+        temperature = np.linspace(t_min, t_max, 250)
+        inverse_temperature = inverse_temperature_axis(temperature)
+        solubility = solubility_atm_0_5(model["a"], model["b"], temperature)
+        (line,) = ax.plot(
+            inverse_temperature, solubility, linewidth=2.0, label=model["label"]
+        )
+        line_info.append(
+            {
+                "handle": line,
+                "label": model["label"],
+                "temperature_k": temperature,
+                "y_values": solubility,
+            }
+        )
 
     ax.set_yscale("log")
     apply_axes_style(
@@ -209,7 +209,9 @@ def plot_solubility():
         r"1000 / Temperature (K$^{-1}$)",
         r"$K_s$ (atm$^{1/2}$)",
     )
-    add_temperature_top_axis(ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0])
+    add_temperature_top_axis(
+        ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0]
+    )
     handles, labels = order_legend_by_reference_y(line_info, 700.0)
     ax.legend(
         handles,
