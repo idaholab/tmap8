@@ -4,8 +4,8 @@
 
 ## Overview
 
-`TritiumSolubilityLi2O` provides reduced-species hydrogen isotope solubility models for Li2O and publishes
-both a regular and an AD material property from the same object.
+`TritiumSolubilityLi2O` provides reduced-species hydrogen isotope solubility models for Li2O and creates
+both a regular and an AD Real-valued material property from the same Material object.
 
 The current implementation targets reduced gas-species hydrogen isotope dissolution behavior represented
 with a Sieverts-law type coefficient,
@@ -22,10 +22,10 @@ The Li2O literature does not currently support treating all reported chemistry a
 Two regimes need to stay distinct:
 
 1. Reduced-species hydrogen isotope dissolution and transport.
-   This is the regime targeted by version 1 of `TritiumSolubilityLi2O`.
+   This is the regime targeted by this implementation of `TritiumSolubilityLi2O`.
 
 2. Oxidized LiOH/LiOT solution chemistry.
-   This regime matters for inventory and release at higher hydrogen isotope content, but it is not yet represented here.
+   This regime matters for inventory and release at higher hydrogen isotope content, but it is not implemented here.
 
 ## Implemented Models
 
