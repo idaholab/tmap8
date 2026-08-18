@@ -50,13 +50,13 @@ SOLUBILITY_MODELS = {
     "Ohira1989Tritium": {
         "a": 1290.0,
         "b": 1.14,
-        "temp_range_k": (300.0 + 273.15, 1000.0),
+        "temp_range_k": (583.0, 963.0),
         "label": "Ohira1989Tritium, tritium in unirradiated single crystal",
     },
     "Ohira1989Hydrogen": {
         "a": 1271.0,
         "b": 2.33,
-        "temp_range_k": (200.0 + 273.15, 1000.0),
+        "temp_range_k": (476.0, 963.0),
         "label": "Ohira1989Hydrogen, Hydrogen in unirradiated single crystal",
     },
 }
