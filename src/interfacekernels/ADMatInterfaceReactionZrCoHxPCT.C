@@ -73,7 +73,6 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal LP_F = -8.22e-02;
   const ADReal LP_G = 3.97e-04;
 
-
   // -------------------------------
   // Shared PCT correlation shape
   // -------------------------------
@@ -85,7 +84,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Only the fitting-constant set (A..G) and the "distance from the plateau
   // pressure" term (pressure_diff) differ between calls, so we factor the
   // formula into a single lambda and reuse it for every branch below.
- auto pctCorrelation = [&](const auto & A,
+  auto pctCorrelation = [&](const auto & A,
                             const auto & B,
                             const auto & C,
                             const auto & D,
@@ -94,28 +93,30 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
                             const auto & G,
                             const ADReal & pressure_diff) -> ADReal
   {
-    return A - B / (C + exp(D - E *  _neighbor_temperature[_qp] + (F - G *  _neighbor_temperature[_qp]) * log(max(pressure_diff, 1e-10))));
+    return A - B / (C + exp(D - E * _neighbor_temperature[_qp] +
+                            (F - G * _neighbor_temperature[_qp]) * log(max(pressure_diff, 1e-10))));
   };
 
   // Gas pressure (Pa): R * T * c / 2 (two atoms per molecule)
-  const ADReal neighbor_pressure =
-      PhysicalConstants::ideal_gas_constant *  _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2.0;
+  const ADReal neighbor_pressure = PhysicalConstants::ideal_gas_constant *
+                                   _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2.0;
 
   // Give a warning if the initial or computed neighbor pressure is out of the analytical model
   if (((neighbor_pressure < 20) || (neighbor_pressure > 2.e5)))
     mooseDoOnce(mooseWarning("In ZrCoHxPCT: pressure ",
                              neighbor_pressure,
                              "Pa and temperature ",
-                              _neighbor_temperature[_qp],
+                             _neighbor_temperature[_qp],
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for ZrCoHxPCT material."));
 
   // Plateau / limit pressure (Pa)
-  const ADReal PLim =
-      exp(-9.41 + 3.32e-02 *  _neighbor_temperature[_qp] - 3.30e-06 * Utility::pow<2>( _neighbor_temperature[_qp]));
+  const ADReal PLim = exp(-9.41 + 3.32e-02 * _neighbor_temperature[_qp] -
+                          3.30e-06 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
   // Transition fitted parameters, beta -> high pressure; alpha -> low pressure
-  const ADReal beta_corr = 2.39 - 5.1e-03 *  _neighbor_temperature[_qp] + 5.42e-06 * Utility::pow<2>( _neighbor_temperature[_qp]);
+  const ADReal beta_corr = 2.39 - 5.1e-03 * _neighbor_temperature[_qp] +
+                           5.42e-06 * Utility::pow<2>(_neighbor_temperature[_qp]);
   const Real alpha = 1.008;
 
   // -------------------------------
@@ -135,14 +136,16 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Mid branch (exact continuity at alpha*Plim and beta*Plim)
   // -------------------------------
   // Boundaries in absolute pressure
-  const ADReal alpha_Plim = alpha * PLim;     // LP
+  const ADReal alpha_Plim = alpha * PLim;    // LP
   const ADReal beta_Plim = beta_corr * PLim; // HP
 
   // LP value at alpha_Plim
-  const ADReal f_LP_alpha_Plim = pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - alpha_Plim);
+  const ADReal f_LP_alpha_Plim =
+      pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - alpha_Plim);
 
   // HP value at beta_Plim
-  const ADReal f_HP_beta_Plim = pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, beta_Plim - PLim);
+  const ADReal f_HP_beta_Plim =
+      pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, beta_Plim - PLim);
 
   // Solve for af_mid(P) = m0 + m1 * log(P)
   const ADReal L_a = log(max(alpha_Plim, 1e-10));
@@ -153,7 +156,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   m0 = f_LP_alpha_Plim - (f_HP_beta_Plim - f_LP_alpha_Plim) / (L_b - L_a) * L_a;
 
   // Mid branch at current pressure using limited slope
-  const ADReal f_mid= m0 + m1 * log(max(neighbor_pressure, 1e-10));
+  const ADReal f_mid = m0 + m1 * log(max(neighbor_pressure, 1e-10));
 
   // -------------------------------
   // Smooth blending in log-space (LP ↔ mid ↔ HP)
@@ -168,12 +171,12 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // Sigmoid steps (AD-safe)
   const ADReal s_LP_to_mid = 1.0 / (1.0 + exp(-(x - x_alpha) / base_delta_alpha_log)); // LP→mid
-  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_beta) / base_delta_beta_log));    // mid→HP
+  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_beta) / base_delta_beta_log));   // mid→HP
 
   // Weights
-  ADReal w_LP = 1.0 - s_LP_to_mid;             // Low pressure weights
+  ADReal w_LP = 1.0 - s_LP_to_mid;                  // Low pressure weights
   ADReal w_mid = s_LP_to_mid * (1.0 - s_mid_to_HP); // Mid pressure weights
-  ADReal w_HP = s_mid_to_HP;                    // High pressure weights
+  ADReal w_HP = s_mid_to_HP;                        // High pressure weights
 
   // Normalization
   const ADReal w_sum = w_LP + w_mid + w_HP; // Sum of weights
@@ -184,7 +187,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // -------------------------------
   // Final atomic fraction
   // -------------------------------
-  ADReal atomic_fraction = w_LP * f_LP + w_mid * f_mid+ w_HP * f_HP;
+  ADReal atomic_fraction = w_LP * f_LP + w_mid * f_mid + w_HP * f_HP;
 
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];
