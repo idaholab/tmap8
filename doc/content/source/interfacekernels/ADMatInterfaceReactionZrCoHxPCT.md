@@ -96,14 +96,14 @@ and
 \begin{equation}
 \label{eq:switching_functions}
 s_{(LP\to mid)} = \frac{1}{1 + e^{-(x - x_{\alpha})/\Delta_{\alpha}}}, \qquad
-s_{(mid\to HP)} = \frac{1}{1 + e^{-(x - x_{\beta})/\Delta_{\beta}}}
+s_{(mid\to HP)} = \frac{1}{1 + e^{-(x - x_{\beta})/\Delta_{\beta}}},
 \end{equation}
 
 where $\Delta_{\beta}$ is the tunable base widths of the smooth blending function set to a default 0.08. Subsequent of the sigmoid blending function, a normalization of their weights to induce a smooth transition is written as such:
 
 \begin{equation}
 \label{eq:weight_normalization}
-W = (1 - s_{(LP\to mid)}) + s_{(LP\to mid)}(1 - s_{(mid\to HP)}) + s_{(mid\to HP)}
+W = (1 - s_{(LP\to mid)}) + s_{(LP\to mid)}(1 - s_{(mid\to HP)}) + s_{(mid\to HP)},
 \end{equation}
 
 \begin{equation}
@@ -120,7 +120,7 @@ f_{overall}(T,P) = w_{LP}f_{LP}(T,P) + w_{mid}f_{mid}(T,P) + w_{HP}f_{HP}(T,P).
 
 Lastly, the validity of this present fit is between:
 \begin{equation} \label{eq:bounds}
-20 < P\,\text{[Pa]} < 2 \times 10^{5}
+20 < P\,\text{[Pa]} < 2 \times 10^{5}.
 \end{equation}
 
 ## Test

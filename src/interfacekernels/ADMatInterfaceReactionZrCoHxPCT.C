@@ -84,10 +84,10 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal ratio_r = neighbor_pressure / limit_pressure;
 
   // Low pressure (LP) Branch
+ const ADReal low_pressure_coefficient = 0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
+                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]);
   const ADReal af_LP_grid =
-      0.7 - 1.0 / (5.e-03 + exp(-4.37 + 1.34e-02 * _neighbor_temperature[_qp] +
-                                (-8.22e-02 - 3.97e-04 * _neighbor_temperature[_qp]) *
-                                    log(max(limit_pressure - neighbor_pressure, 1e-10))));
+      low_pressure_coefficient * log(max(limit_pressure - neighbor_pressure, 1e-10))));
 
   // High pressure (HP) branch
   const ADReal af_HP_grid =
