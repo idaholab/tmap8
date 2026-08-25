@@ -61,11 +61,11 @@ f_{mid}(P)= m{0} + m_{1}\ln(P),
 where the slope of [eq:mid_interp] are given as
 
 \begin{equation}\label{eq:m0_definition}
-m_{0} = f_{LP}(T,\alpha P_{lim}) - \frac{f_{HP}(T,\beta P{lim}) - f_{LP}(T,\alpha P{lim})}{L{b} - L_{a}} L_{a},
+m_{0} = f_{LP}(T,\alpha P_{lim}) - \frac{f_{HP}(T,\beta P{lim}) - f_{LP}(T,\alpha P{lim})}{L_{b} - L_{a}} L_{a},
 \end{equation}
 and
 \begin{equation}\label{eq:m1_definition}
-m_{1} = \frac{f_{HP}(T,\beta P_{lim}) - f_{LP}(T,\alpha P{lim})}{L_{b} - L_{a}} L_{a},
+m_{1} = \frac{f_{HP}(T,\beta P_{lim}) - f_{LP}(T,\alpha P{lim})}{L_{b} - L_{a}},
 \end{equation}
 with
 \begin{equation}

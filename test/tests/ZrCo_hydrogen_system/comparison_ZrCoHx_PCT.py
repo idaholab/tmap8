@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+from matplotlib.lines import Line2D
 
 # ------------------------------------------------------------------------------
 # Setup
@@ -192,13 +193,13 @@ def compute_mape(ar_t, p_t, ar_e, p_e):
 
 # ----------------------------------------------------------------------------
 # - Plots exp scatter vs TMAP8 dashed
-# - Calculates MAPE on overlapping atomic‑ratio range
+# - Calculates MAPE on overlapping atomic-ratio range
 # ----------------------------------------------------------------------------
 
 base = Path(__file__).resolve().parent
 exp_dir = base / "PCT_data"
 
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(12, 10))
 
 fallback_cmap = plt.get_cmap("tab10")
 fallback_colors = {}
@@ -219,12 +220,16 @@ for Tk in TEMPERATURES_K:
     AR = df[COL_ATOM_RATIO].values
     color_T = get_color_for_temp(Tk)
 
+    # --- Plot ALL experimental points for this temperature ONCE, so there's
+    #     a single "Data" legend entry per temperature instead of one for the
+    #     low-pressure branch and another for the high-pressure branch.
+    ax.scatter(AR, P, color=color_T, label=f"{Tk}.15 K Data")
+
     idx_low = AR < ATOM_RATIO_LOW
     if np.any(idx_low):
         P_lo = P[idx_low]
         AR_lo = AR[idx_low]
         fit_lo = atom_ratio_eq_lower_func(Tk, P_lo)
-        ax.scatter(AR_lo, P_lo, color=color_T, label=f"{Tk}.15 K Data")
 
         Pmin = float(np.nanmax([np.min(P_lo), 1e-12]))
         Pmax = float(np.max(P_lo))
@@ -233,14 +238,19 @@ for Tk in TEMPERATURES_K:
         ax.plot(
             fits,
             Ps,
-            "--",
+            linestyle="--",
+            marker="*",
+            markevery=0.08,
+            markersize=7,
+            lw=1.2,
             color=color_T,
-            label=f"{Tk}.15 K Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
+            # Tag as the Low-P (lower plateau) fit
+            label=f"{Tk}.15 K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
         )
 
     idx_mid = (AR >= ATOM_RATIO_LOW) & (AR < 1.4)
-    if np.any(idx_mid):
-        ax.scatter(AR[idx_mid], P[idx_mid], color=color_T, label="_nolegend_")
+    # mid-range points already covered by the single scatter call above;
+    # nothing else to plot/label here.
 
     idx_hi = AR >= 1.4
     if np.any(idx_hi):
@@ -252,7 +262,6 @@ for Tk in TEMPERATURES_K:
         AR_hi = AR_hi[mask]
         fit_hi = fit_hi[mask]
 
-        ax.scatter(AR_hi, P_hi, color=color_T, label=f"{Tk}.15 K Data")
         if Tk == 524:
             Pmin = float(np.nanmax([np.min(P_hi) + 355, 1e-12]))
         else:
@@ -265,7 +274,8 @@ for Tk in TEMPERATURES_K:
             Ps,
             "-",
             color=color_T,
-            label=f"{Tk}.15 K Fit RMSE {rmse(AR_hi, fit_hi):.3f}",
+            # Tag as the High-P (upper plateau) fit
+            label=f"{Tk}.15 K High P Fit RMSE {rmse(AR_hi, fit_hi):.3f}",
         )
 
 for dfp in tmap_low.values():
@@ -294,9 +304,9 @@ for Tk in TEMPERATURES_K:
     ax.plot(
         ar_tmap[order],
         p_tmap[order],
-        "*",
+        linestyle=(0, (3, 1, 1, 1)),
         lw=2,
-        label=f"TMAP8 {int(Tk)}.15 K ( err {mape:.2f}%)",
+        label=f"TMAP8 {int(Tk)}.15 K (err={mape:.2f}%)",
     )
 
 ax.set_yscale("log")
@@ -304,26 +314,60 @@ ax.set_xlabel("Atom Ratio (-)")
 ax.set_ylabel("Partial Pressure (Pa)")
 ax.grid(True, which="both", ls="--", alpha=0.6)
 
-# ---- Reorder legend: Data, Fit, TMAP8 single-point (*, x), TMAP8 sweep curves ----
+# ---- Group into Data / Fit / TMAP8 single-point / TMAP8 sweep ----
 handles, labels = ax.get_legend_handles_labels()
 
+data_h, data_l = [], []
+fit_h, fit_l = [], []
+tmap_single_h, tmap_single_l = [], []
+tmap_sweep_h, tmap_sweep_l = [], []
 
-def legend_rank(label):
-    if "Data" in label:
-        return 0
-    if "Fit RMSE" in label:
-        return 1
-    if label.startswith("TMAP8") and "Pa" in label:  # single-point *,x markers
-        return 2
-    return 3
+for h, l in zip(handles, labels):
+    if "Data" in l:
+        data_h.append(h)
+        data_l.append(l)
+    elif "Fit RMSE" in l:
+        fit_h.append(h)
+        fit_l.append(l)
+    elif l.startswith("TMAP8") and "Pa (err" in l:  # single-point *,x markers
+        tmap_single_h.append(h)
+        tmap_single_l.append(l)
+    else:  # TMAP8 sweep curves
+        tmap_sweep_h.append(h)
+        tmap_sweep_l.append(l)
+
+# ---- Pad shorter columns with invisible entries so columns align ----
+n_rows = max(len(data_h), len(fit_h), len(tmap_single_h), len(tmap_sweep_h))
 
 
-order = sorted(range(len(labels)), key=lambda i: legend_rank(labels[i]))
-handles = [handles[i] for i in order]
-labels = [labels[i] for i in order]
+def pad(hs, ls, n):
+    blank = Line2D([], [], color="none")
+    hs = hs + [blank] * (n - len(hs))
+    ls = ls + [""] * (n - len(ls))
+    return hs, ls
 
-ax.legend(handles, labels, bbox_to_anchor=(1.5, 1.02), fontsize=8)
+
+data_h, data_l = pad(data_h, data_l, n_rows)
+fit_h, fit_l = pad(fit_h, fit_l, n_rows)
+tmap_single_h, tmap_single_l = pad(tmap_single_h, tmap_single_l, n_rows)
+tmap_sweep_h, tmap_sweep_l = pad(tmap_sweep_h, tmap_sweep_l, n_rows)
+
+# Column-major concatenation: col1=Data, col2=Fit, col3=TMAP8 single-point, col4=TMAP8 sweep
+handles = data_h + fit_h + tmap_single_h + tmap_sweep_h
+labels = data_l + fit_l + tmap_single_l + tmap_sweep_l
+
+ax.legend(
+    handles,
+    labels,
+    loc="upper center",
+    bbox_to_anchor=(0.5, -0.01),
+    ncol=4,
+    fontsize=8,
+    handletextpad=0.6,
+    columnspacing=1.2,
+    handlelength=3.5,
+)
 
 fig.tight_layout()
-plt.savefig("ZrCoHx_PCT_combined.png", dpi=FIG_DPI)
+plt.savefig("ZrCoHx_PCT_combined.png", dpi=FIG_DPI, bbox_inches="tight")
 plt.close(fig)
