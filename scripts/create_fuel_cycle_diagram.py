@@ -1,25 +1,59 @@
 #!/usr/bin/env python3
 """
-tmap8_fuelcycle_diagram.py
+generate_kernel_diagram.py
 
-Reads a TMAP8 (MOOSE) input file, finds every [ScalarKernels] sub-block whose
-`type` names a FuelCycleSystemScalarKernel variant -- e.g. the plain
-`FuelCycleSystemScalarKernel` or the automatic-differentiation
-`ADFuelCycleSystemScalarKernel` (MOOSE's standard "AD" prefix convention for
-AD-enabled kernel variants), or any other prefixed variant sharing that base
-name -- and draws a block diagram showing how those blocks are wired
-together via their `variable` (output) and `inputs` (inputs) parameters.
+Reads a MOOSE-family input file (TMAP8, SAM, or plain MOOSE) and finds
+every scalar-kernel-like sub-block matching one or more configured
+"kernel families" -- e.g.:
 
-Portable by design: pure standard library, single self-contained SVG output,
-optional Graphviz DOT export.
+  - TMAP8's FuelCycleSystemScalarKernel (and AD-prefixed variants)
+  - MOOSE's ParsedODEKernel (and ADParsedODEKernel)
+  - SAM-style ScalarKernels (a generic `*ScalarKernel` catch-all, since
+    SAM does not have one single canonical scalar-kernel base class the
+    way TMAP8 does -- see the KernelFamily notes below)
+  - any custom family you register via --extra-kernel-type-pattern
 
-Layout and routing
--------------------
+...and draws a block diagram showing how those blocks are wired together
+via their (family-specific) "variable" (output) and "inputs"-style
+parameters.
+
+The diagram can be exported in several formats: SVG and PNG (fully
+routed diagrams with collision-avoiding orthogonal edges), Graphviz DOT,
+Mermaid flowchart, a Markdown block/edge table, a CSV edge list, and raw
+JSON of the parsed model. Multiple formats can be produced in one run.
+
+Dependencies: pure standard library for everything EXCEPT the `png`
+output format, which requires `matplotlib` (only imported if `png` is
+actually requested).
+
+Kernel-family matching
+-----------------------
+A "kernel family" bundles together:
+  - one or more regex patterns matched against a block's `type = ...`
+  - which parameter holds the output ("variable") name
+  - which parameter(s) hold the list of input variable/postprocessor names
+  - which parameter(s) hold "other_sources"-style external references
+
+Because different MOOSE-based apps name these parameters differently
+(TMAP8's FuelCycleSystemScalarKernel uses `inputs`/`other_sources`;
+MOOSE's ParsedODEKernel uses `args`; SAM and other apps' assorted
+ScalarKernel subclasses use everything from `postprocessor` to
+`coupled_scalars`), each family lists every parameter name it might
+plausibly use, and the parser simply unions whichever of those actually
+appear on a given block. Built-in families are best-effort defaults, not
+an authoritative spec of any app's kernel API -- use
+`--extra-kernel-type-pattern` (with `--extra-input-param` /
+`--extra-other-source-param`) to teach the tool about a kernel type it
+doesn't already recognize, without editing the script.
+
+Layout and routing (SVG / PNG formats)
+----------------------------------------
   - Nodes are placed in left-to-right layers by longest-path from sources.
   - Each node's external-input/other_sources "stub" boxes reserve their own
     horizontal column, baked directly into the layer x-offset calculation.
   - Edges are rendered as orthogonal polyline segments with small FIXED-
-    RADIUS rounded corners (max 14px), not length-scaled bezier smoothing.
+    RADIUS rounded corners (max 14px in SVG; PNG uses the same waypoints
+    with straight-joined polylines), not length-scaled bezier smoothing.
   - FORWARD edges (dst layer > src layer):
       - Adjacent layers (one gap): a single-elbow router picks a bend x
         that clears every obstacle along both horizontal runs. If no bend
@@ -49,29 +83,37 @@ Layout and routing
     trying the next-longest segment of the same path. A faint leader line
     ties a slid label back to its anchor so ownership is never ambiguous.
   - `--verify` re-checks every edge's final rendered path against every
-    node/stub box and reports any residual overlap explicitly.
+    node/stub box and reports any residual overlap explicitly (SVG/PNG
+    layout only -- both formats share one layout/routing pass).
 
 Usage
 -----
-    python tmap8_fuelcycle_diagram.py path/to/model.i
-    python tmap8_fuelcycle_diagram.py path/to/model.i -o diagram.svg
-    python tmap8_fuelcycle_diagram.py path/to/model.i --dot diagram.dot
-    python tmap8_fuelcycle_diagram.py path/to/model.i --json blocks.json
-    python tmap8_fuelcycle_diagram.py path/to/model.i --list-kernel-types
-    python tmap8_fuelcycle_diagram.py path/to/model.i --verify
+    python generate_kernel_diagram.py path/to/model.i
+    python generate_kernel_diagram.py path/to/model.i -f svg -f png -f dot
+    python generate_kernel_diagram.py path/to/model.i -f png --png-dpi 200
+    python generate_kernel_diagram.py path/to/model.i -f json -o build/model_kernels
+    python generate_kernel_diagram.py path/to/model.i --kernel-family moose-parsedode
+    python generate_kernel_diagram.py path/to/model.i --kernel-family all
+    python generate_kernel_diagram.py path/to/model.i \\
+        --extra-kernel-type-pattern '^MyAppCustomScalarKernel$' \\
+        --extra-input-param sources --extra-input-param coupled_vars
+    python generate_kernel_diagram.py path/to/model.i --list-kernel-types
+    python generate_kernel_diagram.py path/to/model.i --list-kernel-families
+    python generate_kernel_diagram.py path/to/model.i --verify
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
-import os
 import re
 import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # --------------------------------------------------------------------------
 # 1. MOOSE input-file tokenizer / block parser
@@ -194,22 +236,129 @@ def _strip_quotes(value: str) -> str:
     return value
 
 
-FUEL_CYCLE_KERNEL_BASE_NAME = "FuelCycleSystemScalarKernel"
-FUEL_CYCLE_KERNEL_TYPE_PATTERN = re.compile(
-    r"^(?:[A-Za-z0-9]*)" + re.escape(FUEL_CYCLE_KERNEL_BASE_NAME) + r"$"
-)
+# --------------------------------------------------------------------------
+# 2. Kernel-family registry
+# --------------------------------------------------------------------------
 
 
-def is_fuel_cycle_kernel_type(type_name: Optional[str]) -> bool:
-    if not type_name:
-        return False
-    return bool(FUEL_CYCLE_KERNEL_TYPE_PATTERN.match(type_name))
+@dataclass
+class KernelFamily:
+    """A configurable description of one "kind" of scalar kernel.
+
+    `type_patterns` are matched with `re.match` against a block's
+    `type = ...` value (so they should generally anchor with `^`/`$`
+    unless a broader match is intended).
+
+    `variable_param` is the parameter holding this kernel's output name.
+
+    `input_params` / `other_source_params` are ordered lists of parameter
+    names that *might* hold input references for this family. Every name
+    that is actually present on a given block is unioned together (split
+    on whitespace/commas) -- the block doesn't need to use all of them,
+    and most will use exactly one.
+    """
+
+    key: str
+    display_name: str
+    type_patterns: Tuple[str, ...]
+    base_label: str
+    variable_param: str = "variable"
+    input_params: Tuple[str, ...] = ("inputs",)
+    other_source_params: Tuple[str, ...] = ("other_sources",)
+
+    def __post_init__(self) -> None:
+        self._compiled = [re.compile(p) for p in self.type_patterns]
+
+    def matches(self, type_name: Optional[str]) -> bool:
+        if not type_name:
+            return False
+        return any(p.match(type_name) for p in self._compiled)
+
+
+# The sam-scalarkernel family is a best-effort generic `*ScalarKernel` matcher that unions
+# every input-like parameter name it knows about; if it misses your
+# specific kernel's parameter name, add it with `--extra-input-param`, or
+# register a fully custom family with `--extra-kernel-type-pattern`.
+BUILTIN_KERNEL_FAMILIES: Dict[str, KernelFamily] = {
+    "tmap8-fuelcycle": KernelFamily(
+        key="tmap8-fuelcycle",
+        display_name="TMAP8 FuelCycleSystemScalarKernel",
+        type_patterns=(r"^[A-Za-z0-9]*FuelCycleSystemScalarKernel$",),
+        base_label="FuelCycleSystemScalarKernel",
+        variable_param="variable",
+        input_params=("inputs",),
+        other_source_params=("other_sources",),
+    ),
+    "moose-parsedode": KernelFamily(
+        key="moose-parsedode",
+        display_name="MOOSE ParsedODEKernel",
+        type_patterns=(r"^(?:AD)?ParsedODEKernel$",),
+        base_label="ParsedODEKernel",
+        variable_param="variable",
+        # ParsedODEKernel couples other scalar variables into its
+        # `function` expression via `args` (its canonical input-list
+        # parameter); `coupled_variables` is included defensively for
+        # sibling/derived kernels that spell it differently.
+        input_params=("args", "coupled_variables"),
+        other_source_params=("postprocessors",),
+    ),
+    "sam-scalarkernel": KernelFamily(
+        key="sam-scalarkernel",
+        display_name="SAM / generic ScalarKernel",
+        # Broad catch-all -- deliberately placed LAST in the default
+        # family order (see `select_family`) so more specific families
+        # above (which also end in "ScalarKernel") take priority.
+        type_patterns=(r"^(?:AD)?[A-Za-z0-9]*ScalarKernel$",),
+        base_label="ScalarKernel",
+        variable_param="variable",
+        input_params=(
+            "inputs",
+            "coupled_scalars",
+            "variable_dependence",
+            "args",
+            "v",
+            "postprocessor",
+            "postprocessors",
+        ),
+        other_source_params=("other_sources", "postprocessors"),
+    ),
+}
+
+
+def select_family(
+    type_name: Optional[str], families: List[KernelFamily]
+) -> Optional[KernelFamily]:
+    """Return the first family (in `families` order) whose pattern(s)
+    match `type_name`, or None. Order matters: more specific families
+    should be listed before broad catch-alls.
+    """
+    for fam in families:
+        if fam.matches(type_name):
+            return fam
+    return None
+
+
+def find_kernel_blocks(
+    root: MooseBlock, families: List[KernelFamily]
+) -> List[Tuple[MooseBlock, KernelFamily]]:
+    found: List[Tuple[MooseBlock, KernelFamily]] = []
+
+    def _walk(block: MooseBlock) -> None:
+        fam = select_family(block.params.get("type"), families)
+        if fam is not None:
+            found.append((block, fam))
+        for child in block.children:
+            _walk(child)
+
+    _walk(root)
+    return found
 
 
 def find_blocks_by_type(root: MooseBlock, type_name: str) -> List[MooseBlock]:
+    """Generic exact-type-name finder, independent of kernel families."""
     found: List[MooseBlock] = []
 
-    def _walk(block: MooseBlock):
+    def _walk(block: MooseBlock) -> None:
         if block.params.get("type") == type_name:
             found.append(block)
         for child in block.children:
@@ -219,21 +368,8 @@ def find_blocks_by_type(root: MooseBlock, type_name: str) -> List[MooseBlock]:
     return found
 
 
-def find_fuel_cycle_kernel_blocks(root: MooseBlock) -> List[MooseBlock]:
-    found: List[MooseBlock] = []
-
-    def _walk(block: MooseBlock):
-        if is_fuel_cycle_kernel_type(block.params.get("type")):
-            found.append(block)
-        for child in block.children:
-            _walk(child)
-
-    _walk(root)
-    return found
-
-
 # --------------------------------------------------------------------------
-# 2. Build a graph model from the FuelCycleSystemScalarKernel blocks
+# 3. Build a graph model from matched kernel blocks
 # --------------------------------------------------------------------------
 
 
@@ -244,9 +380,11 @@ def split_vector(value: str) -> List[str]:
 
 
 @dataclass
-class FuelCycleNode:
+class KernelNode:
     block_name: str
     kernel_type: str = ""
+    kernel_family: str = ""
+    base_type_label: str = ""
     comment: str = ""
     variable: Optional[str] = None
     inputs: List[str] = field(default_factory=list)
@@ -254,24 +392,45 @@ class FuelCycleNode:
     extra_params: Dict[str, str] = field(default_factory=dict)
 
 
-IGNORED_PARAM_KEYS = {"type", "variable", "inputs", "other_sources", "block"}
+# Backwards-compatible alias for the original name.
+FuelCycleNode = KernelNode
+
+IGNORED_PARAM_KEYS_BASE = {"type", "block"}
 
 
-def build_fuelcycle_nodes(
-    root: MooseBlock, source_lines: List[str]
-) -> List[FuelCycleNode]:
-    blocks = find_fuel_cycle_kernel_blocks(root)
-    nodes: List[FuelCycleNode] = []
+def build_kernel_nodes(
+    root: MooseBlock, source_lines: List[str], families: List[KernelFamily]
+) -> List[KernelNode]:
+    matched = find_kernel_blocks(root, families)
+    nodes: List[KernelNode] = []
 
-    for b in blocks:
-        node = FuelCycleNode(block_name=b.name)
+    for b, fam in matched:
+        node = KernelNode(block_name=b.name)
         node.kernel_type = b.params.get("type", "")
-        node.variable = b.params.get("variable")
-        node.inputs = split_vector(b.params.get("inputs", ""))
-        node.other_sources = split_vector(b.params.get("other_sources", ""))
-        node.extra_params = {
-            k: v for k, v in b.params.items() if k not in IGNORED_PARAM_KEYS
-        }
+        node.kernel_family = fam.key
+        node.base_type_label = fam.base_label
+        node.variable = b.params.get(fam.variable_param)
+
+        inputs: List[str] = []
+        for p in fam.input_params:
+            if p in b.params:
+                inputs.extend(split_vector(b.params[p]))
+        node.inputs = inputs
+
+        other_sources: List[str] = []
+        for p in fam.other_source_params:
+            if p in b.params:
+                other_sources.extend(split_vector(b.params[p]))
+        node.other_sources = other_sources
+
+        ignored = (
+            IGNORED_PARAM_KEYS_BASE
+            | {fam.variable_param}
+            | set(fam.input_params)
+            | set(fam.other_source_params)
+        )
+        node.extra_params = {k: v for k, v in b.params.items() if k not in ignored}
+
         if 0 < b.line_no <= len(source_lines):
             raw = source_lines[b.line_no - 1]
             if "#" in raw:
@@ -281,7 +440,7 @@ def build_fuelcycle_nodes(
     return nodes
 
 
-def build_edges(nodes: List[FuelCycleNode]):
+def build_edges(nodes: List[KernelNode]):
     var_to_block = {n.variable: n.block_name for n in nodes if n.variable}
 
     edges: List[Tuple[str, str, str]] = []
@@ -301,12 +460,12 @@ def build_edges(nodes: List[FuelCycleNode]):
 
 
 # --------------------------------------------------------------------------
-# 3. Layered layout
+# 4. Layered layout
 # --------------------------------------------------------------------------
 
 
 def compute_layers(
-    nodes: List[FuelCycleNode], edges: List[Tuple[str, str, str]]
+    nodes: List[KernelNode], edges: List[Tuple[str, str, str]]
 ) -> Dict[str, int]:
     names = [n.block_name for n in nodes]
     preds: Dict[str, List[str]] = {name: [] for name in names}
@@ -350,7 +509,7 @@ def escape_xml(s: str) -> str:
 
 
 # --------------------------------------------------------------------------
-# 4. Geometry / collision helpers
+# 5. Geometry / collision helpers
 # --------------------------------------------------------------------------
 
 Rect = Tuple[float, float, float, float]  # (x, y, w, h)
@@ -411,7 +570,7 @@ def _distribute_points(center: float, n: int, spacing: float) -> List[float]:
 
 
 # --------------------------------------------------------------------------
-# 5. Bounded-radius rounded-corner path rendering
+# 6. Bounded-radius rounded-corner path rendering
 # --------------------------------------------------------------------------
 
 CORNER_RADIUS = 14.0
@@ -490,7 +649,7 @@ def verify_path_clear(
 
 
 # --------------------------------------------------------------------------
-# 6. Edge routing
+# 7. Edge routing
 # --------------------------------------------------------------------------
 
 
@@ -502,6 +661,7 @@ def _route_single_elbow(
     reserved_x: List[float],
     lane_clearance: float,
     claimed_overflow_lanes: Optional[List[float]] = None,
+    claimed_local_lanes: Optional[Dict[Tuple[float, float], List[float]]] = None,
     preferred_x: Optional[float] = None,
 ) -> Tuple[List[Tuple[float, float]], Optional[float]]:
     """Single-elbow router for FORWARD edges between ADJACENT layers only
@@ -610,16 +770,23 @@ def _route_single_elbow(
         for i in range(1, steps + 1)
     ]
 
-    # Also probe a bit OUTSIDE the [gap_left, gap_right] span itself, since
-    # two edges sharing the same source box edge (same gap_left) or the
-    # same destination box edge (same gap_right) can have natural elbow
-    # regions that coincide almost entirely -- there may be no interior
-    # x that's both box-clear and far enough from a reservation, but a
-    # bend slightly beyond the gap's own span can still work.
-    span = max(gap_right - gap_left, 1.0)
-    xs += [gap_left - span * f for f in (0.15, 0.3, 0.45)]
-    xs += [gap_right + span * f for f in (0.15, 0.3, 0.45)]
-
+    # NOTE: candidates are deliberately kept STRICTLY INSIDE [gap_left,
+    # gap_right]. `gap_left`/`gap_right` are exactly the source box's
+    # right edge and the destination box's left edge -- not an
+    # arbitrary boundary with buffer room outside it -- so any candidate
+    # beyond them is, by definition, inside the source or destination
+    # box's own footprint. Earlier this range was intentionally widened
+    # a bit past each edge (as a fallback for two edges sharing a
+    # source/destination port column), but since the source and
+    # destination boxes are excluded from collision checking here
+    # (`skip=[src_rect, dst_rect]` -- the path legitimately touches them
+    # at its endpoints), an out-of-bounds candidate was never flagged as
+    # colliding: the router would silently pick a bend x inside one of
+    # the boxes, producing a path that visibly enters the box and
+    # U-turns back out before reaching the real port. Sampling is
+    # confined to the interior instead; the local-escape and
+    # canval-spanning overflow tiers (tried after this search fails
+    # entirely) are what handle the crowded-port-column case safely.
     lane_clear_hits: List[Tuple[float, List[Tuple[float, float]], float]] = []
     any_clear_hits: List[Tuple[float, List[Tuple[float, float]], float]] = []
     seen = set()
@@ -664,9 +831,22 @@ def _route_single_elbow(
         _, wp, mid_x = any_clear_hits[0]
         return wp, mid_x
 
-    # No bend x cleared everything. Leave the grid: a short perpendicular
-    # stub away from each box, then an overflow lane above every box,
-    # claiming a distinct lane height from other overflow-routed edges.
+    # No bend x cleared everything within the layer gap itself. Before
+    # resorting to the canvas-spanning overflow lane (a long, page-height
+    # detour -- appropriate for a genuine long-range escape but
+    # disproportionate for a short local hop), try a LOCAL vertical
+    # escape confined to just outside whatever specifically blocks this
+    # edge's own narrow gap.
+    if claimed_local_lanes is not None:
+        local_wp = _route_local_vertical_escape(
+            start, end, all_rects, skip, claimed_local_lanes, lane_clearance
+        )
+        if local_wp is not None:
+            return local_wp, None
+
+    # Local escape also failed (or wasn't available) -- fall back to the
+    # guaranteed-clear overflow lane above the entire diagram, claiming a
+    # distinct lane height from other overflow-routed edges.
     wp, lane_y_used = _overflow_lane_route(
         start, end, all_rects, skip, claimed_overflow_lanes
     )
@@ -682,22 +862,30 @@ def _overflow_lane_route(
     skip: List[Rect],
     claimed_overflow_lanes: Optional[List[float]] = None,
 ) -> Tuple[List[Tuple[float, float]], float]:
-    """Guaranteed-clear fallback for a horizontally-facing edge: exit the
-    source box horizontally (perpendicular to its right face), travel in
-    a lane above every box in the diagram, then enter the destination box
-    horizontally (perpendicular to its left face).
+    """Guaranteed-clear, CANVAS-SPANNING fallback for a horizontally-facing
+    edge: exit the source box horizontally, travel in a lane above every
+    box in the ENTIRE diagram, then enter the destination box
+    horizontally. This is the fallback of last resort -- appropriate for
+    a genuine long-range escape, but visually expensive (a detour
+    spanning most of the diagram's height) for a short local hop, which
+    is why `_route_local_vertical_escape` is tried FIRST for short
+    single-gap edges (see `_route_single_elbow`) and this is only reached
+    when that local escape also fails.
 
     `claimed_overflow_lanes` holds the y-values every PRIOR overflow-routed
-    edge already used. Without tracking this, every edge that falls back
-    to this route independently starts its search from the same
-    `top_of_grid` height and -- since that first candidate is usually
-    already clear of every BOX (the only thing `_path_collides` checks) --
-    multiple unrelated edges all land on the identical y and run stacked
-    on top of each other for their entire horizontal span, even though no
-    box overlap is ever reported. This function now also skips any y
-    within one lane-height of an already-claimed lane, so each overflow
-    edge gets its own horizontal band. Returns (waypoints, lane_y_used) so
-    the caller can add it to `claimed_overflow_lanes`.
+    edge already used, shared across the whole diagram so several
+    unrelated edges falling back here land on distinct horizontal bands
+    instead of stacking. The search budget below is generous (hundreds of
+    steps -- cheap, since each is just arithmetic plus rect checks)
+    specifically so that a properly SEPARATED lane is almost always found
+    without ever needing the relaxed pass: that pass, if reached in the
+    old implementation, let every edge independently converge on the
+    very first (trivially box-clear) y at the top of the whole canvas,
+    since nothing else sits up there -- when many edges hit that path
+    they end up stacked within a pixel or two of each other, which is
+    illegible. The relaxed pass here therefore still requires at least a
+    REDUCED clearance from claimed lanes (never zero) so that even in the
+    worst case, distinct edges remain visually distinguishable.
     """
     sx, sy = start
     ex, ey = end
@@ -706,36 +894,151 @@ def _overflow_lane_route(
     entry_x = ex - stub_len
     top_of_grid = min((r[1] for r in all_rects), default=min(sy, ey)) - 30
     step = 16.0
-    claimed = claimed_overflow_lanes or []
+    claimed = claimed_overflow_lanes if claimed_overflow_lanes is not None else []
 
     def build(ly: float) -> List[Tuple[float, float]]:
         return _simplify_path(
             [start, (exit_x, sy), (exit_x, ly), (entry_x, ly), (entry_x, ey), end]
         )
 
-    def far_enough_from_claimed(ly: float) -> bool:
-        return all(abs(ly - c) >= step - 1e-6 for c in claimed)
+    def far_enough_from_claimed(ly: float, min_gap: float) -> bool:
+        return all(abs(ly - c) >= min_gap - 1e-6 for c in claimed)
 
-    # First pass: require both box-clearance AND distance from every
-    # already-claimed overflow lane.
+    # First pass: require both box-clearance AND full lane separation
+    # from every already-claimed overflow lane. Budget is generous so
+    # this succeeds for essentially any realistic number of overflow
+    # edges without needing to fall through to the relaxed pass at all.
     lane_y = top_of_grid
-    for _ in range(200):
-        if far_enough_from_claimed(lane_y):
+    for _ in range(900):
+        if far_enough_from_claimed(lane_y, step):
             wp = build(lane_y)
             if not _path_collides(wp, all_rects, skip, pad=CORNER_RADIUS):
+                claimed.append(lane_y)
                 return wp, lane_y
         lane_y -= step
 
-    # Relaxed pass: box-clearance only (matches old behavior), in case the
-    # diagram is dense enough that no fully-unclaimed lane exists within
-    # a reasonable search range.
+    # Relaxed pass: still requires a REDUCED clearance from claimed lanes
+    # (half the normal lane spacing) rather than none, so that if the
+    # diagram is dense enough to exhaust the strict pass above, edges
+    # sharing this fallback still land at visibly distinct y's instead of
+    # collapsing onto the same value.
+    lane_y = top_of_grid
+    for _ in range(400):
+        if far_enough_from_claimed(lane_y, step / 2.0):
+            wp = build(lane_y)
+            if not _path_collides(wp, all_rects, skip, pad=CORNER_RADIUS):
+                claimed.append(lane_y)
+                return wp, lane_y
+        lane_y -= step
+
+    # Absolute last resort: box-clearance only, no separation guarantee.
     lane_y = top_of_grid
     for _ in range(80):
         wp = build(lane_y)
         if not _path_collides(wp, all_rects, skip, pad=CORNER_RADIUS):
+            claimed.append(lane_y)
             return wp, lane_y
         lane_y -= step
+    claimed.append(lane_y)
     return build(lane_y), lane_y
+
+
+def _route_local_vertical_escape(
+    start: Tuple[float, float],
+    end: Tuple[float, float],
+    all_rects: List[Rect],
+    skip: List[Rect],
+    claimed_local_lanes: Dict[Tuple[float, float], List[float]],
+    lane_clearance: float = 16.0,
+    max_tries_per_side: int = 14,
+) -> Optional[List[Tuple[float, float]]]:
+    """A bounded, LOCAL alternative to `_overflow_lane_route`, tried first
+    for short single-gap hops (notably a stub box's fixed, narrow gutter
+    to its owning node). `_overflow_lane_route` always escapes above
+    EVERY box in the entire diagram, which for a short local hop produces
+    a long vertical spike spanning most of the canvas -- disproportionate,
+    and when many such hops need it, prone to visually stacking on top of
+    each other near the top of the page (nothing else occupies that
+    space, so many independent searches converge on nearly the same y).
+
+    This instead detours just clear of whatever specifically blocks THIS
+    edge's own narrow gap: first just above the topmost such obstacle,
+    then just below the bottommost, trying several separated candidate
+    lanes on each side. Lanes are tracked per obstacle-column via
+    `claimed_local_lanes` (keyed by a coarse quantization of the gap's
+    x-span), so sibling edges routed through the same local gutter stay
+    distinctly separated from EACH OTHER without needing to coordinate
+    with unrelated edges elsewhere in the diagram. Returns None --
+    letting the caller fall back to the guaranteed-but-expensive
+    `_overflow_lane_route` -- only if no nearby lane clears within the
+    bounded search.
+    """
+    sx, sy = start
+    ex, ey = end
+    exit_x = sx + 24.0
+    entry_x = ex - 24.0
+    if entry_x <= exit_x:
+        # Gap too narrow for both 24px stubs -- split it so exit still
+        # precedes entry (keeps the escape's direction sane even for a
+        # very tight local gutter).
+        mid = (sx + ex) / 2.0
+        exit_x, entry_x = mid - 2.0, mid + 2.0
+
+    # Obstacle detection must span the FULL gap between the two ports
+    # (sx to ex), not just the narrow exit/entry stub column -- the
+    # boxes that actually defeated the ordinary elbow search are
+    # typically siblings stacked near the SOURCE or DESTINATION end of
+    # the port column (e.g. adjacent stub ovals, or a sibling node
+    # stacked in the same layer), not necessarily anything sitting in
+    # the couple of pixels between the stub x's themselves. Scoping the
+    # search that narrowly meant this function almost always found "no
+    # local obstacle" and silently deferred to the page-spanning
+    # fallback -- exactly the full-height spikes this was meant to
+    # avoid.
+    lo_x, hi_x = min(sx, ex), max(sx, ex)
+
+    def obstacles_between() -> List[Rect]:
+        hits = []
+        for rect in all_rects:
+            if any(rect is s for s in skip):
+                continue
+            rx, ry, rw, rh = rect
+            if rx < hi_x and rx + rw > lo_x:
+                hits.append(rect)
+        return hits
+
+    blockers = obstacles_between()
+    if not blockers:
+        # Nothing structurally between the two ports at any y -- the
+        # ordinary bend-x search in `_route_single_elbow` should already
+        # have succeeded before this was ever called.
+        return None
+
+    col_key = (round(lo_x / 40.0), round(hi_x / 40.0))
+    claims = claimed_local_lanes.setdefault(col_key, [])
+
+    top_base = min(r[1] for r in blockers) - 30
+    bottom_base = max(r[1] + r[3] for r in blockers) + 30
+
+    for base, direction in ((top_base, -1.0), (bottom_base, 1.0)):
+        for k in range(max_tries_per_side):
+            lane_y = base + direction * lane_clearance * k
+            if any(abs(lane_y - c) < lane_clearance - 1e-6 for c in claims):
+                continue
+            wp = _simplify_path(
+                [
+                    start,
+                    (exit_x, sy),
+                    (exit_x, lane_y),
+                    (entry_x, lane_y),
+                    (entry_x, ey),
+                    end,
+                ]
+            )
+            if not _path_collides(wp, all_rects, skip, pad=CORNER_RADIUS):
+                claims.append(lane_y)
+                return wp
+    return None
 
 
 def route_forward_waypoints(
@@ -749,6 +1052,7 @@ def route_forward_waypoints(
     global_reserved_x: Optional[List[float]] = None,
     exit_stub_x: Optional[float] = None,
     entry_stub_x: Optional[float] = None,
+    claimed_local_lanes: Optional[Dict[Tuple[float, float], List[float]]] = None,
 ) -> Tuple[List[Tuple[float, float]], List[Tuple[int, float]]]:
     """Route a FORWARD edge (dst layer > src layer). Single-gap edges
     delegate to `_route_single_elbow`. Multi-gap edges get one waypoint
@@ -813,6 +1117,7 @@ def route_forward_waypoints(
             reserved_here,
             LANE_CLEARANCE,
             claimed_overflow_lanes=claimed_overflow_lanes,
+            claimed_local_lanes=claimed_local_lanes,
             preferred_x=exit_stub_x,
         )
         if claimed_x is not None:
@@ -1064,7 +1369,7 @@ def route_back_waypoints(
 
 
 # --------------------------------------------------------------------------
-# 7. Label placement
+# 8. Label placement
 # --------------------------------------------------------------------------
 
 
@@ -1130,22 +1435,45 @@ def place_label(
 
 
 # --------------------------------------------------------------------------
-# 8. SVG rendering
+# 9. Shared layout computation (used by BOTH the SVG and PNG renderers)
 # --------------------------------------------------------------------------
+#
+# Everything above the SVG-string-emission and matplotlib-drawing steps
+# (layering, box sizing, edge routing, label placement, collision
+# checking) is expensive and format-independent. `compute_diagram_layout`
+# runs it ONCE and returns a plain dict of positions/paths that both
+# `render_svg` and `render_png` consume, so the two pixel-based formats
+# are always structurally identical (same routing, same label positions).
 
 
-def render_svg(
-    nodes: List[FuelCycleNode],
+LayoutDict = Dict[str, Any]
+
+
+def compute_diagram_layout(
+    nodes: List[KernelNode],
     edges: List[Tuple[str, str, str]],
     external_inputs: Dict[str, List[str]],
-    title: str = "TMAP8 FuelCycleSystemScalarKernel Diagram",
     verify: bool = False,
-) -> Tuple[str, List[str]]:
+) -> LayoutDict:
+    layout: LayoutDict = {
+        "empty": not nodes,
+        "BOX_W": 260,
+        "LINE_H": 15,
+        "MARGIN": 60,
+    }
     if not nodes:
-        return _empty_svg(title), []
+        layout["total_width"] = 600.0
+        layout["total_height"] = 120.0
+        layout["node_rects"] = {}
+        layout["stub_rects"] = {}
+        layout["node_content"] = {}
+        layout["routed_edges"] = []
+        layout["stub_edge_paths"] = []
+        layout["verification_warnings"] = []
+        return layout
 
     layers = compute_layers(nodes, edges)
-    by_layer: Dict[int, List[FuelCycleNode]] = {}
+    by_layer: Dict[int, List[KernelNode]] = {}
     for n in nodes:
         by_layer.setdefault(layers[n.block_name], []).append(n)
 
@@ -1162,11 +1490,11 @@ def render_svg(
     BACK_LANE_HEIGHT = 22
     BACK_LANE_TOP_GAP = 40
 
-    def node_lines(n: FuelCycleNode) -> List[str]:
+    def node_lines(n: KernelNode) -> List[str]:
         lines = []
         if n.comment:
             lines.append(f"\u201c{n.comment}\u201d")
-        if n.kernel_type and n.kernel_type != FUEL_CYCLE_KERNEL_BASE_NAME:
+        if n.kernel_type and n.kernel_type != n.base_type_label:
             lines.append(f"type: {n.kernel_type}")
         if n.variable:
             lines.append(f"variable: {n.variable}")
@@ -1315,11 +1643,6 @@ def render_svg(
     in_port_x_stub: Dict[int, float] = {}
     STUB_FAN = 20.0
 
-    # Group by the SOURCE COLUMN (rect right-edge x), not just by source
-    # node. Multiple different nodes sitting in the same layer (e.g. I2,
-    # I6, I8 all in layer 1) share an identical right-edge x, so edges
-    # leaving DIFFERENT nodes can still need staggering against each
-    # other, not just edges leaving the SAME node.
     out_by_column: Dict[float, List[int]] = {}
     for block_name, idxs in fwd_outgoing.items():
         rect = node_rects[block_name]
@@ -1369,6 +1692,7 @@ def render_svg(
     reserved_by_boundary: Dict[int, List[float]] = {}
     global_elbow_xs: List[float] = []
     claimed_overflow_lanes: List[float] = []
+    claimed_local_lanes: Dict[Tuple[float, float], List[float]] = {}
     routed_edges: List[Tuple[str, str, str, List[Tuple[float, float]], bool]] = []
 
     def _span(item):
@@ -1391,20 +1715,23 @@ def render_svg(
             global_reserved_x=global_elbow_xs,
             exit_stub_x=out_port_x_stub.get(idx),
             entry_stub_x=in_port_x_stub.get(idx),
+            claimed_local_lanes=claimed_local_lanes,
         )
-        # POST-PROCESS SAFETY NET: force the path's actual first segment
-        # (leaving the source port) and last segment (entering the
-        # destination port) to sit at the pre-assigned, guaranteed-
-        # distinct stub x for this edge's port index -- regardless of
-        # what the router internally produced. Earlier attempts threaded
-        # a "preferred/assigned" x through several layers of routing
-        # logic (single-elbow search, multi-gap stair-step, their
-        # fallbacks) and it was not reliably honored by every branch.
-        # Rewriting the first/last segment here, after routing, is a
-        # single guaranteed choke point: whatever the router internally
-        # decided, THIS is what actually gets drawn.
         assigned_exit_x = out_port_x_stub.get(idx)
         assigned_entry_x = in_port_x_stub.get(idx)
+        # Any exit/entry x used for the first/last leg of this edge must
+        # stay strictly between the source box's right edge and the
+        # destination box's left edge. Without this bound, the retry
+        # search a few lines below (which tries assigned_x +/- k*STUB_FAN
+        # in BOTH directions when the preferred x collides) could accept
+        # a candidate that had crossed past the destination's left edge
+        # (for an exit) or the source's right edge (for an entry) --
+        # visually, a stub that runs INTO a box before turning back to
+        # the correct port, i.e. exactly the "enters the box and
+        # U-turns" artifact. `gap_lo`/`gap_hi` fence every candidate
+        # tried below to the open interval between the two boxes.
+        gap_lo = src_rect[0] + src_rect[2] + 2.0
+        gap_hi = dst_rect[0] - 2.0
 
         def try_rewrite_exit(target_x: float) -> bool:
             nonlocal path
@@ -1434,20 +1761,13 @@ def render_svg(
             old_exit_x = path[1][0]
             if abs(old_exit_x - assigned_exit_x) > 0.5:
                 if not try_rewrite_exit(assigned_exit_x):
-                    # First choice collides (e.g. clips a box sitting
-                    # near that x). Rather than silently reverting to the
-                    # OLD x -- which is what caused two sibling edges to
-                    # end up sharing a column in the first place, since
-                    # the old x is exactly the value some other edge in
-                    # this same column also naturally lands on -- search
-                    # outward in both directions in STUB_FAN steps for
-                    # any nearby x that both clears boxes AND isn't the
-                    # old (shared) value.
                     found = False
                     for k in range(1, 15):
                         for sign in (1, -1):
                             cand = assigned_exit_x + sign * STUB_FAN * k
                             if abs(cand - old_exit_x) < 1.0:
+                                continue
+                            if gap_hi > gap_lo and not (gap_lo < cand < gap_hi):
                                 continue
                             if try_rewrite_exit(cand):
                                 global_elbow_xs.append(cand)
@@ -1470,6 +1790,8 @@ def render_svg(
                         for sign in (1, -1):
                             cand = assigned_entry_x + sign * STUB_FAN * k
                             if abs(cand - old_entry_x) < 1.0:
+                                continue
+                            if gap_hi > gap_lo and not (gap_lo < cand < gap_hi):
                                 continue
                             if try_rewrite_entry(cand):
                                 global_elbow_xs.append(cand)
@@ -1532,43 +1854,150 @@ def render_svg(
                 skip=[stub_rect, target_rect],
                 claimed_overflow_lanes=claimed_overflow_lanes,
                 global_reserved_x=global_elbow_xs,
+                claimed_local_lanes=claimed_local_lanes,
             )
             stub_edge_paths.append((n.block_name, i, label, path))
 
-    min_y_seen = min(
-        [p[1] for _, _, _, path, _ in routed_edges for p in path]
-        + [p[1] for _, _, _, path in stub_edge_paths for p in path]
-        + [0.0],
-        default=0.0,
-    )
-    if min_y_seen < 10:
-        shift = 10 - min_y_seen
-        positions = {k: (x, y + shift) for k, (x, y) in positions.items()}
-        stub_positions = {k: (x, y + shift) for k, (x, y) in stub_positions.items()}
+    # --- Fit the canvas to the ACTUAL rendered geometry, not just the
+    # box layout -----------------------------------------------------
+    #
+    # `total_width`/`total_height` up to this point were sized from the
+    # node/stub BOXES only. But the edge router can legitimately place
+    # waypoints outside that box-derived footprint -- e.g. the
+    # single-elbow router's "probe a bit outside the gap span" fallback,
+    # or the back-edge staple's lane-offset search -- especially in
+    # graphs with many feedback edges or tightly packed layers, which
+    # force a lot of fallback routing. If the canvas isn't grown (and
+    # shifted, for anything that lands left of/above the origin) to
+    # match, those waypoints get silently clipped by the SVG viewBox /
+    # matplotlib axis limits: visually, edges appear to run off the
+    # edge of the diagram. This block re-derives the true bounding box
+    # of EVERY node, stub, and routed path in BOTH dimensions (not just
+    # y, as before) and adjusts the canvas to guarantee nothing is
+    # clipped.
+    all_path_points = [p for _, _, _, path, _ in routed_edges for p in path] + [
+        p for _, _, _, path in stub_edge_paths for p in path
+    ]
+    all_xs_seen = [r[0] for r in all_rects] + [r[0] + r[2] for r in all_rects] + [
+        p[0] for p in all_path_points
+    ]
+    all_ys_seen = [r[1] for r in all_rects] + [r[1] + r[3] for r in all_rects] + [
+        p[1] for p in all_path_points
+    ]
+    min_x_seen = min(all_xs_seen, default=0.0)
+    min_y_seen = min(all_ys_seen, default=0.0)
+
+    dx = 10 - min_x_seen if min_x_seen < 10 else 0.0
+    dy = 10 - min_y_seen if min_y_seen < 10 else 0.0
+
+    if dx or dy:
+        positions = {k: (x + dx, y + dy) for k, (x, y) in positions.items()}
+        stub_positions = {
+            k: (x + dx, y + dy) for k, (x, y) in stub_positions.items()
+        }
         node_rects = {
-            k: (r[0], r[1] + shift, r[2], r[3]) for k, r in node_rects.items()
+            k: (r[0] + dx, r[1] + dy, r[2], r[3]) for k, r in node_rects.items()
         }
         stub_rects = {
-            k: (r[0], r[1] + shift, r[2], r[3]) for k, r in stub_rects.items()
+            k: (r[0] + dx, r[1] + dy, r[2], r[3]) for k, r in stub_rects.items()
         }
         all_rects = list(node_rects.values()) + list(stub_rects.values())
         routed_edges = [
-            (s, d, v, [(x, y + shift) for (x, y) in path], b)
+            (s, d, v, [(x + dx, y + dy) for (x, y) in path], b)
             for (s, d, v, path, b) in routed_edges
         ]
         stub_edge_paths = [
-            (bn, i, lbl, [(x, y + shift) for (x, y) in path])
+            (bn, i, lbl, [(x + dx, y + dy) for (x, y) in path])
             for (bn, i, lbl, path) in stub_edge_paths
         ]
-        total_height += shift
+        total_width += dx
+        total_height += dy
 
+    all_path_points = [p for _, _, _, path, _ in routed_edges for p in path] + [
+        p for _, _, _, path in stub_edge_paths for p in path
+    ]
+    max_x_seen = max(
+        [r[0] + r[2] for r in all_rects] + [p[0] for p in all_path_points],
+        default=total_width,
+    )
     max_y_seen = max(
-        [r[1] + r[3] for r in all_rects]
-        + [p[1] for _, _, _, path, _ in routed_edges for p in path]
-        + [p[1] for _, _, _, path in stub_edge_paths for p in path],
+        [r[1] + r[3] for r in all_rects] + [p[1] for p in all_path_points],
         default=total_height,
     )
+    total_width = max(total_width, max_x_seen + 70)
     total_height = max(total_height, max_y_seen + 70)
+
+    verification_warnings: List[str] = []
+    if verify:
+        rect_names: Dict[int, str] = {}
+        for name, r in node_rects.items():
+            rect_names[id(r)] = f"node [{name}]"
+        for (block_name, stub_idx), r in stub_rects.items():
+            rect_names[id(r)] = f"stub #{stub_idx} of [{block_name}]"
+
+        for src, dst, varname, path, is_back in routed_edges:
+            skip = [node_rects[src], node_rects[dst]]
+            hits = verify_path_clear(path, all_rects, skip)
+            for rect in hits:
+                label = rect_names.get(id(rect), "unknown rect")
+                verification_warnings.append(
+                    f"edge {src} -> {dst} ({varname}): rendered path still overlaps {label}"
+                )
+        for block_name, stub_idx, label_text, path in stub_edge_paths:
+            skip = [stub_rects[(block_name, stub_idx)], node_rects[block_name]]
+            hits = verify_path_clear(path, all_rects, skip)
+            for rect in hits:
+                label = rect_names.get(id(rect), "unknown rect")
+                verification_warnings.append(
+                    f"stub edge -> {block_name} ({label_text}): rendered path still overlaps {label}"
+                )
+
+    layout.update(
+        {
+            "total_width": total_width,
+            "total_height": total_height,
+            "node_rects": node_rects,
+            "stub_rects": stub_rects,
+            "node_content": node_content,
+            "routed_edges": routed_edges,
+            "stub_edge_paths": stub_edge_paths,
+            "verification_warnings": verification_warnings,
+        }
+    )
+    return layout
+
+
+# --------------------------------------------------------------------------
+# 10. SVG rendering (consumes a precomputed layout)
+# --------------------------------------------------------------------------
+
+
+def render_svg(
+    nodes: List[KernelNode],
+    edges: List[Tuple[str, str, str]],
+    external_inputs: Dict[str, List[str]],
+    title: str = "MOOSE Scalar Kernel Diagram",
+    verify: bool = False,
+    layout: Optional[LayoutDict] = None,
+) -> Tuple[str, List[str]]:
+    if layout is None:
+        layout = compute_diagram_layout(nodes, edges, external_inputs, verify=verify)
+
+    if layout["empty"]:
+        return _empty_svg(title), []
+
+    BOX_W = layout["BOX_W"]
+    LINE_H = layout["LINE_H"]
+    MARGIN = layout["MARGIN"]
+    total_width = layout["total_width"]
+    total_height = layout["total_height"]
+    node_rects: Dict[str, Rect] = layout["node_rects"]
+    stub_rects: Dict[Tuple[str, int], Rect] = layout["stub_rects"]
+    node_content: Dict[str, List[str]] = layout["node_content"]
+    routed_edges = layout["routed_edges"]
+    stub_edge_paths = layout["stub_edge_paths"]
+
+    node_by_name = {n.block_name: n for n in nodes}
 
     svg_parts: List[str] = []
     svg_parts.append(
@@ -1597,8 +2026,6 @@ def render_svg(
         "</marker>"
         "</defs>"
     )
-
-    # --- Boxes drawn FIRST so edges/labels always render on top ---------
 
     for n in nodes:
         stubs = external_inputs.get(n.block_name, [])
@@ -1641,10 +2068,8 @@ def render_svg(
         if not content_lines:
             svg_parts.append(
                 f'<text x="{rx + 12:.0f}" y="{ry + 42:.0f}" font-size="11.5" '
-                f'fill="#718096" font-style="italic">FuelCycleSystemScalarKernel</text>'
+                f'fill="#718096" font-style="italic">{escape_xml(n.base_type_label or "scalar kernel")}</text>'
             )
-
-    # --- Stub edges on top of boxes --------------------------------------
 
     for block_name, stub_idx, label, path in stub_edge_paths:
         d = waypoints_to_rounded_path(path)
@@ -1652,8 +2077,6 @@ def render_svg(
             f'<path d="{d}" fill="none" stroke="#a0aec0" stroke-width="1.5" '
             f'stroke-dasharray="4,3" stroke-linecap="round" marker-end="url(#arrow-stub)"/>'
         )
-
-    # --- Main edges + labels, on top of everything -----------------------
 
     placed_label_rects: List[Rect] = []
 
@@ -1716,32 +2139,7 @@ def render_svg(
 
     svg_parts.append("</svg>")
 
-    verification_warnings: List[str] = []
-    if verify:
-        rect_names: Dict[int, str] = {}
-        for name, r in node_rects.items():
-            rect_names[id(r)] = f"node [{name}]"
-        for (block_name, stub_idx), r in stub_rects.items():
-            rect_names[id(r)] = f"stub #{stub_idx} of [{block_name}]"
-
-        for src, dst, varname, path, is_back in routed_edges:
-            skip = [node_rects[src], node_rects[dst]]
-            hits = verify_path_clear(path, all_rects, skip)
-            for rect in hits:
-                label = rect_names.get(id(rect), "unknown rect")
-                verification_warnings.append(
-                    f"edge {src} -> {dst} ({varname}): rendered path still overlaps {label}"
-                )
-        for block_name, stub_idx, label_text, path in stub_edge_paths:
-            skip = [stub_rects[(block_name, stub_idx)], node_rects[block_name]]
-            hits = verify_path_clear(path, all_rects, skip)
-            for rect in hits:
-                label = rect_names.get(id(rect), "unknown rect")
-                verification_warnings.append(
-                    f"stub edge -> {block_name} ({label_text}): rendered path still overlaps {label}"
-                )
-
-    return "\n".join(svg_parts), verification_warnings
+    return "\n".join(svg_parts), layout["verification_warnings"]
 
 
 def _empty_svg(title: str) -> str:
@@ -1751,23 +2149,229 @@ def _empty_svg(title: str) -> str:
         '<rect width="600" height="120" fill="#fafafa"/>'
         f'<text x="20" y="30" font-size="16" font-weight="bold">{escape_xml(title)}</text>'
         '<text x="20" y="60" font-size="13" fill="#718096">'
-        "No FuelCycleSystemScalarKernel blocks were found in this input file.</text>"
+        "No matching kernel blocks were found in this input file.</text>"
         "</svg>"
     )
 
 
 # --------------------------------------------------------------------------
-# 9. Optional Graphviz DOT export
+# 11. PNG rendering via matplotlib (consumes the SAME precomputed layout)
+# --------------------------------------------------------------------------
+
+
+def render_png(
+    nodes: List[KernelNode],
+    edges: List[Tuple[str, str, str]],
+    external_inputs: Dict[str, List[str]],
+    out_path: Path,
+    title: str = "MOOSE Scalar Kernel Diagram",
+    verify: bool = False,
+    dpi: int = 150,
+    layout: Optional[LayoutDict] = None,
+) -> List[str]:
+    """Render the diagram as a PNG using matplotlib, reusing the exact same
+    layered layout and orthogonal edge routing as `render_svg` (via
+    `compute_diagram_layout`), so both formats agree pixel-for-pixel on
+    where every box, edge, and label sits. Returns verification warnings
+    (empty unless `verify=True`).
+
+    Requires matplotlib; raises a clear RuntimeError if it isn't
+    installed, rather than a confusing ImportError traceback.
+    """
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import FancyBboxPatch, Rectangle
+        from matplotlib.path import Path as MplPath
+        import matplotlib.patches as mpatches
+    except ImportError as e:
+        raise RuntimeError(
+            "The 'png' output format requires matplotlib. Install it with "
+            "`pip install matplotlib` and try again."
+        ) from e
+
+    if layout is None:
+        layout = compute_diagram_layout(nodes, edges, external_inputs, verify=verify)
+
+    BOX_W = layout["BOX_W"]
+    LINE_H = layout["LINE_H"]
+    MARGIN = layout["MARGIN"]
+    total_width = layout["total_width"]
+    total_height = layout["total_height"]
+    node_rects: Dict[str, Rect] = layout["node_rects"]
+    stub_rects: Dict[Tuple[str, int], Rect] = layout["stub_rects"]
+    node_content: Dict[str, List[str]] = layout["node_content"]
+    routed_edges = layout["routed_edges"]
+    stub_edge_paths = layout["stub_edge_paths"]
+
+    # SVG coordinates grow downward; matplotlib's default y-axis grows
+    # upward, so rather than flip every coordinate we simply invert the
+    # y-axis limits and draw everything using the original (x, y) values.
+    UNIT_PX = 1.0  # 1 layout unit == 1 pixel at dpi=100 reference scale
+    fig_w_in = total_width / 100.0
+    fig_h_in = total_height / 100.0
+    fig, ax = plt.subplots(figsize=(fig_w_in, fig_h_in))
+    ax.set_xlim(0, total_width)
+    ax.set_ylim(total_height, 0)  # inverted: y grows downward, matches SVG
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.add_patch(
+        Rectangle((0, 0), total_width, total_height, facecolor="#fafafa", edgecolor="none", zorder=0)
+    )
+    ax.text(
+        MARGIN, 22, title, fontsize=13, fontweight="bold", color="#1a1a1a", va="center", zorder=10,
+    )
+
+    if layout["empty"]:
+        ax.text(
+            20, 60, "No matching kernel blocks were found in this input file.",
+            fontsize=10, color="#718096", va="center",
+        )
+        fig.savefig(out_path, dpi=dpi, facecolor="#fafafa")
+        plt.close(fig)
+        return []
+
+    def draw_polyline(path, color, lw, dashed, zorder):
+        xs = [p[0] for p in path]
+        ys = [p[1] for p in path]
+        ls = (0, (6, 3)) if dashed else "-"
+        ax.plot(xs, ys, color=color, linewidth=lw, linestyle=ls, solid_capstyle="round", zorder=zorder)
+
+    def draw_arrowhead(p_from, p_to, color, size, zorder):
+        ax.annotate(
+            "",
+            xy=p_to,
+            xytext=p_from,
+            arrowprops=dict(arrowstyle="-|>", color=color, lw=0.1, mutation_scale=size, shrinkA=0, shrinkB=0),
+            zorder=zorder,
+        )
+
+    # --- stub boxes -------------------------------------------------
+    for n in nodes:
+        stubs = external_inputs.get(n.block_name, [])
+        for i, label in enumerate(stubs):
+            key = (n.block_name, i)
+            sx, sy, sw, sh = stub_rects[key]
+            ax.add_patch(
+                FancyBboxPatch(
+                    (sx, sy), sw, sh,
+                    boxstyle="round,pad=0,rounding_size=6",
+                    facecolor="#edf2f7", edgecolor="#a0aec0", linewidth=1.2, zorder=2,
+                )
+            )
+            wrapped = wrap_text(label, 22)[:2]
+            for li, wline in enumerate(wrapped):
+                ax.text(
+                    sx + sw / 2, sy + 12 + li * 12, wline,
+                    fontsize=7.5, color="#4a5568", ha="center", va="center", zorder=3,
+                )
+
+    # --- node boxes ---------------------------------------------------
+    for n in nodes:
+        rx, ry, rw, rh = node_rects[n.block_name]
+        ax.add_patch(
+            FancyBboxPatch(
+                (rx, ry), BOX_W, rh,
+                boxstyle="round,pad=0,rounding_size=10",
+                facecolor="#ebf8ff", edgecolor="#2b6cb0", linewidth=1.6, zorder=2,
+            )
+        )
+        ax.add_patch(
+            Rectangle((rx, ry), BOX_W, 24, facecolor="#2b6cb0", edgecolor="none", zorder=3)
+        )
+        ax.text(
+            rx + BOX_W / 2, ry + 12, f"[{n.block_name}]",
+            fontsize=9, fontweight="bold", color="white", ha="center", va="center", zorder=4,
+        )
+        content_lines = node_content[n.block_name]
+        for li, line in enumerate(content_lines):
+            ax.text(
+                rx + 10, ry + 34 + li * LINE_H, line,
+                fontsize=8, color="#1a202c", ha="left", va="top", zorder=4,
+            )
+        if not content_lines:
+            ax.text(
+                rx + 10, ry + 34, n.base_type_label or "scalar kernel",
+                fontsize=8, color="#718096", style="italic", ha="left", va="top", zorder=4,
+            )
+
+    # --- stub (dashed) edges -------------------------------------------
+    for block_name, stub_idx, label, path in stub_edge_paths:
+        draw_polyline(path, "#a0aec0", 1.1, dashed=True, zorder=5)
+        if len(path) >= 2:
+            draw_arrowhead(path[-2], path[-1], "#a0aec0", 8, zorder=5)
+
+    # --- main routed edges + labels --------------------------------------
+    placed_label_rects: List[Rect] = []
+    for src, dst, varname, path, is_back in routed_edges:
+        color = "#b7791f" if is_back else "#4a5568"
+        draw_polyline(path, color, 1.5, dashed=is_back, zorder=6)
+        if len(path) >= 2:
+            draw_arrowhead(path[-2], path[-1], color, 10, zorder=6)
+
+        label_x, label_y, anchor_x, anchor_y = place_label(path, varname, placed_label_rects)
+        lr = _label_rect_at(label_x, label_y, varname)
+        placed_label_rects.append(lr)
+
+        if (label_x - anchor_x) ** 2 + (label_y - anchor_y) ** 2 > 4.0:
+            ax.plot(
+                [anchor_x, label_x], [anchor_y, label_y],
+                color=color, linewidth=0.7, alpha=0.5, zorder=6,
+            )
+
+        ax.add_patch(
+            Rectangle(
+                (lr[0], lr[1]), lr[2], lr[3],
+                facecolor="#fafafa", edgecolor=color, linewidth=0.6, alpha=0.97, zorder=7,
+            )
+        )
+        ax.text(
+            label_x, label_y, varname,
+            fontsize=7.5, color=color, ha="center", va="center", zorder=8,
+        )
+
+    # --- legend ----------------------------------------------------------
+    legend_y = total_height - 46
+    ax.plot([MARGIN, MARGIN + 40], [legend_y, legend_y], color="#4a5568", linewidth=1.5, zorder=9)
+    draw_arrowhead((MARGIN + 30, legend_y), (MARGIN + 40, legend_y), "#4a5568", 9, zorder=9)
+    ax.text(MARGIN + 50, legend_y, "variable flowing between blocks", fontsize=8.5, color="#2d3748", va="center", zorder=9)
+
+    ax.plot(
+        [MARGIN, MARGIN + 40], [legend_y + 20, legend_y + 20],
+        color="#b7791f", linewidth=1.5, linestyle=(0, (6, 3)), zorder=9,
+    )
+    draw_arrowhead((MARGIN + 30, legend_y + 20), (MARGIN + 40, legend_y + 20), "#b7791f", 9, zorder=9)
+    ax.text(MARGIN + 50, legend_y + 24, "feedback / cycle edge", fontsize=8.5, color="#2d3748", va="center", zorder=9)
+
+    ax.plot(
+        [MARGIN, MARGIN + 40], [legend_y + 40, legend_y + 40],
+        color="#a0aec0", linewidth=1.1, linestyle=(0, (4, 3)), zorder=9,
+    )
+    draw_arrowhead((MARGIN + 30, legend_y + 40), (MARGIN + 40, legend_y + 40), "#a0aec0", 8, zorder=9)
+    ax.text(MARGIN + 50, legend_y + 44, "external input / other_sources", fontsize=8.5, color="#4a5568", va="center", zorder=9)
+
+    fig.tight_layout(pad=0.3)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=dpi, facecolor="#fafafa")
+    plt.close(fig)
+
+    return layout["verification_warnings"]
+
+
+# --------------------------------------------------------------------------
+# 12. Other output formats: DOT, Mermaid, Markdown, CSV, JSON
 # --------------------------------------------------------------------------
 
 
 def render_dot(
-    nodes: List[FuelCycleNode],
+    nodes: List[KernelNode],
     edges: List[Tuple[str, str, str]],
     external_inputs: Dict[str, List[str]],
 ) -> str:
     lines = [
-        "digraph FuelCycle {",
+        "digraph KernelDiagram {",
         "  rankdir=LR;",
         "  splines=ortho;",
         '  node [shape=box, style="rounded,filled", fillcolor="#ebf8ff", color="#2b6cb0"];',
@@ -1776,7 +2380,7 @@ def render_dot(
         label_lines = [f"[{n.block_name}]"]
         if n.comment:
             label_lines.append(n.comment)
-        if n.kernel_type and n.kernel_type != FUEL_CYCLE_KERNEL_BASE_NAME:
+        if n.kernel_type and n.kernel_type != n.base_type_label:
             label_lines.append(f"type: {n.kernel_type}")
         if n.variable:
             label_lines.append(f"variable: {n.variable}")
@@ -1806,40 +2410,194 @@ def render_dot(
     return "\n".join(lines)
 
 
+def _mermaid_id(name: str) -> str:
+    return "n_" + re.sub(r"[^A-Za-z0-9_]", "_", name)
+
+
+def render_mermaid(
+    nodes: List[KernelNode],
+    edges: List[Tuple[str, str, str]],
+    external_inputs: Dict[str, List[str]],
+    title: str = "",
+) -> str:
+    lines = ["flowchart LR"]
+    if title:
+        lines.append(f"  %% {title}")
+
+    for n in nodes:
+        bits = [f"[{n.block_name}]"]
+        if n.kernel_type:
+            bits.append(n.kernel_type)
+        if n.variable:
+            bits.append(f"var: {n.variable}")
+        label = "<br/>".join(b.replace('"', "'") for b in bits)
+        lines.append(f'  {_mermaid_id(n.block_name)}["{label}"]')
+
+    ext_counter = 0
+    for n in nodes:
+        for stub in external_inputs.get(n.block_name, []):
+            ext_counter += 1
+            eid = f"ext_{ext_counter}"
+            slabel = stub.replace('"', "'")
+            lines.append(f'  {eid}(("{slabel}")) -.-> {_mermaid_id(n.block_name)}')
+
+    for src, dst, var in edges:
+        vlabel = var.replace('"', "'")
+        lines.append(f'  {_mermaid_id(src)} -- "{vlabel}" --> {_mermaid_id(dst)}')
+
+    for n in nodes:
+        lines.append(
+            f"  style {_mermaid_id(n.block_name)} fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px"
+        )
+
+    return "\n".join(lines)
+
+
+def render_markdown(
+    nodes: List[KernelNode],
+    edges: List[Tuple[str, str, str]],
+    external_inputs: Dict[str, List[str]],
+    title: str = "Kernel diagram",
+) -> str:
+    def esc_cell(s: str) -> str:
+        return s.replace("|", "\\|").replace("\n", " ")
+
+    lines = [f"# {title}", "", "## Blocks", ""]
+    lines.append("| Block | Family | Type | Variable | Inputs | Other sources | External inputs |")
+    lines.append("|---|---|---|---|---|---|---|")
+    for n in nodes:
+        ext = external_inputs.get(n.block_name, [])
+        lines.append(
+            "| {} | {} | {} | {} | {} | {} | {} |".format(
+                esc_cell(n.block_name),
+                esc_cell(n.kernel_family or "-"),
+                esc_cell(n.kernel_type or "-"),
+                esc_cell(n.variable or "-"),
+                esc_cell(", ".join(n.inputs) or "-"),
+                esc_cell(", ".join(n.other_sources) or "-"),
+                esc_cell(", ".join(ext) or "-"),
+            )
+        )
+    lines += ["", "## Edges", "", "| From | To | Variable |", "|---|---|---|"]
+    for src, dst, var in edges:
+        lines.append(f"| {esc_cell(src)} | {esc_cell(dst)} | {esc_cell(var)} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_csv(edges: List[Tuple[str, str, str]]) -> str:
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["from", "to", "variable"])
+    for src, dst, var in edges:
+        writer.writerow([src, dst, var])
+    return buf.getvalue()
+
+
+def build_json_payload(
+    nodes: List[KernelNode],
+    edges: List[Tuple[str, str, str]],
+    external_inputs: Dict[str, List[str]],
+) -> dict:
+    return {
+        "blocks": [
+            {
+                "name": n.block_name,
+                "kernel_type": n.kernel_type,
+                "kernel_family": n.kernel_family,
+                "comment": n.comment,
+                "variable": n.variable,
+                "inputs": n.inputs,
+                "other_sources": n.other_sources,
+                "extra_params": n.extra_params,
+            }
+            for n in nodes
+        ],
+        "edges": [{"from": s, "to": d, "variable": v} for s, d, v in edges],
+        "external_inputs": external_inputs,
+    }
+
+
+# Formats whose renderer returns a `str` to be written with write_text().
+TEXT_FORMATS = {"svg", "dot", "json", "mermaid", "markdown", "csv"}
+# Formats handled as binary/direct-write (renderer writes the file itself).
+BINARY_FORMATS = {"png"}
+
+FORMAT_EXTENSIONS: Dict[str, str] = {
+    "svg": ".svg",
+    "dot": ".dot",
+    "json": ".json",
+    "mermaid": ".mmd",
+    "markdown": ".md",
+    "csv": ".csv",
+    "png": ".png",
+}
+
+
 # --------------------------------------------------------------------------
-# 10. CLI
+# 13. CLI
 # --------------------------------------------------------------------------
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Diagram FuelCycleSystemScalarKernel blocks in a TMAP8 input file."
+        description="Diagram scalar-kernel blocks (TMAP8 FuelCycleSystemScalarKernel, "
+        "MOOSE ParsedODEKernel, SAM-style ScalarKernels, or custom families) in a "
+        "MOOSE-family input file, in one or more output formats."
     )
     parser.add_argument(
         "input_file",
         type=Path,
-        help="Path to the TMAP8 .i input file",
-        default=input_folder + "fuel_cycle_abdou_generic_AD.i",
         nargs="?",
+        default=None,
+        help="Path to the MOOSE-family .i input file",
     )
     parser.add_argument(
         "-o",
         "--output",
         type=Path,
         default=None,
-        help="Output SVG path (default: <input_stem>_fuelcycle.svg next to the input file)",
+        help="Output path. If exactly one --format is given and this path has a "
+        "suffix, it is used verbatim. Otherwise it is treated as a path stem and "
+        "the correct extension is appended per format (default stem: "
+        "<input_stem>_kernels next to the input file).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory to write all requested output files into "
+        "(default: next to the input file, or next to --output).",
+    )
+    parser.add_argument(
+        "-f",
+        "--format",
+        dest="formats",
+        action="append",
+        choices=sorted(FORMAT_EXTENSIONS),
+        default=None,
+        help="Output format to generate; repeatable. Default: svg. "
+        "'png' requires matplotlib.",
+    )
+    parser.add_argument(
+        "--png-dpi",
+        type=int,
+        default=150,
+        help="DPI (resolution) for the png output format. Default: 150.",
     )
     parser.add_argument(
         "--dot",
         type=Path,
         default=None,
-        help="Also write a Graphviz DOT file to this path",
+        help="[legacy] also write Graphviz DOT to this exact path "
+        "(equivalent to `--format dot` with an explicit output path).",
     )
     parser.add_argument(
         "--json",
         type=Path,
         default=None,
-        help="Also write the parsed block/edge data as JSON to this path",
+        help="[legacy] also write parsed block/edge JSON to this exact path "
+        "(equivalent to `--format json` with an explicit output path).",
     )
     parser.add_argument(
         "--title",
@@ -1848,15 +2606,65 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Custom title for the diagram",
     )
     parser.add_argument(
+        "--kernel-family",
+        dest="kernel_families",
+        action="append",
+        choices=sorted(BUILTIN_KERNEL_FAMILIES) + ["all"],
+        default=None,
+        help="Restrict matching to one or more built-in kernel families; "
+        "repeatable. Default: all built-in families.",
+    )
+    parser.add_argument(
+        "--extra-kernel-type-pattern",
+        dest="extra_patterns",
+        action="append",
+        default=None,
+        help="Regex (repeatable) for additional/custom `type = ...` names to "
+        "match, on top of any --kernel-family selections. All patterns given "
+        "form one custom family, checked before the built-in families.",
+    )
+    parser.add_argument(
+        "--extra-input-param",
+        dest="extra_input_params",
+        action="append",
+        default=None,
+        help="Parameter name (repeatable) to read input names from, for the "
+        "custom family created by --extra-kernel-type-pattern. Default: inputs.",
+    )
+    parser.add_argument(
+        "--extra-other-source-param",
+        dest="extra_other_source_params",
+        action="append",
+        default=None,
+        help="Parameter name (repeatable) to read other_sources-style names "
+        "from, for the custom family created by --extra-kernel-type-pattern. "
+        "Default: other_sources.",
+    )
+    parser.add_argument(
+        "--extra-variable-param",
+        dest="extra_variable_param",
+        default="variable",
+        help="Parameter name holding the output variable name, for the custom "
+        "family created by --extra-kernel-type-pattern. Default: variable.",
+    )
+    parser.add_argument(
         "--list-kernel-types",
         action="store_true",
-        help="Print the distinct `type = ...` values matched and exit",
+        help="Print the distinct `type = ...` values matched (with their "
+        "family) and exit",
+    )
+    parser.add_argument(
+        "--list-kernel-families",
+        action="store_true",
+        help="Print the available built-in kernel families and exit.",
     )
     parser.add_argument(
         "--verify",
         action="store_true",
-        help="After rendering, check every edge's final path against every node/stub box and "
-        "print a warning for any residual overlap",
+        help="After computing the layout (used by svg/png), check every "
+        "edge's final path against every node/stub box and print a warning "
+        "for any residual overlap. No-op unless 'svg' or 'png' is among the "
+        "requested formats.",
     )
     parser.add_argument(
         "--debug-routing",
@@ -1872,9 +2680,46 @@ def main(argv: Optional[List[str]] = None) -> int:
         global DEBUG_ROUTING
         DEBUG_ROUTING = True
 
+    if args.list_kernel_families:
+        print("Built-in kernel families:")
+        for key, fam in BUILTIN_KERNEL_FAMILIES.items():
+            print(f"  - {key}: {fam.display_name}")
+            print(f"      type pattern(s):        {', '.join(fam.type_patterns)}")
+            print(f"      variable param:          {fam.variable_param}")
+            print(f"      input param(s) tried:    {', '.join(fam.input_params)}")
+            print(f"      other_source param(s):   {', '.join(fam.other_source_params)}")
+        return 0
+
+    if args.input_file is None:
+        print("error: an input_file is required (see --help)", file=sys.stderr)
+        return 1
+
     if not args.input_file.exists():
         print(f"error: input file not found: {args.input_file}", file=sys.stderr)
         return 1
+
+    # --- Resolve active kernel families ---------------------------------
+    if not args.kernel_families or "all" in args.kernel_families:
+        active_families = list(BUILTIN_KERNEL_FAMILIES.values())
+    else:
+        active_families = [BUILTIN_KERNEL_FAMILIES[k] for k in args.kernel_families]
+
+    if args.extra_patterns:
+        custom_family = KernelFamily(
+            key="custom",
+            display_name="Custom kernel family",
+            type_patterns=tuple(args.extra_patterns),
+            base_label="",
+            variable_param=args.extra_variable_param,
+            input_params=tuple(args.extra_input_params)
+            if args.extra_input_params
+            else ("inputs",),
+            other_source_params=tuple(args.extra_other_source_params)
+            if args.extra_other_source_params
+            else ("other_sources",),
+        )
+        # Custom patterns take priority over the built-ins.
+        active_families = [custom_family] + active_families
 
     try:
         source_lines = expand_includes(args.input_file)
@@ -1884,77 +2729,135 @@ def main(argv: Optional[List[str]] = None) -> int:
     text = "\n".join(source_lines)
 
     root = parse_moose_file(text)
-    nodes = build_fuelcycle_nodes(root, source_lines)
+    nodes = build_kernel_nodes(root, source_lines, active_families)
 
     if args.list_kernel_types:
-        types = sorted({n.kernel_type for n in nodes if n.kernel_type})
-        if types:
-            print("Matched FuelCycleSystemScalarKernel variant type(s):")
-            for t in types:
-                print(f"  - {t}")
+        by_type: Dict[str, str] = {}
+        for n in nodes:
+            if n.kernel_type:
+                by_type[n.kernel_type] = n.kernel_family
+        if by_type:
+            print("Matched kernel type(s):")
+            for t, fam_key in sorted(by_type.items()):
+                print(f"  - {t}  (family: {fam_key})")
         else:
-            print("No FuelCycleSystemScalarKernel variant blocks found.")
+            print("No matching kernel blocks found.")
         return 0
 
     if not nodes:
         print(
-            f"warning: no FuelCycleSystemScalarKernel-variant blocks found in {args.input_file}",
+            f"warning: no blocks matching the active kernel familie(s) found in {args.input_file}",
             file=sys.stderr,
         )
 
     edges, external_inputs = build_edges(nodes)
 
-    title = (
-        args.title or f"FuelCycleSystemScalarKernel diagram — {args.input_file.name}"
-    )
-    svg_text, verification_warnings = render_svg(
-        nodes, edges, external_inputs, title=title, verify=args.verify
-    )
+    title = args.title or f"Scalar kernel diagram — {args.input_file.name}"
+
+    # --- Resolve requested formats and output paths ----------------------
+    formats: List[str] = list(args.formats) if args.formats else ["svg"]
+    if args.dot is not None and "dot" not in formats:
+        formats.append("dot")
+    if args.json is not None and "json" not in formats:
+        formats.append("json")
+
+    if args.output is not None and args.output.suffix:
+        out_stem = args.output.with_suffix("")
+    elif args.output is not None:
+        out_stem = args.output
+    else:
+        out_stem = args.input_file.with_name(args.input_file.stem + "_kernels")
+
+    out_dir = args.output_dir if args.output_dir is not None else out_stem.parent
+    out_stem_name = out_stem.name
+
+    def path_for(fmt: str) -> Path:
+        if fmt == "dot" and args.dot is not None:
+            return args.dot
+        if fmt == "json" and args.json is not None:
+            return args.json
+        if len(formats) == 1 and args.output is not None and args.output.suffix:
+            return args.output
+        return out_dir / f"{out_stem_name}{FORMAT_EXTENSIONS[fmt]}"
+
+    # Compute the shared pixel-layout ONCE if either svg or png was
+    # requested, so the two formats are guaranteed structurally identical
+    # and routing/collision-checking isn't done twice.
+    shared_layout: Optional[LayoutDict] = None
+    needs_layout = ("svg" in formats) or ("png" in formats)
+    if needs_layout:
+        shared_layout = compute_diagram_layout(
+            nodes, edges, external_inputs, verify=args.verify
+        )
+
+    verify_warnings: List[str] = []
+    rendered_pixel_format = False
+
+    for fmt in formats:
+        out_path = path_for(fmt)
+        if fmt == "svg":
+            svg_text, warnings = render_svg(
+                nodes, edges, external_inputs, title=title, verify=args.verify,
+                layout=shared_layout,
+            )
+            verify_warnings = warnings
+            rendered_pixel_format = True
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(svg_text, encoding="utf-8")
+            print(f"wrote {out_path}")
+            continue
+        elif fmt == "png":
+            try:
+                warnings = render_png(
+                    nodes, edges, external_inputs, out_path=out_path, title=title,
+                    verify=args.verify, dpi=args.png_dpi, layout=shared_layout,
+                )
+            except RuntimeError as e:
+                print(f"error: {e}", file=sys.stderr)
+                return 1
+            verify_warnings = warnings
+            rendered_pixel_format = True
+            print(f"wrote {out_path}")
+            continue
+        elif fmt == "dot":
+            text_out = render_dot(nodes, edges, external_inputs)
+        elif fmt == "json":
+            text_out = json.dumps(
+                build_json_payload(nodes, edges, external_inputs), indent=2
+            )
+        elif fmt == "mermaid":
+            text_out = render_mermaid(nodes, edges, external_inputs, title=title)
+        elif fmt == "markdown":
+            text_out = render_markdown(nodes, edges, external_inputs, title=title)
+        elif fmt == "csv":
+            text_out = render_csv(edges)
+        else:
+            continue
+
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(text_out, encoding="utf-8")
+        print(f"wrote {out_path}")
 
     if args.verify:
-        if verification_warnings:
+        if not rendered_pixel_format:
             print(
-                f"--verify found {len(verification_warnings)} residual overlap(s):",
+                "note: --verify only checks the svg/png layout's routing; "
+                "add `--format svg` or `--format png` to use it",
                 file=sys.stderr,
             )
-            for w in verification_warnings:
+        elif verify_warnings:
+            print(
+                f"--verify found {len(verify_warnings)} residual overlap(s):",
+                file=sys.stderr,
+            )
+            for w in verify_warnings:
                 print(f"  - {w}", file=sys.stderr)
         else:
             print("--verify: no residual overlaps found", file=sys.stderr)
 
-    out_path = args.output or args.input_file.with_name(
-        args.input_file.stem + "_fuelcycle.svg"
-    )
-    out_path.write_text(svg_text, encoding="utf-8")
-    print(f"wrote {out_path}")
-
-    if args.dot:
-        dot_text = render_dot(nodes, edges, external_inputs)
-        args.dot.write_text(dot_text, encoding="utf-8")
-        print(f"wrote {args.dot}")
-
-    if args.json:
-        data = {
-            "blocks": [
-                {
-                    "name": n.block_name,
-                    "kernel_type": n.kernel_type,
-                    "comment": n.comment,
-                    "variable": n.variable,
-                    "inputs": n.inputs,
-                    "other_sources": n.other_sources,
-                    "extra_params": n.extra_params,
-                }
-                for n in nodes
-            ],
-            "edges": [{"from": s, "to": d, "variable": v} for s, d, v in edges],
-            "external_inputs": external_inputs,
-        }
-        args.json.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        print(f"wrote {args.json}")
-
     print(
-        f"found {len(nodes)} FuelCycleSystemScalarKernel-variant block(s), {len(edges)} inter-block edge(s)"
+        f"found {len(nodes)} matching kernel block(s), {len(edges)} inter-block edge(s), "
+        f"families in use: {sorted({n.kernel_family for n in nodes}) or 'none'}"
     )
     return 0
 
