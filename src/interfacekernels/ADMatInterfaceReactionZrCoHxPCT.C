@@ -83,7 +83,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   //
   // Only the fitting-constant set (A..G) and the "distance from the plateau
   // pressure" term (pressure_diff) differ between calls
-  
+
   auto pctCorrelation = [&](const auto & A,
                             const auto & B,
                             const auto & C,

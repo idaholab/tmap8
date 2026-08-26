@@ -244,7 +244,7 @@ for Tk in TEMPERATURES_K:
             markersize=7,
             lw=1.2,
             markeredgecolor="black",
-            markerfacecolor='none',
+            markerfacecolor="none",
             color=color_T,
             # Tag as the Low-P (lower plateau) fit
             label=f"{Tk}.15 K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
@@ -279,7 +279,7 @@ for Tk in TEMPERATURES_K:
             markevery=0.08,
             markersize=7,
             markeredgecolor="black",
-            markerfacecolor='none',
+            markerfacecolor="none",
             lw=1.2,
             color=color_T,
             # Tag as the High-P (upper plateau) fit
