@@ -172,7 +172,7 @@ TEMPERATURE_COLOR_MAP = {
 def color_for_Temperature(Temperature, idx):
     Temperature_i = int(Temperature)
     if Temperature_i in TEMPURATE_COLOR_MAP:
-        return TEMPURATE_COLOR_MAP[Temperature_i]
+        return TEMPERATURE_COLOR_MAP[Temperature_i]
     palette = plt.cm.tab20
     return palette(idx % 20)
 
