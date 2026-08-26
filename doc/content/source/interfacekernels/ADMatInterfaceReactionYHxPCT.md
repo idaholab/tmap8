@@ -29,7 +29,7 @@ and $\rho$ is the yttrium molar density in mol/m$^3$.
 To incorporate the entire PCT curve in TMAP8, the curve was divided into three regions: the low-pressure (LP) region, the plateau region (PR), and the high-pressure (HP) region. The fitting procedures and the modeling approach for each region are described below.
 
 \begin{equation}\label{eq:atomic_fraction_HP}
-f_{at,LP}(T,P) = f_{max,LP}(T)-10\left[1 \times 10^{-3}+\exp(-50.0 + 5.73 \times 10^{-2} T + ( 8.30 \times 10^{-1} - 2.69 \times 10^{-3} T) (\log\left(P_{lim}(T) - P \right)))\right]^{-1},
+f_{at,LP}(T,P) = f_{at,max,LP}(T)-10\left[1 \times 10^{-3}+\exp(-50.0 + 5.73 \times 10^{-2} T + ( 8.30 \times 10^{-1} - 2.69 \times 10^{-3} T) (\log\left(P_{lim}(T) - P \right)))\right]^{-1},
 \end{equation}
 
 \begin{equation}\label{eq:atomic_fraction_PR}
@@ -39,17 +39,17 @@ f_{at,PR}(T,P) = 1.33 - 2.18 \times 10^{-4}, T
 \end{equation}
 and
 \begin{equation}\label{eq:atomic_fraction_LP}
-f_{at,HP}(T,P) = 2.00-1.0015\left[f_{min,HP}(T)+\exp(24.89 - 2.53 \times 10^{-2} T + ( -3.98 \times 10^{-1} + 1.00 \times 10^{-3} T) (\log\left(P - P_{lim}(T)\right)))\right]^{-1}
+f_{at,HP}(T,P) = 2.00-1.0015\left[f_{at,min,HP}(T)+\exp(24.89 - 2.53 \times 10^{-2} T + ( -3.98 \times 10^{-1} + 1.00 \times 10^{-3} T) (\log\left(P - P_{lim}(T)\right)))\right]^{-1}
 \end{equation}
 
 where $\gamma$ is a tolerance factor set to 1.15. While ${f_{max,LP}(T)}$ and ${f_{min,HP}(T)}$ represents maximum and miniumum atomic ratio per temperature in the low pressure and high high region, respectively. These formulas are expressed as:
 
 \begin{equation}\label{eq:atomic_fraction_LP_Max}
-f_{\text{Max},LP}(T)=1.01\times10^{-6}T^{2}-2.56\times10^{-3}T+2.16
+f_{at,max,LP}(T)=1.01\times10^{-6}T^{2}-2.56\times10^{-3}T+2.16
 \end{equation}
 and
 \begin{equation}\label{eq:atomic_fraction_HP_Min}
-f_{\text{Min},HP}(T)=-1.01\times10^{-6}T^{2}+2.55\times10^{-3}T-5.61\times10^{-1}.
+f_{at,min,HP}(T)=-1.01\times10^{-6}T^{2}+2.55\times10^{-3}T-5.61\times10^{-1}.
 \end{equation}
 
 The plateau ($P_{lim}$) representing phase transition is captured as [!citep](Matthews2021SWIFT):
@@ -69,17 +69,17 @@ These fits are applied within the following conditional statement for entire PCT
 
 \begin{equation}
 \text{If} \left (\frac{P}{P_{\text{lim}}}\right) > 1.15:
-\quad f_{HP}(T,P)
+\quad f_{at,HP}(T,P)
 \end{equation}
 
 \begin{equation}
 \text{Else-if} \left (\frac{P}{P_{\text{lim}}}\right) <1.05:
-\quad f_{LP}(T,P)
+\quad f_{at,LP}(T,P)
 \end{equation}
 
 \begin{equation}
 \text{Else: }
-\quad f_{PR}(T,P).
+\quad f_{at,PR}(T,P).
 \end{equation}
 
 The validity of this present fit is between:
@@ -88,7 +88,7 @@ The validity of this present fit is between:
 \end{equation}
 
 
-The ${f_{max,LP}(T)}$ and ${f_{min,HP}(T)}$ are quadratic fits that were verified by plotting the fit against the PCT data shown in the figure below. Evidently,the ${f_{min,HP}(T)}$ suffer slight losses due to non-symmetry of plateau region. Nonetheless, the fits are suitable for modelling purposes.
+The ${f_{at,max,LP}(T)}$ and ${f_{at,min,HP}(T)}$ are quadratic fits that were verified by plotting the fit against the PCT data shown in the figure below. Evidently,the ${f_{at,min,HP}(T)}$ suffer slight losses due to non-symmetry of plateau region. Nonetheless, the fits are suitable for modelling purposes.
 
 !media comparison_YHx_PCT.py
        image_name=YHx_PCT_Plateau_EndPoints_comparison.png
@@ -112,7 +112,7 @@ The results of the high pressure test for ($T$, $P$) = (1173.15 K, $1 \times 10^
 and the results for the the low pressure test for ($T$, $P$) =(1273.15 K, $3 \times 10^{2}$ Pa), (1473.15 K, $3 \times 10^{3}$ Pa), (1573.15 K, $6 \times 10^{2}$ Pa) and (1573.15 K, $6 \times 10^{2}$ Pa)
 
 
-The [YHx_PCT_fit_2D] shows the indepedent low pressure and high pressure testing against the experimental data.As seen in the results, there are minor deviations, potentially due to rounding errors in the atomic‑fraction expression. Nonetheless, the errors remain below 1%, indicating that the fits are suitable for PCT modeling.
+The [YHx_PCT_fit_2D] figure compares the analytical fits, the independent low‑pressure model, and the independent high‑pressure model against the experimental data. Overall, the analytical fits show reasonable agreement with the measurements, yielding average root‑mean‑square errors of 0.19 for the low‑pressure region and 0.04 for the high‑pressure region. The low‑pressure fit, however, exhibits noticeable deviations near the tail ends of the dataset. This behavior is likely influenced by clusters of data points at higher temperatures, which can lead to poorer fitting performance. In contrast, the independent low‑ and high‑pressure TMAP8 simulations align well with the analytical trends, demonstrating consistency between the analytical approach and the model-based predictions.
 
 
 ### Overall PCT testing
@@ -134,8 +134,7 @@ The testing conditions include
 (1523.15 K, $2 \times 10^{2}$ Pa),
 and (1573.15 K, $2 \times 10^{2}$ Pa).
 
-The [YHx_PCT_fit_2D] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error, but the deviations remain within an acceptable range for modeling purposes.
-s.
+The [YHx_PCT_fit_2D] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error with an averaged value of 15%, but the deviations remain within an acceptable range for modeling purposes.
 
 
 ## Example Input File Syntax

@@ -276,8 +276,9 @@ RMSE_values_low, RMSE_values_high = compute_all_fit_rmse(list_expData, temperatu
 fig = plt.figure(figsize=(12, 8))
 
 
-high_data_handles, high_data_labels = [], []
+data_handles, data_labels = [], []
 fit_handles, fit_labels = [], []
+sweep_handles, sweep_labels = [], []
 tmap_handles, tmap_labels = [], []
 
 for i, temperature in enumerate(temperature_list):
@@ -289,8 +290,8 @@ for i, temperature in enumerate(temperature_list):
 
     # Plot the data points
     sc = plt.scatter(atom_ratios, pressures, color=color_Temperature, s=16)
-    high_data_handles.append(sc)
-    high_data_labels.append(f"{temperature} K Data")
+    data_handles.append(sc)
+    data_labels.append(f"{temperature} K Data")
 
     p0_T = float(p0_lim_func(temperature))
 
@@ -323,7 +324,11 @@ for i, temperature in enumerate(temperature_list):
             AR_low_line[mask_low_use],
             P_line[mask_low_use],
             color=color_Temperature,
-            linestyle="--",
+            linestyle="-",
+            markevery=0.08,
+            markeredgecolor="black",
+            markersize=4.5,
+            marker="^",
             linewidth=1.8,
         )
         fit_handles.append(ln_lo)
@@ -340,6 +345,10 @@ for i, temperature in enumerate(temperature_list):
             P_line[mask_high_use],
             color=color_Temperature,
             linestyle="-",
+            markevery=0.08,
+            markeredgecolor="black",
+            markersize=4.5,
+            marker="o",
             linewidth=1.8,
         )
         fit_handles.append(ln_hi)
@@ -380,8 +389,8 @@ for i, temperature in enumerate(temperature_list):
         linestyle=":",
         linewidth=2.0,
     )
-    tmap_handles.append(ln_sweep)
-    tmap_labels.append(f"{int(temperature)}.15 K TMAP8 (err={mape:.2f}%)")
+    sweep_handles.append(ln_sweep)
+    sweep_labels.append(f"TMAP8 {int(temperature)}.15 K (err={mape:.2f}%)")
 
 # plot the TMAP8 predictions (high-pressure)
 for point in high_prediction_points:
@@ -389,7 +398,7 @@ for point in high_prediction_points:
     h = plt.scatter(point["prediction"], point["pressure"], marker="x", color="k", s=90)
     tmap_handles.append(h)
     tmap_labels.append(
-        f'{point["temperature"]} K and {point["pressure"]:.2f} Pa '
+        f'TMAP8 {point["temperature"]} K, {point["pressure"]:.2f} Pa '
         f"(error: {error:.2f} %)"
     )
 
@@ -399,7 +408,7 @@ for point in low_predictions:
     h = plt.scatter(point["prediction"], point["pressure"], marker="*", color="k", s=90)
     tmap_handles.append(h)
     tmap_labels.append(
-        f'{point["temperature"]} K and {point["pressure"]:.2f} Pa '
+        f'TMAP8 {point["temperature"]} K, {point["pressure"]:.2f} Pa '
         f"(error: {error:.2f} %)"
     )
 
@@ -408,8 +417,10 @@ plt.ylabel("Partial Pressure (Pa)")
 plt.yscale("log")
 plt.grid(True)
 
-# Build 3-column legend: col 1 = experimental data, col 2 = fits, col 3 = TMAP8 results
-nrows = max(len(high_data_handles), len(fit_handles), len(tmap_handles), 1)
+# Build 4-column legend: col 1 = experimental data, col 2 = fits, col 3 = TMAP8 sweep, col 4 = TMAP8 results
+nrows = max(
+    len(data_handles), len(fit_handles), len(sweep_handles), len(tmap_handles), 1
+)
 
 
 def pad_column(handles, labels, n):
@@ -419,18 +430,20 @@ def pad_column(handles, labels, n):
     return handles, labels
 
 
-col1_handles, col1_labels = pad_column(high_data_handles, high_data_labels, nrows)
+col1_handles, col1_labels = pad_column(data_handles, data_labels, nrows)
 col2_handles, col2_labels = pad_column(fit_handles, fit_labels, nrows)
 col3_handles, col3_labels = pad_column(tmap_handles, tmap_labels, nrows)
+col4_handles, col4_labels = pad_column(sweep_handles, sweep_labels, nrows)
 
-combined_handles = col1_handles + col2_handles + col3_handles
-combined_labels = col1_labels + col2_labels + col3_labels
+
+combined_handles = col1_handles + col2_handles + col3_handles + col4_handles
+combined_labels = col1_labels + col2_labels + col3_labels + col4_labels
 
 plt.subplots_adjust(bottom=0.32)
 plt.legend(
     combined_handles,
     combined_labels,
-    ncols=3,
+    ncols=4,
     loc="upper center",
     bbox_to_anchor=(0.5, -0.15),
     fontsize=8,
@@ -472,8 +485,8 @@ for i, expData in enumerate(list_expData):
     color_T = color_for_Temperature(T, i)
     x = expData["Atom Ratio (-)"].values
     y = expData["Partial Pressure (Pa)"].values
-    plt.scatter(x, y, s=16, label=f"{int(T)} K", color=color_Temperature)
-    plt.plot(x, y, color=color_Temperature)
+    plt.scatter(x, y, s=16, label=f"{int(T)} K", color=color_T)
+    plt.plot(x, y, color=color_T)
 
 plt.yscale("log")
 plt.xlabel("Atom Ratio (-)")
@@ -500,9 +513,7 @@ for i, expData in enumerate(list_expData):
     x = expData["Atom Ratio (-)"].values.astype(float)
     y = expData["Partial Pressure (Pa)"].values.astype(float)
 
-    (ln_temperature,) = ax.plot(
-        x, y, color=color_Temperature, linewidth=1.8, label=f"{int(T)} K"
-    )
+    (ln_temperature,) = ax.plot(x, y, color=color_T, linewidth=1.8, label=f"{int(T)} K")
     temperature_handles.append(ln_temperature)
     temperature_labels.append(f"{int(T)} K")
 
@@ -592,7 +603,13 @@ for i, expData in enumerate(list_expData):
 
     AR = expData["Atom Ratio (-)"].values.astype(float)
     P = expData["Partial Pressure (Pa)"].values.astype(float)
-    ax.scatter(AR, P, s=10, alpha=full_color[3], color=full_color[:3])
+    ax.scatter(
+        AR,
+        P,
+        s=10,
+        color=color_T,
+        label=f"Data {int(T)} K)",
+    )
 
     p0_T = float(p0_lim_func(T))
     P_line = np.logspace(
@@ -608,7 +625,7 @@ for i, expData in enumerate(list_expData):
             "-",
             linewidth=fit_linewidth,
             color=color_T,
-            label=f"{int(T)} K",
+            label=f"AR(P,{int(T)} K)",
         )
 
 ax.set_yscale("log")
