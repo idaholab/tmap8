@@ -57,21 +57,21 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   using std::max;
 
   // Fitting constants of High-Pressure (HP)
-  const ADReal HP_A = 2.7;
-  const ADReal HP_B = 1.45;
-  const ADReal HP_C = 1.00;
-  const ADReal HP_D = 6.57;
-  const ADReal HP_E = 2.21e-02;
-  const ADReal HP_F = 6.52e-01;
-  const ADReal HP_G = 1.17e-05;
+  const Real HP_A = 2.7;
+  const Real HP_B = 1.45;
+  const Real HP_C = 1.00;
+  const Real HP_D = 6.57;
+  const Real HP_E = 2.21e-02;
+  const Real HP_F = 6.52e-01;
+  const Real HP_G = 1.17e-05;
   // Fitting constants of  Low-Pressure (LP)
-  const ADReal LP_A = 0.7;
-  const ADReal LP_B = 1.0;
-  const ADReal LP_C = 5.e-03;
-  const ADReal LP_D = -4.37;
-  const ADReal LP_E = -1.34e-02;
-  const ADReal LP_F = -8.22e-02;
-  const ADReal LP_G = 3.97e-04;
+  const Real LP_A = 0.7;
+  const Real LP_B = 1.0;
+  const Real LP_C = 5.e-03;
+  const Real LP_D = -4.37;
+  const Real LP_E = -1.34e-02;
+  const Real LP_F = -8.22e-02;
+  const Real LP_G = 3.97e-04;
 
   // -------------------------------
   // Shared PCT correlation shape
@@ -82,8 +82,8 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   //   af(P) = A - B / (C + exp(D - E*T + (F - G*T) * log(max(pressure_diff, 1e-10))))
   //
   // Only the fitting-constant set (A..G) and the "distance from the plateau
-  // pressure" term (pressure_diff) differ between calls, so we factor the
-  // formula into a single lambda and reuse it for every branch below.
+  // pressure" term (pressure_diff) differ between calls
+  
   auto pctCorrelation = [&](const auto & A,
                             const auto & B,
                             const auto & C,

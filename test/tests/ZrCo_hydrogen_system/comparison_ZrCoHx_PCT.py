@@ -238,11 +238,13 @@ for Tk in TEMPERATURES_K:
         ax.plot(
             fits,
             Ps,
-            linestyle="--",
-            marker="*",
-            markevery=0.08,
+            linestyle="-",
+            marker="^",
+            markevery=0.05,
             markersize=7,
             lw=1.2,
+            markeredgecolor="black",
+            markerfacecolor='none',
             color=color_T,
             # Tag as the Low-P (lower plateau) fit
             label=f"{Tk}.15 K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
@@ -272,7 +274,13 @@ for Tk in TEMPERATURES_K:
         ax.plot(
             fits,
             Ps,
-            "-",
+            linestyle="-",
+            marker="o",
+            markevery=0.08,
+            markersize=7,
+            markeredgecolor="black",
+            markerfacecolor='none',
+            lw=1.2,
             color=color_T,
             # Tag as the High-P (upper plateau) fit
             label=f"{Tk}.15 K High P Fit RMSE {rmse(AR_hi, fit_hi):.3f}",
@@ -304,7 +312,7 @@ for Tk in TEMPERATURES_K:
     ax.plot(
         ar_tmap[order],
         p_tmap[order],
-        linestyle=(0, (3, 1, 1, 1)),
+        linestyle=":",
         lw=2,
         label=f"TMAP8 {int(Tk)}.15 K (err={mape:.2f}%)",
     )
