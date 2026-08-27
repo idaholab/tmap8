@@ -139,7 +139,7 @@ The results of the high pressure test for ($T$, $P$) = (433.15 K, $3 \times 10^{
 
 ### Overall PCT testing
 
-[/ZrCoHx_PCT.i] also tests the entire PCT modelling curves in TMAP8. The simulation follows the same structure as before, but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve. The [ZrCoHx_PCT_combined] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error, but the deviations remain within an acceptable range for modeling purposes
+[!file](/ZrCoHx_PCT.i) also tests the entire PCT modelling curves in TMAP8. The simulation follows the same structure as before, but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve. The [ZrCoHx_PCT_combined] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error, but the deviations remain within an acceptable range for modeling purposes
 
 \begin{equation}
 P = P_{\text{initial}} + t \frac{P_{\text{max}} - P_{\text{initial}}}{t_{\text{end}}}.
