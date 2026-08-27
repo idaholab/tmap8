@@ -117,7 +117,7 @@ The [YHx_PCT_fit_2D] figure compares the analytical fits, the independent low‑
 
 ### Overall PCT testing
 
-For overall PCT capabilities [/YHx_PCT_Overall.i] tests the entire PCT modelling curves in TMAP8. The model follows the same structure as [/YHx_PCT.i], but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve.
+[!file](/YHx_PCT.i) also tests the entire PCT modelling curves in TMAP8. The simulation follows the same structure as before, but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve. The [YHx_PCT_fit_2D] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error, but the deviations remain within an acceptable range for modeling purposes
 
 \begin{equation}
 P = P_{\text{initial}} + t \frac{P_{\text{max}} - P_{\text{initial}}}{t_{\text{end}}}.
