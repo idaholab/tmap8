@@ -154,7 +154,6 @@ The testing conditions include
 (604.15 K, $2.5 \times 10^{1}$ Pa),
 and (624.15 K, $2.5 \times 10^{1}$ Pa).
 
-.
 
 
 ## Example Input File Syntax
