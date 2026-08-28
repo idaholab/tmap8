@@ -268,7 +268,7 @@ for Tk in TEMPERATURES_K:
         P_hi = P_hi[mask]
         AR_hi = AR_hi[mask]
         fit_hi = fit_hi[mask]
-        high_rmse_list.append(rmse(AR_hi, fit_hi))  
+        high_rmse_list.append(rmse(AR_hi, fit_hi))
 
         if Tk == 524:
             Pmin = float(np.nanmax([np.min(P_hi) + 355, 1e-12]))
