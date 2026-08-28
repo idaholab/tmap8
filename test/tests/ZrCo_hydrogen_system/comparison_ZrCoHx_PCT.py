@@ -75,7 +75,7 @@ for Tk in TEMPERATURES_K:
     data_by_temp[Tk] = df.reset_index(drop=True)
 
 # ---------------------------------------------------------------------------
-# Raw plot [unchanged, separate file]
+# Raw plot
 # ---------------------------------------------------------------------------
 fig = plt.figure(figsize=(10, 6))
 for T in TEMPERATURES_K:
@@ -92,7 +92,7 @@ plt.savefig("ZrCoHx_PCT_Data.png", dpi=FIG_DPI)
 plt.close(fig)
 
 # ---------------------------------------------------------------------------
-# Plateau fit [unchanged, separate file]
+# Plateau fit
 # ---------------------------------------------------------------------------
 p0_vals = p0_lim_func(np.array(TEMPERATURES_K))
 sel_T, sel_P = [], []
@@ -167,7 +167,7 @@ def overlay_tmap(dfp, ax):
 
 
 # ---------------------------------------------------------------------------
-# MAPE helper (for the TMAP8 low-to-high sweep portion)
+# Mean Average Percent Error (MAPE) for the TMAP8 low-to-high sweep portion
 # ---------------------------------------------------------------------------
 def compute_mape(ar_t, p_t, ar_e, p_e):
     # Sort the TMAP8 curve
@@ -205,6 +205,11 @@ fallback_cmap = plt.get_cmap("tab10")
 fallback_colors = {}
 fb_idx = 0
 
+# containers to track errors so we can report averages at the end
+low_rmse_list = []
+high_rmse_list = []
+sweep_err_list = []
+
 
 def get_color_for_temp(Tk):
     global fb_idx
@@ -230,6 +235,7 @@ for Tk in TEMPERATURES_K:
         P_lo = P[idx_low]
         AR_lo = AR[idx_low]
         fit_lo = atom_ratio_eq_lower_func(Tk, P_lo)
+        low_rmse_list.append(rmse(AR_lo, fit_lo))
 
         Pmin = float(np.nanmax([np.min(P_lo), 1e-12]))
         Pmax = float(np.max(P_lo))
@@ -246,7 +252,6 @@ for Tk in TEMPERATURES_K:
             markeredgecolor="black",
             markerfacecolor="none",
             color=color_T,
-            # Tag as the Low-P (lower plateau) fit
             label=f"{Tk}.15 K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
         )
 
@@ -263,6 +268,7 @@ for Tk in TEMPERATURES_K:
         P_hi = P_hi[mask]
         AR_hi = AR_hi[mask]
         fit_hi = fit_hi[mask]
+        high_rmse_list.append(rmse(AR_hi, fit_hi))  # NEW
 
         if Tk == 524:
             Pmin = float(np.nanmax([np.min(P_hi) + 355, 1e-12]))
@@ -282,7 +288,6 @@ for Tk in TEMPERATURES_K:
             markerfacecolor="none",
             lw=1.2,
             color=color_T,
-            # Tag as the High-P (upper plateau) fit
             label=f"{Tk}.15 K High P Fit RMSE {rmse(AR_hi, fit_hi):.3f}",
         )
 
@@ -307,6 +312,7 @@ for Tk in TEMPERATURES_K:
     p_tmap = df_tmap["pressure_H2_enclosure_1_at_interface"].astype(float).to_numpy()
 
     mape = compute_mape(ar_tmap, p_tmap, ar_exp, p_exp)
+    sweep_err_list.append(mape)
 
     order = np.argsort(ar_tmap)
     ax.plot(
@@ -331,10 +337,10 @@ tmap_single_h, tmap_single_l = [], []
 tmap_sweep_h, tmap_sweep_l = [], []
 
 for h, l in zip(handles, labels):
-    if "Data" in l:
+    if "Data" in l:  # experimental data
         data_h.append(h)
         data_l.append(l)
-    elif "Fit RMSE" in l:
+    elif "Fit RMSE" in l:  # fits
         fit_h.append(h)
         fit_l.append(l)
     elif l.startswith("TMAP8") and "Pa (err" in l:  # single-point *,x markers
@@ -379,3 +385,13 @@ ax.legend(
 fig.tight_layout()
 plt.savefig("ZrCoHx_PCT_combined.png", dpi=FIG_DPI, bbox_inches="tight")
 plt.close(fig)
+
+# ---------------------------------------------------------------------------
+# Print average errors
+# ---------------------------------------------------------------------------
+if low_rmse_list:
+    print(f"Average Low P Fit RMSE: {np.mean(low_rmse_list):.4f}")
+if high_rmse_list:
+    print(f"Average High P Fit RMSE: {np.mean(high_rmse_list):.4f}")
+if sweep_err_list:
+    print(f"Average TMAP8 Sweep Error (MAPE): {np.mean(sweep_err_list):.2f}%")

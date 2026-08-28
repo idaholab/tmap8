@@ -134,12 +134,13 @@ To model the interface, the input file employs the [InterfaceDiffusion.md] objec
 \end{equation}
 
 
-The results of the high pressure test for ($T$, $P$) = (433.15 K, $3 \times 10^{4}$ Pa), (433.15 K, $1 \times 10^{4}$ Pa), (573.15 K, $1 \times 10^{4}$ Pa), and (604.15 K, $5 \times 10^{4}$ Pa). The results of the low pressure test for ($T$, $P$) = (433.15 K, $1 \times 10^{2}$ Pa), (573.15 K, $1 \times 10^{3}$ Pa), (604.15 K, $1 \times 10^{4}$ Pa), and (604.15 K, $3 \times 10^{3}$ Pa) are shown in [ZrCoHx_PCT_combined]. As seen in the results, there are minor deviations, potentially due to rounding errors in the atomic‑fraction expression. Nonetheless, the errors remain below 1%, indicating that the fits are suitable for PCT modeling.
+The results of the high pressure test for ($T$, $P$) = (433.15 K, $3 \times 10^{4}$ Pa), (433.15 K, $1 \times 10^{4}$ Pa), (573.15 K, $1 \times 10^{4}$ Pa), and (604.15 K, $5 \times 10^{4}$ Pa). The results of the low pressure test for ($T$, $P$) = (433.15 K, $1 \times 10^{2}$ Pa), (573.15 K, $1 \times 10^{3}$ Pa), (604.15 K, $1 \times 10^{4}$ Pa), and (604.15 K, $3 \times 10^{3}$ Pa) are shown in [ZrCoHx_PCT_combined]. Overall, the analytical fits show reasonable agreement with the measurements, yielding average root‑mean‑square errors of 0.056 for the low‑pressure region and 0.089 for the high‑pressure region.
 
 
 ### Overall PCT testing
 
-[!file](/ZrCoHx_PCT.i) also tests the entire PCT modelling curves in TMAP8. The simulation follows the same structure as before, but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve. The [ZrCoHx_PCT_combined] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate error, but the deviations remain within an acceptable range for modeling purposes
+[!file](/ZrCoHx_PCT.i) also tests the entire PCT modelling curves in TMAP8. The simulation follows the same structure as before, but has an arbitrarily high diffusion value to acheive steady-state quickly. The model also includes a linear pressure increase to cover the entire PCT curve. The [ZrCoHx_PCT_combined] shows the PCT fit against the experimental data. Evidently, the fit exhibits moderate average error of 24% , but the deviations remain within an acceptable range for modeling purposes
+
 
 \begin{equation}
 P = P_{\text{initial}} + t \frac{P_{\text{max}} - P_{\text{initial}}}{t_{\text{end}}}.
