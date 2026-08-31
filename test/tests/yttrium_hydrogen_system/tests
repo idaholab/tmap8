@@ -72,6 +72,7 @@
                 dt_init=1e-01
                 initial_pressure_H2_enclosure_1=3e3
                 initial_atomic_fraction=1.41
+                Executioner/nl_abs_tol=1e-9
                 Executioner/num_steps=200
                 Executioner/nl_rel_tol=9e-6
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
@@ -101,6 +102,7 @@
                 temperature=1273.15
                 initial_pressure_H2_enclosure_1=3e2
                 initial_atomic_fraction=0.25
+                Executioner/nl_abs_tol=1e-9
                 Executioner/num_steps=400
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1273_P3e2_out.csv
@@ -115,6 +117,7 @@
                 initial_pressure_H2_enclosure_1=3e3
                 initial_atomic_fraction=0.35
                 Executioner/num_steps=200
+                Executioner/nl_abs_tol=1e-9
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1473_P3e3_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1473.15 K.'
@@ -127,6 +130,7 @@
                 temperature=1573.15
                 initial_pressure_H2_enclosure_1=5e3
                 initial_atomic_fraction=0.35
+                Executioner/nl_abs_tol=1e-9
                 Executioner/num_steps=500
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1573_P5e3_out.csv
