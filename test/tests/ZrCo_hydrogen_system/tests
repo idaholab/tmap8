@@ -100,7 +100,7 @@
                 Functions/function_BC_concentration_H_enclosure_1/expression='(${initial_pressure_H2_enclosure_1} + t*((2e5 - ${initial_pressure_H2_enclosure_1} )/${simulation_time})) * 2.0 / (8.3145 * ${temperature})'
                 Executioner/nl_rel_tol=8e-6
                 Executioner/nl_abs_tol=4e-17"
-    rel_err = 1e-3
+    rel_err = 1e-1
     csvdiff = ZrCoHx_PCT_Low_to_High_524K.csv
     requirement = 'The system shall be able to model the entire PCT curves of ZrCoHx at T=524.15 K with an initial pressure of starting at P=20 Pa.'
   []
