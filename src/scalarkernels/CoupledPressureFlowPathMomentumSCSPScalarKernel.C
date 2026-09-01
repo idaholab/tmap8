@@ -159,7 +159,7 @@ CoupledPressureFlowPathMomentumSCSPScalarKernelTempl<is_ad>::computeQpResidual()
     auto _G = _mc[_i] / (*(_areas[i]))(_qp, _state);
     auto _Re = _G * _Dh / _mu;
     auto _lam = 64.0 / _Re;
-    auto _turb = 0.25 / MathUtils::pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/MathUtils::pow(_Re, 0.9))),2);
+    auto _turb = 0.25 / pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/pow(_Re, 0.9))),2);
     auto _fd = 64.0 / _Re;
     auto _pfd = & _fd;
     if (_Re < 2300.0) //laminar
@@ -198,11 +198,7 @@ CoupledPressureFlowPathMomentumSCSPScalarKernelTempl<is_ad>::computeQpJacobian()
   {
     Real momentum_residual = 0;
     const Moose::ElemArg _qp = Moose::ElemArg();
-    const int _i = 0;
     const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
-    // start by getting global fluid properties
-    auto _mu = _fp.mu_from_p_T(_Pref(_qp,_state),(*(_T[0]))[_i]);
-    auto _rhog = _fp.rho_from_p_T(_Pref(_qp,_state),(*(_T[0]))[_i]);
     // loop over segments
     for (size_t i = 0; i < _n_segments; ++i)
     {

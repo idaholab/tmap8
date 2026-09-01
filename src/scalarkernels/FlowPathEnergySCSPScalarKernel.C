@@ -105,7 +105,7 @@ FlowPathEnergySCSPScalarKernelTempl<is_ad>::computeQpResidual()
   auto _Re = _G * _Dh / _mu;
   auto _Pr = _mu * _cp / _k;
   // Heat transfer to fluid (Dittus-Boelter)
-  auto _h = 0.023 * MathUtils::pow(_Re, 0.8) * MathUtils::pow(_Pr, 0.4) * _k / _Dh;
+  auto _h = 0.023 * pow(_Re, 0.8) * pow(_Pr, 0.4) * _k / _Dh;
   auto _q = _h * (_Tw[_i] - Base::_u[_i]) * _perimeter(_qp, _state);
   // Advection component
   energy_residual += _m[_i] / 2.0 * (1 - abs(_m[_i])/_m[_i]) * _cp * _Tdown[_i] - 
@@ -141,7 +141,7 @@ FlowPathEnergySCSPScalarKernelTempl<is_ad>::computeQpJacobian()
     auto _Re = _G * _Dh / _mu;
     auto _Pr = _mu * _cp / _k;
     // Heat transfer to fluid (Dittus-Boelter)
-    auto _h = 0.023 * MathUtils::pow(_Re, 0.8) * MathUtils::pow(_Pr, 0.4) * _k / _Dh;
+    auto _h = 0.023 * pow(_Re, 0.8) * pow(_Pr, 0.4) * _k / _Dh;
     auto _q = - _h * _perimeter(_qp, _state);
     // Advection component
     energy_residual += abs(_m[_i]) * _cp;

@@ -154,7 +154,7 @@ FlowPathMomentumSCSPScalarKernelTempl<is_ad>::computeQpResidual()
     auto _G = Base::_u[_i] / (*(_areas[i]))(_qp, _state);
     auto _Re = _G * _Dh / _mu;
     auto _lam = 64.0 / _Re;
-    auto _turb = 0.25 / MathUtils::pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/MathUtils::pow(_Re, 0.9))),2);
+    auto _turb = 0.25 / pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/pow(_Re, 0.9))),2);
     auto _fd = 64.0 / _Re;
     auto _pfd = & _fd;
     if (_Re < 2300.0) //laminar
@@ -168,6 +168,7 @@ FlowPathMomentumSCSPScalarKernelTempl<is_ad>::computeQpResidual()
       *_pfd = (_turb - _lam) / 1700 * _Re + _lam;
       *_pfd = std::max(*_pfd,std::max(_lam,_turb));
     }
+    std::cout << _fd;
     // Friction
     momentum_residual += _fd * (*(_lengths[i]))(_qp, _state) / _Dh * _G * abs(_G) / 2.0 / _rhog;
     // Forms
@@ -206,7 +207,7 @@ FlowPathMomentumSCSPScalarKernelTempl<is_ad>::computeQpJacobian()
       auto _G = Base::_u[_i] / (*(_areas[i]))(_qp, _state);
       auto _Re = _G * _Dh / _mu;
       auto _lam = 64.0 / _Re;
-      auto _turb = 0.25 / MathUtils::pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/MathUtils::pow(_Re, 0.9))),2);
+      auto _turb = 0.25 / pow((log10((*(_roughnesses[i]))(_qp, _state)/(_Dh*3.7) + 5.74/pow(_Re, 0.9))),2);
       auto _fd = 64.0 / _Re;
       auto _pfd = & _fd;
       if (_Re < 2300.0) //laminar
