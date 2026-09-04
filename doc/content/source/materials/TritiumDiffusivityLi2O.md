@@ -4,13 +4,13 @@
 
 ## Overview
 
-`TritiumDiffusivityLi2O` provides literature-based tritium diffusivity correlations for Li2O and
-creates both a regular and an AD Real-value material property from the same object.
-
-The class computes the diffusivity $D$ of tritium in Li$_2$O in m$^2$/s.
-The literature fits are implemented as published and stored in the implementation directly in m$^2$/s.
-The [!param](/Materials/TritiumDiffusivityLi2O/model) parameter is required because the available
-Li$_2$O correlations correspond to different irradiation states and microstructures.
+`TritiumDiffusivityLi2O` computes the diffusivity $D$ of tritium in Li$_2$O. This 
+diffusivity is presented as both a regular Real- and AD-Real-valued material property 
+for use in a variety of simulation configurations. The property fits are implemented as 
+published in the literature and stored in the implementation directly in units of m$^2$/s. 
+To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityLi2O/model) 
+parameter **must** be provided, as the available Li$_2$O correlations correspond to 
+different irradiation states and microstructures.
 
 ## Implemented Models
 

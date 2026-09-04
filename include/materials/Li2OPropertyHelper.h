@@ -2,7 +2,7 @@
 /*                DO NOT MODIFY THIS HEADER                 */
 /*   TMAP8: Tritium Migration Analysis Program, Version 8   */
 /*                                                          */
-/*   Copyright 2021 - 2025 Battelle Energy Alliance, LLC    */
+/*   Copyright 2021 - 2026 Battelle Energy Alliance, LLC    */
 /*                   ALL RIGHTS RESERVED                    */
 /************************************************************/
 

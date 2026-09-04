@@ -2,7 +2,7 @@
 /*                DO NOT MODIFY THIS HEADER                 */
 /*   TMAP8: Tritium Migration Analysis Program, Version 8   */
 /*                                                          */
-/*   Copyright 2021 - 2025 Battelle Energy Alliance, LLC    */
+/*   Copyright 2021 - 2026 Battelle Energy Alliance, LLC    */
 /*                   ALL RIGHTS RESERVED                    */
 /************************************************************/
 
@@ -17,9 +17,9 @@ TritiumDiffusivityLi2O::validParams()
 {
   auto params = Material::validParams();
   params.addClassDescription(
-      "Computes tritium diffusivity in Li2O from literature correlations and provides both "
+      "Computes tritium diffusivity in Li$_2$O from literature correlations and provides both "
       "regular and AD material properties.");
-  params.addRequiredCoupledVar("temperature", "The Li2O temperature in K.");
+  params.addRequiredCoupledVar("temperature", "The Li$_2$O temperature in K.");
   params.addParam<MaterialPropertyName>(
       "property_name", "diffusivity", "The regular material property name for the diffusivity.");
   params.addParam<MaterialPropertyName>(
@@ -27,7 +27,7 @@ TritiumDiffusivityLi2O::validParams()
   params.addRequiredParam<MooseEnum>("model",
                                      MooseEnum("Ohira1989 Tanifuji1987 Kurasawa1991 Terai1988Grain "
                                                "Terai1988GrainBoundary"),
-                                     "The Li2O tritium diffusivity correlation.");
+                                     "The Li$_2$O tritium diffusivity correlation.");
   params.addParam<MooseEnum>("validity_action",
                              MooseEnum("ignore warning error", "warning"),
                              "How the material responds when the selected model is used outside "
