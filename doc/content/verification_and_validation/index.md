@@ -46,8 +46,8 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | Case    | Title                                                                              |
 | ------- | ---------------------------------------------------------------------------------- |
 | ver-1fc | [Conduction in Composite Structure with Constant Surface Temperatures](ver-1fc.md) |
-| fuel cycle 1 | [Tritium fuel cycle in fusion energy plant](examples/fuel_cycle_Abdou/index.md) from [!cite](Abdou2021) |
-| fuel cycle 2 | [Tritium fuel cycle in fusion energy plant](examples/fuel_cycle_Meschini/index.md) from [!cite](meschini2023modeling) |
+| fuel cycle 1 | [Tritium Fuel Cycle in Fusion Energy Plant](examples/fuel_cycle_Abdou/index.md) from [!cite](Abdou2021) |
+| fuel cycle 2 | [Tritium Fuel Cycle in Fusion Energy Plant](examples/fuel_cycle_Meschini/index.md) from [!cite](meschini2023modeling) |
 
 
 # List of validation cases
@@ -59,7 +59,8 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | val-2c | [Test Cell Release Experiment](val-2c.md)                |
 | val-2d | [Thermal Desorption Spectroscopy on Tungsten](val-2d.md) |
 | val-2e | [Co-permeation of H$_2$ and D$_2$ through Pd](val-2e.md) |
-| val-2f | [Modelling self-damaged tungsten effects on deuterium transport](val-2f.md) |
+| val-2f | [Modelling Self-damaged Tungsten Effects on Deuterium Transport](val-2f.md) |
 | val-2g | [Deuterium Transport in Proton-Conducting Ceramics](val-2g.md) |
-| val-2k | [Oxide effects on deuterium release from self-irradiated tungsten](val-2k.md) |
 | val-2j | [Tritium TDS from Li$_2$TiO$_3$ Solid Breeder](val-2j.md) |
+| val-2k | [Oxide Effects on Deuterium Release from Self-irradiated Tungsten](val-2k.md) |
+| val-2l | [Deuterium Retention in Neutron-irradiated Tungsten](val-2l.md) |
