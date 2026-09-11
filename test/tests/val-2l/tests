@@ -1,0 +1,17 @@
+[Tests]
+  # design = 'MatNeumannBC.md'
+  issues = '#405'
+  validation = 'val-2l.md'
+  [val-2l_csvdiff]
+    type = CSVDiff
+    input = 'val-2l.i'
+    csvdiff = val-2l_out.csv
+    requirement = 'The system shall be able to model deuterium transport through irradiated tungsten for comparison with experimental results.'
+  []
+  [val-2l_comparison]
+    type = RunCommand
+    command = 'python3 comparison_val-2l.py'
+    requirement = 'The system shall be able to generate comparison plots between the analytical solution and simulated solution of validation case 2l'
+    required_python_packages = 'matplotlib numpy pandas os'
+  []
+[]

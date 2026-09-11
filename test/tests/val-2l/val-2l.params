@@ -1,0 +1,65 @@
+# Database of physical and numerical constants used in simulation
+
+# Physical constants
+kb = '${units 1.380649e-23 J/K}' # Boltzmann constant J/K - from PhysicalConstants.h
+eV_to_J = '${units 1.602176634e-19 J/eV}' # Conversion coefficient from eV to Joules - from PhysicalConstants.h
+kb_eV = '${units ${fparse kb / eV_to_J} eV/K}' # Boltzmann constant eV/K
+
+# Temporal Parameters
+simulation_time = '${units 2 h -> s}'
+dt_max = '${units 60 s}'
+dt_min = '${units 1e-2 s}'
+dt_fine = '${units 1 s}'
+flux_threshold = '${units 5e16 at/m^2/s -> at/mum^2/s}'
+
+# Geometry
+tungsten_thickness = '${units 0.2 mm -> mum}' # Tungsten disc sample thickness, Shimada et al. 2010 (p. S667, Section 2.1)
+
+# Temperature-dependent deuterium diffusivity from Causey 2002
+diffusivity_preexponential_factor = '${units 2.9e-7 m^2/s -> mum^2/s}'
+diffusivity_activation_energy = '${units 0.39 eV}'
+
+# Recombination parameters: Anderl et al. 1992
+recombination_preexponential_factor = '${units 3.2e-15 m^4/at/s -> mum^4/at/s}'
+recombination_energy = '${units 1.16 eV}'
+
+# Trapping Parameters
+trap_depth = '${units 0.7 mum}' # TMAP7 fit A Shimida et al. 2010
+tungsten_density = '${units 6.25e28 at/m^3 -> at/mum^3}' # Ambrosek and Longhurst 2008
+trap_fraction = 0.04 # TMAP7 fit A Shimida et al. 2010
+trap_site_density = '${fparse ${trap_fraction} * ${tungsten_density}}'
+alpha_t_0 = '${units 9.1316e12 1/s}' # Ambrosek and Longhurst 2008 (val-2d)
+trapping_energy = '${units ${fparse 0.39 / kb_eV} K}' # Ambrosek and Longhurst 2008 (val-2d)
+trap_per_free = 1e4 # User specified
+
+# Detrapping Parameters
+alpha_r_0 = '${units 8.4e12 1/s}' # Ambrosek and Longhurst 2008 (val-2d)
+detrapping_energy = '${units ${fparse 1.35 / kb_eV} K}' # TMAP7 fit A Shimida et al. 2010
+
+# Mesh Parameters (Ensure that all trap endpoints have a node)
+depth_A  = '${units 0.7 mum}'   # TMAP7 fit A trap boundary
+depth_C  = '${units 1.2 mum}'   # TMAP7 fit C trap boundary (near-surface region end)
+depth_E  = '${units 2.5 mum}'   # TMAP7 fit E trap boundary (neutron-irradiated)
+near_end = '${units 1.0 mum}'   # near-surface / bulk interface
+bulk_end = '${units 7.0 mum}'   # bulk / deep-material interface and TMAP fit B trap boundary
+
+# ── Segment widths (derived — do not edit directly) ────────────────────────
+# Segment layout:
+#   [0,       depth_A ] : near-surface fine        (0.7  mum)
+#   [depth_A, near_end] : near-surface remainder   (0.3  mum)
+#   [near_end, depth_C] : bulk start               (0.2  mum)
+#   [depth_C, depth_E ] : bulk middle              (1.3  mum)
+#   [depth_E, bulk_end] : bulk end                 (4.5  mum)
+#   [bulk_end, W_thick] : deep material            (193  mum)
+  seg1 = '${fparse ${depth_A}}'
+  seg2 = '${fparse ${near_end} - ${depth_A}}'
+  seg3 = '${fparse ${depth_C}  - ${near_end}}'
+  seg4 = '${fparse ${depth_E}  - ${depth_C}}'
+  seg5 = '${fparse ${bulk_end} - ${depth_E}}'
+  seg6 = '${fparse ${tungsten_thickness} - ${bulk_end}}'
+
+  # ── Element counts ─────────────────────────────────────────────────────────
+  # nx_scale uniformly refines all segments. Per-segment multipliers set the
+  # relative resolution.
+
+  nx_scale = 20
