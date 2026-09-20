@@ -40,6 +40,7 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | ver-1m    | [Heat Transfer and Hydrogen Thermodiffusion in U-ZrH](ver-1m.md)                                    |
 | ver-1n    | [Voltage-Assisted Transport with Constant Source Boundary Condition](ver-1n.md)                     |
 | ver-1o    | [Joule Heating in a Slab under Applied Voltage](ver-1o.md)                                          |
+| ver-1p    | [Steady State Transport in Fluid and Pipe Permeator Wall](ver-1p.md)                              |
 
 # List of benchmarking cases
 

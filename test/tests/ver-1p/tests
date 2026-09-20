@@ -1,0 +1,19 @@
+[Tests]
+  design = 'ParsedODEKernel.md ScalarVariable.md ParsedPostprocessor.md'
+  verification = 'ver-1p.md'
+  issues = '#457'
+
+  [ver-1p_csvdiff]
+    type = CSVDiff
+    input = ver-1p.i
+    csvdiff = 'ver-1p_out.csv'
+    requirement = 'The system shall solve the steady-state PAV model for PbLi flowing through a vanadium permeator at 673.15 K, including PbLi mass transfer, PbLi/vanadium surface condition, solid diffusion, recombination, and axial concentration depletion.'
+  []
+
+  [ver-1p_analytical_comparison]
+    type = RunCommand
+    command = 'python3 comparison_ver-1p.py'
+    requirement = 'The system shall compare the 20-segment TMAP8 solution with an independent analytical solution of the PAV radial transport and axial concentration equations.'
+    required_python_packages = 'matplotlib numpy scipy'
+  []
+[]
