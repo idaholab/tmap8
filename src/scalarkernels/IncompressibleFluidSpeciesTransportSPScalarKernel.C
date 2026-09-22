@@ -23,26 +23,14 @@ template <bool is_ad>
 InputParameters
 IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
 {
-  InputParameters params =
-      is_ad ? ADScalarTimeDerivative::validParams() : ODETimeDerivative::validParams();
-  params += FunctorInterface::validParams();
+  InputParameters params = is_ad ? ADIncompressibleEnergySPScalarKernel::validParams()
+                                 : IncompressibleEnergySPScalarKernel::validParams();
+  // params += FunctorInterface::validParams();
   params.addClassDescription(
       "Implements a generic mass transport solve over a 1D flow path segment.");
   // Lots of inputs so we need to be clear what is what
   // This block defines coupled state variables the kernel relies on, that aren't inherited from the
   // energy kernel.
-  params.addCoupledVar("mass_flow_rate",
-                       {},
-                       "Mass flow rate in component. Takes a "
-                       "scalar variable name");
-  params.addCoupledVar("inlet_temperature",
-                       {},
-                       "Fluid temperature of nominal inlet segment/component (N-1). Takes a "
-                       "scalar variable name");
-  params.addCoupledVar("outlet_temperature",
-                       {},
-                       "Fluid temperature of nominal outlet segment/component (N+1). Takes a "
-                       "scalar variable name");
   params.addCoupledVar("temperature",
                        {},
                        "Fluid temperature in segment. Takes a "
@@ -65,17 +53,6 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
                        "Concentration of dissociated atoms in the wall that form the molecular "
                        "primary species or are the atomic primary species. Takes a "
                        "list of scalar variable names");
-  // This block grabs boolean parameters that control the solve type
-  params.addParam<bool>(
-      "is_implicit",
-      false,
-      "Whether an explicit (previous value calculation) or implicit (current value) is used");
-  // This block characterizes the geometry and fluid type
-  params.addRequiredParam<MooseFunctorName>("reference_pressure", "system reference pressure [Pa]");
-  params.addRequiredParam<UserObjectName>("fp", "The name of the user object for fluid properties");
-  params.addRequiredParam<MooseFunctorName>("area", "Segment/Component flow area [m^2]");
-  params.addRequiredParam<MooseFunctorName>("perimeter", "Segment/Component wetted perimeter [m]");
-  params.addRequiredParam<MooseFunctorName>("length", "Segment/Component length [m]");
   // This block specifies the radioactive decay behaviors of precursors and primary species
   params.addParam<std::vector<MooseFunctorName>>(
       "precursor_half_lives",
@@ -113,7 +90,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
       0.0,
       "recombination coefficient for primary molecular species consisting of two atomic species "
       "(coupled variables)."
-      "Only used if fluid type is gas. [m^4/2]."
+      "Only used if fluid type is gas. [m^4/s]."
       "If disociation & recombination coefficients are not given for gas, , we'll proceed assuming "
       "equilibrium and use Sievert's law.");
   params.addParam<std::vector<MooseFunctorName>>(
@@ -141,20 +118,8 @@ template <bool is_ad>
 IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
     IncompressibleFluidSpeciesTransportSPScalarKernelTempl(const InputParameters & parameters)
   : Base(parameters),
-    FunctorInterface(this),
-    _fp(this->template getUserObject<SinglePhaseFluidProperties>("fp")),
+    // FunctorInterface(this),
     // Lots of inputs so we need to be clear what is what
-    // This block defines coupled state variables the kernel relies on
-    _m(ScalarCoupleable::coupledScalarValue("mass_flow_rate")),
-    _Tup(ScalarCoupleable::coupledScalarValue("inlet_temperature")),
-    _Tdown(ScalarCoupleable::coupledScalarValue("outlet_temperature")),
-    // This block grabs boolean parameters that control the solve type
-    _is_implicit(this->template getParam<bool>("is_implicit")),
-    // This block characterizes the geometry and fluid type
-    _Pref(this->template getFunctor<GenericReal<is_ad>>("reference_pressure")),
-    _area(this->template getFunctor<GenericReal<is_ad>>("area")),
-    _perimeter(this->template getFunctor<GenericReal<is_ad>>("perimeter")),
-    _length(this->template getFunctor<GenericReal<is_ad>>("length")),
     // This block defines coupled state variables the kernel relies on, that aren't inherited from
     // the energy kernel.
     _T(ScalarCoupleable::coupledScalarValue("temperature")),
@@ -208,16 +173,16 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   GenericReal<is_ad> mass_residual = 0;
   const Moose::ElemArg _qp = Moose::ElemArg();
   const int _i = 0;
-  const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
+  const auto _state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
   // start by getting fluid properties
-  auto _Tin = 1.0 / 2.0 * (1 - abs(_m[_i]) / _m[_i]) * _Tdown[_i] +
-              1.0 / 2.0 * (1 + abs(_m[_i]) / _m[_i]) * _Tup[_i];
-  auto _mu = _fp.mu_from_p_T(_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
-  auto _rho = _fp.rho_from_p_T(_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+  auto _Tin = 1.0 / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tdown[_i] +
+              1.0 / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tup[_i];
+  auto _mu = Base::_fp.mu_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+  auto _rho = Base::_fp.rho_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
 
   // Decide flow regime for MTC
-  auto _Dh = 4.0 * _area(_qp, _state) / _perimeter(_qp, _state);
-  auto _G = abs(_m[_i]) / _area(_qp, _state);
+  auto _Dh = 4.0 * Base::_area(_qp, _state) / Base::_perimeter(_qp, _state);
+  auto _G = abs(Base::_m[_i]) / Base::_area(_qp, _state);
   auto _Re = _G * _Dh / _mu;
   auto _Sc = _mu / _rho / _diffus(_qp, _state);
   // Mass transfer to fluid (Linton-Sherwood)
@@ -229,12 +194,19 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   {
     if (_recomb(_qp, _state) != 0.0 & _dissoc(_qp, _state) != 0.0)
     {
-      *_pJm = 1.0;
-      for (size_t i = 0; i < _n_diss; ++i)
+      if (_is_monatom)
       {
-        *_pJm = (*(_diss[i]))[_i] * *_pJm;
+        *_pJm = 2.0 * _recomb(_qp, _state) * pow((*(_diss[0]))[_i], 2);
       }
-      *_pJm = 2.0 * _recomb(_qp, _state) * *_pJm;
+      else
+      {
+        *_pJm = 1.0;
+        for (size_t i = 0; i < _n_diss; ++i)
+        {
+          *_pJm = (*(_diss[i]))[_i] * *_pJm;
+        }
+        *_pJm = 2.0 * _recomb(_qp, _state) * *_pJm;
+      }
       *_pJm = *_pJm - _dissoc(_qp, _state) * Base::_u[_i] / _fluid_sol(_qp, _state);
     }
     else
@@ -269,21 +241,19 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
     }
   }
   // Advection component
-  mass_residual +=
-      (_m[_i] / 2.0 * (1 - abs(_m[_i]) / _m[_i]) * _Cdown[_i] -
-       _m[_i] / 2.0 * (1 + abs(_m[_i]) / _m[_i]) * _Cup[_i] + abs(_m[_i]) * Base::_u[_i]) /
-      _length(_qp, _state) / _area(_qp, _state) / _rho;
+  mass_residual += (Base::_m[_i] / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * _Cdown[_i] -
+                    Base::_m[_i] / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * _Cup[_i] +
+                    abs(Base::_m[_i]) * Base::_u[_i]) /
+                   Base::_length(_qp, _state) / Base::_area(_qp, _state) / _rho;
   // Precursor decay
   for (size_t i = 0; i < _n_precursors; ++i)
   {
-    mass_residual -= (*(_precursors[i]))[_i] * log(2) / (*(_precursorHLs[i]))(_qp, _state) *
-                     exp(-log(2) / (*(_precursorHLs[i]))(_qp, _state) * Base::_dt);
+    mass_residual -= (*(_precursors[i]))[_i] * log(2) / (*(_precursorHLs[i]))(_qp, _state);
   }
   // Primary species decay
-  mass_residual += Base::_u[_i] * log(2) / _primaryHL(_qp, _state) *
-                   exp(-log(2) / _primaryHL(_qp, _state) * Base::_dt);
+  mass_residual += Base::_u[_i] * log(2) / _primaryHL(_qp, _state);
   // Wall mass transfer
-  mass_residual -= _Jm * _perimeter(_qp, _state) / _area(_qp, _state);
+  mass_residual -= _Jm * Base::_perimeter(_qp, _state) / Base::_area(_qp, _state);
   // Transient term
   mass_residual += Base::_u_dot[_i];
 
@@ -299,16 +269,16 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian
     GenericReal<is_ad> mass_residual = 0;
     const Moose::ElemArg _qp = Moose::ElemArg();
     const int _i = 0;
-    const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
+    const auto _state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
     // start by getting fluid properties
-    auto _Tin = 1.0 / 2.0 * (1 - abs(_m[_i]) / _m[_i]) * _Tdown[_i] +
-                1.0 / 2.0 * (1 + abs(_m[_i]) / _m[_i]) * _Tup[_i];
-    auto _mu = _fp.mu_from_p_T(_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
-    auto _rho = _fp.rho_from_p_T(_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+    auto _Tin = 1.0 / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tdown[_i] +
+                1.0 / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tup[_i];
+    auto _mu = Base::_fp.mu_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+    auto _rho = Base::_fp.rho_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
 
     // Decide flow regime for MTC
-    auto _Dh = 4.0 * _area(_qp, _state) / _perimeter(_qp, _state);
-    auto _G = abs(_m[_i]) / _area(_qp, _state);
+    auto _Dh = 4.0 * Base::_area(_qp, _state) / Base::_perimeter(_qp, _state);
+    auto _G = abs(Base::_m[_i]) / Base::_area(_qp, _state);
     auto _Re = _G * _Dh / _mu;
     auto _Sc = _mu / _rho / _diffus(_qp, _state);
     // Mass transfer to fluid (Linton-Sherwood)
@@ -343,12 +313,13 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian
       }
     }
     // Advection component
-    mass_residual += (abs(_m[_i])) / _length(_qp, _state) / _area(_qp, _state) / _rho;
+    mass_residual +=
+        (abs(Base::_m[_i])) / Base::_length(_qp, _state) / Base::_area(_qp, _state) / _rho;
     // Primary species decay
     mass_residual +=
         log(2) / _primaryHL(_qp, _state) * exp(-log(2) / _primaryHL(_qp, _state) * Base::_dt);
     // Wall mass transfer
-    mass_residual -= _Jm * _perimeter(_qp, _state) / _area(_qp, _state);
+    mass_residual -= _Jm * Base::_perimeter(_qp, _state) / Base::_area(_qp, _state);
     // Transient term
     mass_residual += Base::_du_dot_du[_i];
 
