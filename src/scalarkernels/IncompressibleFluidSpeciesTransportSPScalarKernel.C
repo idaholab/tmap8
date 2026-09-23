@@ -65,7 +65,6 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
   // interactions
   params.addRequiredParam<std::string>(
       "fluid_type",
-      "solvent",
       "Define fluid type with regard to dissolved species state. Accepted values: "
       "1) solvent: Dissolves molecular gases, primary species is a molecule, EG water/salts."
       "2) metal: Dissociates molecules into atoms, primary species is an atom, EG lead/sodium."
@@ -75,14 +74,14 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
                                             "Diffusivity of primary"
                                             "molecular or atomic species in fluid [m^2/s]");
   params.addParam<MooseFunctorName>("fluid_solubility",
-                                    "fluid solubility coefficient [1/Pa*m^3]"
+                                    "fluid solubility coefficient [mol/Pa*m^3]"
                                     "(Henry's solubility coefficient is all we need for the fluid, "
                                     "since the wall is always assumed to be metallic).");
   params.addParam<MooseFunctorName>(
       "dissociation_coeff",
       0.0,
       "dissociation coefficient for primary molecular species at surface."
-      "Only used if fluid type is gas. [1/Pa*m^2*s]."
+      "Only used if fluid type is gas. [mol/Pa*m^2*s]."
       "If disociation & recombination coefficients are not given for gas, we'll proceed assuming "
       "equilibrium and use Sievert's law.");
   params.addParam<MooseFunctorName>(
@@ -96,7 +95,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
   params.addParam<std::vector<MooseFunctorName>>(
       "wall_solubility",
       std::vector<MooseFunctorName>({}),
-      "wall solubility coefficient(s) [1/Pa*m^3] or [1/Pa^0.5*m^3]"
+      "wall solubility coefficient(s) [mol/Pa*m^3] or [mol/Pa^0.5*m^3]"
       "(Henry's if fluid type is metal [atomic primary species], Sievert's for solvents/gases "
       "[molecular primary species])."
       "If primary molecular species is not monatomic, must provide multiple solubility "
