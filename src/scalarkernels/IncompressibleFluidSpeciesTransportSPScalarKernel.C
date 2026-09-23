@@ -101,9 +101,9 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
       "If primary molecular species is not monatomic, must provide multiple solubility "
       "coefficients."
       "Takes a vector of functors.");
-  params.addParam<bool>("is_monatomic",
+  params.addParam<bool>("is_homonuclear",
                         true,
-                        "Whether primary molecular species is a monatomic molecule. Does nothing "
+                        "Whether primary molecular species is a homonuclear molecule. Does nothing "
                         "if fluid type is metal.");
   params.addParam<MooseFunctorName>(
       "equilibrium_constant",
@@ -140,7 +140,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
     _dissoc(this->template getFunctor<GenericReal<is_ad>>("dissociation_coeff")),
     _recomb(this->template getFunctor<GenericReal<is_ad>>("recombination_coeff")),
     _wall_sol(_n_diss),
-    _is_monatom(this->template getParam<bool>("is_monatomic")),
+    _is_homonuc(this->template getParam<bool>("is_homonuclear")),
     _equib(this->template getFunctor<GenericReal<is_ad>>("equilibrium_constant"))
 {
   auto & PHL_names = MooseBase::getParam<std::vector<MooseFunctorName>>("precursor_half_lives");
@@ -193,7 +193,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   {
     if (_recomb(_qp, _state) != 0.0 & _dissoc(_qp, _state) != 0.0)
     {
-      if (_is_monatom)
+      if (_is_homonuc)
       {
         *_pJm = 2.0 * _recomb(_qp, _state) * pow((*(_diss[0]))[_i], 2);
       }
@@ -220,7 +220,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   }
   else if (_fluid_type == "solvent")
   {
-    if (_is_monatom)
+    if (_is_homonuc)
     {
       *_pJm =
           2 * (*_pKT) *
@@ -236,7 +236,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
       }
       *_pJm = sqrt(_equib(_qp, _state)) * (*_pJm);
       *_pJm = (*_pJm) - Base::_u[_i];
-      *_pJm = (*_pKT) / 1.380649E-23 / _T[_i] * (*_pJm);
+      *_pJm = (*_pKT) / 1.380649E-23 / 6.022E+23 / _T[_i] * (*_pJm);
     }
   }
   // Advection component
@@ -302,13 +302,13 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian
     }
     else if (_fluid_type == "solvent")
     {
-      if (_is_monatom)
+      if (_is_homonuc)
       {
         *_pJm = -2 * (*_pKT);
       }
       else
       {
-        *_pJm = -(*_pKT) / 1.380649E-23 / _T[_i];
+        *_pJm = -(*_pKT) / 1.380649E-23 / 6.022E+23 / _T[_i];
       }
     }
     // Advection component

@@ -51,7 +51,7 @@ protected:
   const Moose::Functor<GenericReal<is_ad>> & _dissoc;
   const Moose::Functor<GenericReal<is_ad>> & _recomb;
   std::vector<const Moose::Functor<GenericReal<is_ad>> *> _wall_sol;
-  bool _is_monatom;
+  bool _is_homonuc;
   const Moose::Functor<GenericReal<is_ad>> & _equib;
 };
 

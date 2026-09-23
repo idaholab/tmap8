@@ -19,7 +19,7 @@ pump = 0.0
 gravity = 0.0
 area = '${fparse 3.14159* ${R}^2}'
 diffus = 1.0e-08
-PHL = 500
+PHL = 1000000000000000
 HL = 1000000000000000
 fsol = '${fparse 8.0e-04*3.34e+22*100^3/101325/6.022e+23}'
 wsols = 2.25e-02 #sieverts
@@ -167,7 +167,7 @@ ftype = "solvent"
     fluid_solubility = '${fsol}'
     dissociation_coeff = '${dissoc}'
     recombination_coeff = '${recomb}'
-    is_monatomic = true
+    is_homonuclear = true
     equilibrium_constant = '${fsol}'
     wall_solubility = '${wsol}'
   []
