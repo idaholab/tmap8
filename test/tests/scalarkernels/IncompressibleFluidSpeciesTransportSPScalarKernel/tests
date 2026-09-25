@@ -1,0 +1,153 @@
+[Tests]
+  design = 'IncompressibleFluidSPeciesTransportSPScalarKernel.md'
+  issues = '#467'
+  [basic_solvent]
+    type = CSVDiff
+    input = solvent.i
+    csvdiff = solvent_out.csv
+    requirement = 'The kernel must reproduce an analytical expression for transport to a solvent within 1%'
+  []
+  [basic_metal]
+    type = CSVDiff
+    input = metal.i
+    csvdiff = metal_out.csv
+    requirement = 'The kernel must reproduce an analytical expression for transport to a liquid metal within 1%'
+  []
+  [basic_gas]
+    type = CSVDiff
+    input = gas.i
+    csvdiff = gas_out.csv
+    requirement = 'The kernel must reproduce an analytical expression for transport to a gas within 1%'
+  []
+  [decay_solvent]
+    type = CSVDiff
+    input = solvent_decay.i
+    csvdiff = solvent_decay_out.csv
+    cli_args = 'HL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a solvent with primary species decay within 1%'
+  []
+  [decay_metal]
+    type = CSVDiff
+    input = metal_decay.i
+    csvdiff = metal_decay_out.csv
+    cli_args = 'HL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a liquid metal with primary species decay within 1%'
+  []
+  [decay_gas]
+    type = CSVDiff
+    input = gas_decay.i
+    csvdiff = gas_decay_out.csv
+    cli_args = 'HL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a gas with primary species decay within 1%'
+  []
+  [precursor_solvent]
+    type = CSVDiff
+    input = solvent_precursor.i
+    csvdiff = solvent_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a solvent with precursor species decay within 1%'
+  []
+  [precursor_metal]
+    type = CSVDiff
+    input = metal_precursor.i
+    csvdiff = metal_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a liquid metal with precursor species decay within 1%'
+  []
+  [precursor_gas]
+    type = CSVDiff
+    input = gas_precursor.i
+    csvdiff = gas_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100'
+    requirement = 'The kernel must reproduce an analytical expression for transport to a gas with precursor species decay within 1%'
+  []
+  [twospecs_solvent]
+    type = CSVDiff
+    input = solvent_twospecs.i
+    csvdiff = solvent_twospecs_out.csv
+    requirement = 'The kernel must reproduce an analytical expression for transport of a heteronuclear molecule to a solvent within 1%'
+  []
+  [twospecs_gas]
+    type = CSVDiff
+    input = gas_twospecs.i
+    csvdiff = gas_twospecs_out.csv
+    requirement = 'The kernel must reproduce an analytical expression for transport of a heteronuclear molecule to a solvent within 1%'
+  []
+  [ADbasic_solvent]
+    type = CSVDiff
+    input = solvent.i
+    csvdiff = solvent_out.csv
+    cli_args = 'ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a solvent within 1%'
+  []
+  [ADbasic_metal]
+    type = CSVDiff
+    input = metal.i
+    csvdiff = metal_out.csv
+    cli_args = 'ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a liquid metal within 1%'
+  []
+  [ADbasic_gas]
+    type = CSVDiff
+    input = gas.i
+    csvdiff = gas_out.csv
+    cli_args = 'ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a gas within 1%'
+  []
+  [ADdecay_solvent]
+    type = CSVDiff
+    input = solvent_decay.i
+    csvdiff = solvent_decay_out.csv
+    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a solvent with primary species decay within 1%'
+  []
+  [ADdecay_metal]
+    type = CSVDiff
+    input = metal_decay.i
+    csvdiff = metal_decay_out.csv
+    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a liquid metal with primary species decay within 1%'
+  []
+  [ADdecay_gas]
+    type = CSVDiff
+    input = gas_decay.i
+    csvdiff = gas_decay_out.csv
+    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a gas with primary species decay within 1%'
+  []
+  [ADprecursor_solvent]
+    type = CSVDiff
+    input = solvent_precursor.i
+    csvdiff = solvent_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a solvent with precursor species decay within 1%'
+  []
+  [ADprecursor_metal]
+    type = CSVDiff
+    input = metal_precursor.i
+    csvdiff = metal_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a liquid metal with precursor species decay within 1%'
+  []
+  [ADprecursor_gas]
+    type = CSVDiff
+    input = gas_precursor.i
+    csvdiff = gas_precursor_out.csv
+    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport to a gas with precursor species decay within 1%'
+  []
+  [ADtwospecs_solvent]
+    type = CSVDiff
+    input = solvent_twospecs.i
+    csvdiff = solvent_twospecs_out.csv
+    cli_args = 'ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport of a heteronuclear molecule to a solvent within 1%'
+  []
+  [ADtwospecs_gas]
+    type = CSVDiff
+    input = gas_twospecs.i
+    csvdiff = gas_twospecs_out.csv
+    cli_args = 'ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    requirement = 'The AD kernel must reproduce an analytical expression for transport of a heteronuclear molecule to a solvent within 1%'
+  []
+[]
