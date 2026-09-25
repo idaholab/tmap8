@@ -77,6 +77,12 @@
     requirement = 'The system shall be able to generate comparison plots between the simulated solution from TMAP8 and Abdou et al. (2020), modeling tritium fuel cycle.'
     required_python_packages = 'matplotlib numpy pandas scipy os'
   []
+  [fuel_cycle_Abdou_diagram]
+    type = RunCommand
+    command = 'python3 create_fc_diagram_figure.py'
+    requirement = 'The system shall be able to generate diagrams of a network of GenericFuelCycleSystem objects modeling the tritium fuel cycle.'
+    required_python_packages = 'argparse json re sys textwrap dataclasses pathlib typing os'
+  []
   [gui]
     type = RunCommand
     command = 'python3 fuel_cycle_gui.py --test'
