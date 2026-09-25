@@ -1,0 +1,65 @@
+[Tests]
+  design = 'val-2l.md MatNeumannBC.md TrappingNodalKernel.md ReleasingNodalKernel.md'
+  issues = '#405'
+  validation = 'val-2l.md'
+  [val-2l_animation_csvdiff]
+    type = CSVDiff
+    input = 'val-2l.i'
+    csvdiff = 'deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0001.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0011.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0021.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0031.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0041.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0051.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0061.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0071.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0081.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0091.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0101.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0111.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0121.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0131.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0141.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0149.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0001.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0011.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0021.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0031.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0041.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0051.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0061.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0071.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0081.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0091.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0101.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0111.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0121.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0131.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0141.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0149.csv'
+    requirement = 'The system shall be able to model deuterium transport through irradiated tungsten for comparison with experimental results.'
+  []
+  [val-2l_csvdiff]
+    type = CSVDiff
+    input = 'val-2l.i'
+    csvdiff = 'val-2l_out.csv'
+    override_columns = 'deuterium_mass_conservation_residual'
+    override_abs_zero = '1e-1'
+    override_rel_err = '2e-5'
+    requirement = 'The system shall be able to model deuterium transport through irradiated tungsten for comparison with experimental results.'
+  []
+  [val-2l_comparison]
+    type = RunCommand
+    prereq = val-2l_csvdiff
+    command = 'python3 comparison_val-2l.py'
+    requirement = 'The system shall be able to generate comparison plots between the analytical solution and simulated solution of validation case 2l'
+    required_python_packages = 'matplotlib numpy pandas'
+  []
+  [val-2l_profile_animation]
+    type = RunCommand
+    command = 'python3 trapped_profile_animation_val-2l.py'
+    prereq = val-2l_csvdiff
+    requirement = 'The system shall be able to generate an animation of the mobile and trapped deuterium concentration profiles for a sinle trap during validation case 2l.'
+    required_python_packages = 'matplotlib numpy pandas PIL'
+  []
+[]
