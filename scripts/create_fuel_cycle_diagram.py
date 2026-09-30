@@ -49,42 +49,24 @@ doesn't already recognize, without editing the script.
 Layout and routing (SVG / PNG formats)
 ----------------------------------------
   - Nodes are placed in left-to-right layers by longest-path from sources.
-  - Each node's external-input/other_sources "stub" boxes reserve their own
-    horizontal column, baked directly into the layer x-offset calculation.
-  - Edges are rendered as orthogonal polyline segments with small FIXED-
-    RADIUS rounded corners (max 14px in SVG; PNG uses the same waypoints
-    with straight-joined polylines), not length-scaled bezier smoothing.
-  - FORWARD edges (dst layer > src layer):
-      - Adjacent layers (one gap): a single-elbow router picks a bend x
-        that clears every obstacle along both horizontal runs. If no bend
-        x works, it falls back to a guaranteed-clear route that leaves the
-        node grid entirely via a short perpendicular exit/entry stub and a
-        dedicated overflow lane above every box.
-      - Multiple layers (several gaps): one waypoint is placed at each
-        intervening layer boundary, each choosing its own y to clear
-        whatever obstacle spans that specific x -- a single elbow cannot
-        clear multiple obstacles at different x's along a long span. If
-        the assembled path still clips something, it falls back to the
-        same overflow-lane escape used by the single-gap case.
-  - BACK edges (feedback/cycle, dst layer <= src layer) are routed as a
-    simple orthogonal "staple": straight up from the source's top-face
-    port, one flat run in a lane dedicated to that edge (so back edges
-    never collide with each other), straight down into the destination's
-    top-face port. Both port-facing segments stay perfectly vertical so
-    arrowheads always point down into the box, never sideways. If the
-    vertical run clips a sibling box that shares the port's own x column,
-    the run is nudged sideways via small orthogonal elbows (never a
-    diagonal jump).
-  - Every port-facing segment (forward or back, normal or fallback) is
-    guaranteed perpendicular to the box face it touches.
-  - Labels default to sitting directly on their own edge's longest
-    straight segment. If that spot is taken by another label, the label
-    slides along the SAME line (never toward a different edge) before
-    trying the next-longest segment of the same path. A faint leader line
-    ties a slid label back to its anchor so ownership is never ambiguous.
-  - `--verify` re-checks every edge's final rendered path against every
-    node/stub box and reports any residual overlap explicitly (SVG/PNG
-    layout only -- both formats share one layout/routing pass).
+  - Stub boxes (external inputs/other_sources) reserve their own column
+    per node, factored into the layer x-offsets.
+  - Edges are orthogonal polylines with small fixed-radius rounded corners.
+  - Forward edges (dst layer > src layer) use a single-elbow bend between
+    adjacent layers, or one waypoint per intervening layer boundary when
+    spanning several layers. If no clear bend exists, the edge falls back
+    to an overflow lane routed above every box.
+  - Back edges (feedback/cycle) are routed as a vertical "staple": up from
+    the source's top face, across in a lane dedicated to that edge, down
+    into the destination's top face, nudging sideways around any box that
+    shares the port's x column.
+  - Every port-facing segment is perpendicular to the box face it touches.
+  - Labels sit on their edge's longest straight segment, sliding along
+    that same line if the spot is taken, with a leader line back to the
+    anchor when slid.
+  - `--verify` re-checks every edge's final path against every box and
+    reports residual overlaps (SVG/PNG only; both formats share one
+    layout/routing pass).
 
 Usage
 -----
@@ -149,16 +131,13 @@ def expand_includes(path: Path, _seen: Optional[Tuple[Path, ...]] = None) -> Lis
     returning one flat list of lines with each include replaced in place
     by the (recursively expanded) lines of the referenced file.
 
-    Per MOOSE convention, a relative path in `!include` is resolved
-    relative to the directory of the file THAT CONTAINS the directive --
-    not the top-level input file and not the current working directory.
-    This matters once includes are nested: an included file's own
-    `!include` lines must resolve relative to where that included file
-    itself lives, so each recursive call re-anchors to `path.parent`.
+    Per MOOSE convention, a relative path in `!include` resolves against
+    the directory of the file containing the directive, not the
+    top-level input file -- so each recursive call re-anchors to
+    `path.parent`.
 
-    `_seen` tracks the chain of files currently being expanded (by
-    resolved absolute path) so a cyclic include (A includes B includes A)
-    raises a clear error instead of recursing forever.
+    `_seen` tracks the chain of files currently being expanded so a
+    cyclic include raises a clear error instead of recursing forever.
     """
     resolved = path.resolve()
     _seen = _seen or ()
@@ -531,6 +510,17 @@ def _segment_box(x1: float, y1: float, x2: float, y2: float) -> Rect:
     return (x0, y0, max(x1_ - x0, 1e-6), max(y1_ - y0, 1e-6))
 
 
+def _rect_hits_path(
+    rect: Rect, path: List[Tuple[float, float]], pad: float = 2.0
+) -> bool:
+    """True if `rect` overlaps any segment of `path` (an orthogonal polyline)."""
+    for i in range(len(path) - 1):
+        seg_box = _segment_box(*path[i], *path[i + 1])
+        if _rects_overlap(rect, seg_box, pad=pad):
+            return True
+    return False
+
+
 def _path_collides(
     points: List[Tuple[float, float]],
     rects: List[Rect],
@@ -664,27 +654,22 @@ def _route_single_elbow(
     claimed_local_lanes: Optional[Dict[Tuple[float, float], List[float]]] = None,
     preferred_x: Optional[float] = None,
 ) -> Tuple[List[Tuple[float, float]], Optional[float]]:
-    """Single-elbow router for FORWARD edges between ADJACENT layers only
+    """Single-elbow router for forward edges between adjacent layers only
     (one gap). Both port-facing segments stay horizontal (perpendicular to
     the box's left/right face).
 
-    If `preferred_x` is given (a deterministic bend x pre-assigned by the
-    caller based on this edge's port index at its source/destination box,
-    guaranteeing distinctness from sibling edges without relying on
-    search), it is tried FIRST, before the general sampling search below.
-    This is what actually guarantees separation for edges sharing a
-    source or destination port column -- a search that merely *prefers*
-    an unclaimed x can still, for certain port-count/gap-width
-    combinations, have every edge's search converge on the same nearest
-    valid candidate. A pre-assigned distinct value sidesteps that.
+    If `preferred_x` is given (a deterministic bend x assigned by the
+    caller from this edge's port index), it is tried first -- this is
+    what guarantees separation for edges sharing a port column, since a
+    search that only *prefers* an unclaimed x can still converge on the
+    same candidate as a sibling edge.
 
-    Otherwise, tries a range of bend x's, at each trying height variants
-    for both horizontal runs, to clear every obstacle, preferring a bend x
-    that is at least `lane_clearance` away from every x already listed in
-    `reserved_x`. If nothing clears, falls back to a guaranteed-clear
-    overflow-lane route that leaves the grid via a short perpendicular
-    exit/entry stub, claiming a distinct lane so it doesn't stack on other
-    overflow-routed edges.
+    Otherwise, samples a range of bend x's, trying height variants for
+    both horizontal runs at each, preferring a bend x at least
+    `lane_clearance` away from every x in `reserved_x`. If nothing
+    clears, falls back to a guaranteed-clear overflow-lane route via a
+    short perpendicular exit/entry stub, claiming a distinct lane so it
+    doesn't stack on other overflow-routed edges.
     """
     sx, sy = start
     ex, ey = end
@@ -758,35 +743,21 @@ def _route_single_elbow(
         gap_right = gap_left + 40
     mid_x_natural = (gap_left + gap_right) / 2
 
-    # Sample MANY more candidate bend x's than before (was 11 fixed steps)
-    # so that even in a tightly packed layer gap there's a good chance of
-    # finding a bend x that's both box-clear AND far from every reserved
-    # x. More samples cost little (routing runs once per edge at build
-    # time) and meaningfully reduce how often two edges are forced onto
-    # the same bend column.
+    # Many samples so a tightly packed layer gap still has a good chance
+    # of finding a bend x that's both box-clear and far from every
+    # reserved x; cheap since routing runs once per edge at build time.
     steps = 41
     xs = [mid_x_natural] + [
         gap_left + (i / (steps + 1)) * (gap_right - gap_left)
         for i in range(1, steps + 1)
     ]
 
-    # NOTE: candidates are deliberately kept STRICTLY INSIDE [gap_left,
-    # gap_right]. `gap_left`/`gap_right` are exactly the source box's
-    # right edge and the destination box's left edge -- not an
-    # arbitrary boundary with buffer room outside it -- so any candidate
-    # beyond them is, by definition, inside the source or destination
-    # box's own footprint. Earlier this range was intentionally widened
-    # a bit past each edge (as a fallback for two edges sharing a
-    # source/destination port column), but since the source and
-    # destination boxes are excluded from collision checking here
-    # (`skip=[src_rect, dst_rect]` -- the path legitimately touches them
-    # at its endpoints), an out-of-bounds candidate was never flagged as
-    # colliding: the router would silently pick a bend x inside one of
-    # the boxes, producing a path that visibly enters the box and
-    # U-turns back out before reaching the real port. Sampling is
-    # confined to the interior instead; the local-escape and
-    # canval-spanning overflow tiers (tried after this search fails
-    # entirely) are what handle the crowded-port-column case safely.
+    # Candidates stay strictly inside [gap_left, gap_right] (the source
+    # box's right edge and the destination box's left edge). Since
+    # `skip=[src_rect, dst_rect]` excludes those boxes from collision
+    # checks, a candidate outside this range would land inside one of
+    # them without being flagged -- the local-escape and overflow tiers
+    # below handle the crowded-port-column case instead.
     lane_clear_hits: List[Tuple[float, List[Tuple[float, float]], float]] = []
     any_clear_hits: List[Tuple[float, List[Tuple[float, float]], float]] = []
     seen = set()
@@ -811,15 +782,10 @@ def _route_single_elbow(
         _, wp, mid_x = lane_clear_hits[0]
         return wp, mid_x
 
-    # No candidate was BOTH box-clear AND far from every reservation. Do
-    # NOT silently fall back to "any box-clear x" here -- that was the bug
-    # that let two edges sharing a source/destination box both collapse
-    # onto the same natural bend x (the reservation was computed but then
-    # ignored the moment it couldn't be perfectly satisfied). Instead,
-    # relax the REQUIRED clearance in stages, still preferring the least
-    # crowded available x over simply taking whatever is closest to
-    # natural, so two edges are still pushed apart even if not by the
-    # full lane_clearance.
+    # No candidate is both box-clear and far from every reservation.
+    # Prefer the least crowded available x over the one closest to
+    # natural, so sibling edges are still pushed apart even without full
+    # lane_clearance.
     if any_clear_hits:
 
         def min_dist_to_reserved(mid_x: float) -> float:
@@ -831,12 +797,9 @@ def _route_single_elbow(
         _, wp, mid_x = any_clear_hits[0]
         return wp, mid_x
 
-    # No bend x cleared everything within the layer gap itself. Before
-    # resorting to the canvas-spanning overflow lane (a long, page-height
-    # detour -- appropriate for a genuine long-range escape but
-    # disproportionate for a short local hop), try a LOCAL vertical
-    # escape confined to just outside whatever specifically blocks this
-    # edge's own narrow gap.
+    # No bend x cleared the layer gap. Try a local vertical escape,
+    # confined to just outside whatever blocks this edge's own gap,
+    # before resorting to the canvas-spanning overflow lane.
     if claimed_local_lanes is not None:
         local_wp = _route_local_vertical_escape(
             start, end, all_rects, skip, claimed_local_lanes, lane_clearance
@@ -844,9 +807,8 @@ def _route_single_elbow(
         if local_wp is not None:
             return local_wp, None
 
-    # Local escape also failed (or wasn't available) -- fall back to the
-    # guaranteed-clear overflow lane above the entire diagram, claiming a
-    # distinct lane height from other overflow-routed edges.
+    # Fall back to the guaranteed-clear overflow lane above the entire
+    # diagram, claiming a distinct lane height from other overflow edges.
     wp, lane_y_used = _overflow_lane_route(
         start, end, all_rects, skip, claimed_overflow_lanes
     )
@@ -862,30 +824,18 @@ def _overflow_lane_route(
     skip: List[Rect],
     claimed_overflow_lanes: Optional[List[float]] = None,
 ) -> Tuple[List[Tuple[float, float]], float]:
-    """Guaranteed-clear, CANVAS-SPANNING fallback for a horizontally-facing
+    """Guaranteed-clear, canvas-spanning fallback for a horizontally-facing
     edge: exit the source box horizontally, travel in a lane above every
-    box in the ENTIRE diagram, then enter the destination box
-    horizontally. This is the fallback of last resort -- appropriate for
-    a genuine long-range escape, but visually expensive (a detour
-    spanning most of the diagram's height) for a short local hop, which
-    is why `_route_local_vertical_escape` is tried FIRST for short
-    single-gap edges (see `_route_single_elbow`) and this is only reached
-    when that local escape also fails.
+    box in the diagram, then enter the destination box horizontally.
+    This is the last resort, reached only after
+    `_route_local_vertical_escape` also fails.
 
-    `claimed_overflow_lanes` holds the y-values every PRIOR overflow-routed
-    edge already used, shared across the whole diagram so several
-    unrelated edges falling back here land on distinct horizontal bands
-    instead of stacking. The search budget below is generous (hundreds of
-    steps -- cheap, since each is just arithmetic plus rect checks)
-    specifically so that a properly SEPARATED lane is almost always found
-    without ever needing the relaxed pass: that pass, if reached in the
-    old implementation, let every edge independently converge on the
-    very first (trivially box-clear) y at the top of the whole canvas,
-    since nothing else sits up there -- when many edges hit that path
-    they end up stacked within a pixel or two of each other, which is
-    illegible. The relaxed pass here therefore still requires at least a
-    REDUCED clearance from claimed lanes (never zero) so that even in the
-    worst case, distinct edges remain visually distinguishable.
+    `claimed_overflow_lanes` holds the y-values every prior overflow-routed
+    edge used, so unrelated edges land on distinct horizontal bands
+    instead of stacking. The search budget is generous so a properly
+    separated lane is almost always found; the relaxed pass still
+    requires a reduced (never zero) clearance from claimed lanes so
+    edges remain visually distinguishable in the worst case.
     """
     sx, sy = start
     ex, ey = end
@@ -917,11 +867,9 @@ def _overflow_lane_route(
                 return wp, lane_y
         lane_y -= step
 
-    # Relaxed pass: still requires a REDUCED clearance from claimed lanes
-    # (half the normal lane spacing) rather than none, so that if the
-    # diagram is dense enough to exhaust the strict pass above, edges
-    # sharing this fallback still land at visibly distinct y's instead of
-    # collapsing onto the same value.
+    # Relaxed pass: half the normal lane spacing instead of none, so
+    # edges still land at distinct y's even when the diagram is dense
+    # enough to exhaust the strict pass above.
     lane_y = top_of_grid
     for _ in range(400):
         if far_enough_from_claimed(lane_y, step / 2.0):
@@ -952,26 +900,18 @@ def _route_local_vertical_escape(
     lane_clearance: float = 16.0,
     max_tries_per_side: int = 14,
 ) -> Optional[List[Tuple[float, float]]]:
-    """A bounded, LOCAL alternative to `_overflow_lane_route`, tried first
-    for short single-gap hops (notably a stub box's fixed, narrow gutter
-    to its owning node). `_overflow_lane_route` always escapes above
-    EVERY box in the entire diagram, which for a short local hop produces
-    a long vertical spike spanning most of the canvas -- disproportionate,
-    and when many such hops need it, prone to visually stacking on top of
-    each other near the top of the page (nothing else occupies that
-    space, so many independent searches converge on nearly the same y).
+    """A bounded, local alternative to `_overflow_lane_route`, tried first
+    for short single-gap hops (notably a stub box's narrow gutter to its
+    owning node), where escaping above the entire diagram would produce
+    a disproportionately long detour.
 
-    This instead detours just clear of whatever specifically blocks THIS
-    edge's own narrow gap: first just above the topmost such obstacle,
-    then just below the bottommost, trying several separated candidate
-    lanes on each side. Lanes are tracked per obstacle-column via
-    `claimed_local_lanes` (keyed by a coarse quantization of the gap's
-    x-span), so sibling edges routed through the same local gutter stay
-    distinctly separated from EACH OTHER without needing to coordinate
-    with unrelated edges elsewhere in the diagram. Returns None --
-    letting the caller fall back to the guaranteed-but-expensive
-    `_overflow_lane_route` -- only if no nearby lane clears within the
-    bounded search.
+    Detours just clear of whatever blocks this edge's own gap: first
+    just above the topmost blocking obstacle, then just below the
+    bottommost, trying several separated candidate lanes on each side.
+    Lanes are tracked per obstacle-column via `claimed_local_lanes` so
+    sibling edges through the same gutter stay separated from each
+    other. Returns None if no nearby lane clears, letting the caller
+    fall back to `_overflow_lane_route`.
     """
     sx, sy = start
     ex, ey = end
@@ -979,22 +919,15 @@ def _route_local_vertical_escape(
     entry_x = ex - 24.0
     if entry_x <= exit_x:
         # Gap too narrow for both 24px stubs -- split it so exit still
-        # precedes entry (keeps the escape's direction sane even for a
-        # very tight local gutter).
+        # precedes entry.
         mid = (sx + ex) / 2.0
         exit_x, entry_x = mid - 2.0, mid + 2.0
 
-    # Obstacle detection must span the FULL gap between the two ports
-    # (sx to ex), not just the narrow exit/entry stub column -- the
-    # boxes that actually defeated the ordinary elbow search are
-    # typically siblings stacked near the SOURCE or DESTINATION end of
-    # the port column (e.g. adjacent stub ovals, or a sibling node
-    # stacked in the same layer), not necessarily anything sitting in
-    # the couple of pixels between the stub x's themselves. Scoping the
-    # search that narrowly meant this function almost always found "no
-    # local obstacle" and silently deferred to the page-spanning
-    # fallback -- exactly the full-height spikes this was meant to
-    # avoid.
+    # Obstacle detection spans the full gap between the two ports (sx to
+    # ex), not just the exit/entry stub column -- the boxes that defeat
+    # the ordinary elbow search are typically siblings stacked near the
+    # source or destination end of the port column, not necessarily
+    # anything between the stub x's themselves.
     lo_x, hi_x = min(sx, ex), max(sx, ex)
 
     def obstacles_between() -> List[Rect]:
@@ -1009,9 +942,6 @@ def _route_local_vertical_escape(
 
     blockers = obstacles_between()
     if not blockers:
-        # Nothing structurally between the two ports at any y -- the
-        # ordinary bend-x search in `_route_single_elbow` should already
-        # have succeeded before this was ever called.
         return None
 
     col_key = (round(lo_x / 40.0), round(hi_x / 40.0))
@@ -1054,33 +984,27 @@ def route_forward_waypoints(
     entry_stub_x: Optional[float] = None,
     claimed_local_lanes: Optional[Dict[Tuple[float, float], List[float]]] = None,
 ) -> Tuple[List[Tuple[float, float]], List[Tuple[int, float]]]:
-    """Route a FORWARD edge (dst layer > src layer). Single-gap edges
+    """Route a forward edge (dst layer > src layer). Single-gap edges
     delegate to `_route_single_elbow`. Multi-gap edges get one waypoint
-    per intervening layer boundary (each boundary choosing its own y to
-    clear whatever obstacle spans that x), falling back to the same
-    overflow-lane escape as the single-gap case if the assembled path
-    still clips something.
+    per intervening layer boundary (each choosing its own y to clear
+    whatever obstacle spans that x), falling back to the same
+    overflow-lane escape if the assembled path still clips something.
 
-    `exit_stub_x` / `entry_stub_x`, when provided, are DETERMINISTIC bend
-    x's assigned by the caller ahead of time (based on this edge's port
-    index among all edges sharing the same source/destination box), used
-    as the very first / last bend point instead of deriving one from
-    `sx`/`ex` via search. This guarantees distinctness for edges sharing a
-    source or destination port column without relying on a collision
-    search to happen to discover different values -- the search-based
-    approach was found to still let multiple edges from the same source
-    converge on the same x in some port-count/layer-span combinations.
+    `exit_stub_x` / `entry_stub_x`, when provided, are deterministic bend
+    x's assigned by the caller from this edge's port index, used as the
+    first/last bend point instead of deriving one via search -- this
+    guarantees distinctness for edges sharing a source or destination
+    port column.
 
-    `global_reserved_x` is still consulted for the INTERIOR layer-boundary
-    waypoints of multi-gap edges (which aren't pre-assigned), and by
-    `_route_single_elbow`'s own bend-x search for single-gap edges.
-    `claimed_overflow_lanes` is shared across all edges in the diagram so
-    several unrelated edges falling back to the overflow lane land on
-    distinct horizontal bands instead of stacking.
+    `global_reserved_x` is consulted for the interior layer-boundary
+    waypoints of multi-gap edges, and by `_route_single_elbow`'s own
+    bend-x search for single-gap edges. `claimed_overflow_lanes` is
+    shared across all edges so unrelated edges falling back to the
+    overflow lane land on distinct horizontal bands.
 
     Returns (waypoints, claims) where claims is a list of
     (boundary_index, y) pairs this edge occupies at each boundary it
-    crosses, used by the caller only for bookkeeping/debugging.
+    crosses, for the caller's bookkeeping.
     """
     reserved_by_boundary = reserved_by_boundary or {}
     layer_gap_xs = layer_gap_xs or []
@@ -1174,11 +1098,9 @@ def route_forward_waypoints(
 
     all_xs = [sx] + [layer_gap_xs[i] for i in boundary_idxs_crossed] + [ex]
 
-    # Exit/entry stub x's are now assigned DETERMINISTICALLY by the caller
-    # (one distinct value per port index at the source/destination box),
-    # passed in as `exit_stub_x`/`entry_stub_x`. Fall back to a search-
-    # based pick only if the caller didn't provide one (e.g. direct calls
-    # from tests or the stub-edge renderer).
+    # Fall back to a search-based pick if the caller didn't provide
+    # exit_stub_x/entry_stub_x (e.g. direct calls from tests or the
+    # stub-edge renderer).
     if exit_stub_x is None:
         exit_stub_x = sx + 24.0
         if any(abs(exit_stub_x - rx) < LANE_CLEARANCE for rx in global_reserved_x):
@@ -1196,12 +1118,11 @@ def route_forward_waypoints(
                     entry_stub_x = cand
                     break
 
-    # Nudge each intervening boundary's x slightly if it's within
-    # LANE_CLEARANCE of an x already claimed by a prior edge's vertical
-    # leg, so two multi-gap edges (or a multi-gap and a single-gap edge)
-    # sharing a boundary don't run their vertical segments on top of each
-    # other. Only the INTERIOR boundary x's are adjustable -- the first
-    # and last entries are the edge's own fixed port x's.
+    # Nudge each intervening boundary's x if it's within LANE_CLEARANCE
+    # of an x already claimed by a prior edge, so two edges sharing a
+    # boundary don't run their vertical segments on top of each other.
+    # Only interior boundary x's are adjustable -- the first and last
+    # entries are the edge's own fixed port x's.
     adjusted_xs = list(all_xs)
     for i in range(1, len(adjusted_xs) - 1):
         base_x = adjusted_xs[i]
@@ -1217,11 +1138,8 @@ def route_forward_waypoints(
                 continue
             break
 
-    # Build the path with explicit exit/entry stubs as the first and last
-    # bend points -- a short horizontal run from the port to the stub x
-    # (perpendicular exit, matching every other router in this file),
-    # THEN the vertical run at the (now-distinct) stub x, THEN the
-    # regular boundary-to-boundary stair-steps, THEN the mirrored entry.
+    # Path: perpendicular exit stub, vertical run at the stub x, the
+    # regular boundary-to-boundary stair-steps, then the mirrored entry.
     waypoints: List[Tuple[float, float]] = [start, (exit_stub_x, sy)]
     for i in range(1, len(adjusted_xs) - 1):
         waypoints.append((adjusted_xs[i], all_ys[i]))
@@ -1244,13 +1162,9 @@ def route_forward_waypoints(
             global_reserved_x.append(adjusted_xs[i])
         return wp, claims
 
-    # The per-boundary local placement can't see obstacles that sit
-    # strictly between two boundaries, nor obstacles that only one other
-    # boundary's y choice needed to dodge. Rather than iterate blindly,
-    # fall back to the overflow-lane route, which is geometrically
-    # guaranteed clear regardless of how many boxes sit along the span,
-    # and claims its own distinct lane so it doesn't stack on other
-    # overflow-routed edges.
+    # Per-boundary local placement can't see obstacles strictly between
+    # two boundaries. Fall back to the overflow-lane route instead, which
+    # is geometrically guaranteed clear regardless of the span.
     wp2, lane_y_used = _overflow_lane_route(
         start, end, all_rects, skip, claimed_overflow_lanes
     )
@@ -1273,19 +1187,13 @@ def route_back_waypoints(
 ) -> List[Tuple[float, float]]:
     """Route a back/feedback edge as an orthogonal "staple": straight up
     from the source's top-face port, one flat run in this edge's own
-    dedicated lane (the caller assigns each back edge a distinct lane, so
-    back edges never collide with EACH OTHER vertically-adjacent-wise),
-    straight down into the destination's top-face port. Both port-facing
-    segments stay perfectly vertical so the arrowhead always points down
-    into the box.
+    dedicated lane, straight down into the destination's top-face port.
+    Both port-facing segments stay perfectly vertical so the arrowhead
+    always points down into the box.
 
-    Two different back edges can still end up with vertical legs at (or
-    very near) the same x even though their lanes differ, since each
-    edge's own port x is independent of every other edge's. `global_reserved_x`
-    -- shared with the forward-edge router -- lets this function also
-    avoid landing a vertical leg on top of an x some other edge (forward
-    OR back) already used, in addition to the existing box-collision
-    nudge.
+    `global_reserved_x`, shared with the forward-edge router, lets this
+    function also avoid landing a vertical leg on top of an x some other
+    edge already used, in addition to the box-collision nudge.
     """
     sx, sy, sw, sh = src_rect
     dx, dy, dw, dh = dst_rect
@@ -1337,8 +1245,8 @@ def route_back_waypoints(
                 global_reserved_x.append(dst_x)
                 return cand
 
-    # Relaxed pass: box-clearance only, same as before, in case no fully
-    # unclaimed x exists within a reasonable search range.
+    # Relaxed pass: box-clearance only, in case no fully unclaimed x
+    # exists within a reasonable search range.
     wp = build(src_port_x, dst_port_x)
     if not _path_collides(wp, all_rects, skip, pad=CORNER_RADIUS):
         global_reserved_x.append(src_port_x)
@@ -1401,18 +1309,28 @@ def place_label(
     path: List[Tuple[float, float]],
     text: str,
     placed_label_rects: List[Rect],
-) -> Tuple[float, float, float, float]:
+    obstacle_rects: Optional[List[Rect]] = None,
+    other_paths: Optional[List[List[Tuple[float, float]]]] = None,
+    require_space: bool = False,
+) -> Optional[Tuple[float, float, float, float]]:
     """Pick a label position for `text` along `path`. Defaults to the
-    midpoint of the longest straight segment. If that spot is already
-    occupied by another label, slides ALONG the same segment (never
-    perpendicular, never toward a different edge). If the whole segment
-    is exhausted, tries the next-longest segment of the SAME path.
+    midpoint of the longest straight segment. If that spot is occupied
+    by another label, an obstacle, or crossed by a different edge's
+    line, slides along the same segment, then tries the next-longest
+    segment of the same path.
+
     Returns (label_x, label_y, anchor_x, anchor_y) -- the anchor is the
     segment midpoint before sliding, used to draw a leader line back to
-    it if the final position moved away from it.
+    it if the label moved away. If `require_space` is True and no
+    collision-free spot is found, returns None instead of forcing a
+    crowded placement.
     """
+    obstacles = obstacle_rects or []
+    crossings = other_paths or []
     segs = _segment_lengths(path)
     if not segs:
+        if require_space:
+            return None
         p = path[0] if path else (0.0, 0.0)
         return p[0], p[1], p[0], p[1]
 
@@ -1424,10 +1342,18 @@ def place_label(
                 cx = mx + ux * slide * sign
                 cy = my + uy * slide * sign
                 cand_rect = _label_rect_at(cx, cy, text)
-                if not any(
+                if any(
                     _rects_overlap(cand_rect, r, pad=2.0) for r in placed_label_rects
                 ):
-                    return cx, cy, mx, my
+                    continue
+                if any(_rects_overlap(cand_rect, r, pad=3.0) for r in obstacles):
+                    continue
+                if any(_rect_hits_path(cand_rect, p, pad=3.0) for p in crossings):
+                    continue
+                return cx, cy, mx, my
+
+    if require_space:
+        return None
 
     # Every segment crowded: place at the longest segment's midpoint anyway.
     _, (mx, my), _ = segs[0]
@@ -1438,12 +1364,11 @@ def place_label(
 # 9. Shared layout computation (used by BOTH the SVG and PNG renderers)
 # --------------------------------------------------------------------------
 #
-# Everything above the SVG-string-emission and matplotlib-drawing steps
-# (layering, box sizing, edge routing, label placement, collision
-# checking) is expensive and format-independent. `compute_diagram_layout`
-# runs it ONCE and returns a plain dict of positions/paths that both
-# `render_svg` and `render_png` consume, so the two pixel-based formats
-# are always structurally identical (same routing, same label positions).
+# Layering, box sizing, edge routing, label placement, and collision
+# checking are format-independent. `compute_diagram_layout` runs this
+# once and returns a plain dict of positions/paths that both
+# `render_svg` and `render_png` consume, so the two formats stay
+# structurally identical.
 
 
 LayoutDict = Dict[str, Any]
@@ -1454,12 +1379,20 @@ def compute_diagram_layout(
     edges: List[Tuple[str, str, str]],
     external_inputs: Dict[str, List[str]],
     verify: bool = False,
+    compact: bool = False,
 ) -> LayoutDict:
+    # Compact mode targets a figure that stays legible printed ~5in wide:
+    # drop external-input/other_sources stubs and per-box type/variable/
+    # parameter detail (kept: box titles and node-to-node connections),
+    # and shrink the box/gap geometry.
+    if compact:
+        external_inputs = {}
+
     layout: LayoutDict = {
         "empty": not nodes,
-        "BOX_W": 260,
+        "BOX_W": 150 if compact else 260,
         "LINE_H": 15,
-        "MARGIN": 60,
+        "MARGIN": 40 if compact else 60,
     }
     if not nodes:
         layout["total_width"] = 600.0
@@ -1477,12 +1410,12 @@ def compute_diagram_layout(
     for n in nodes:
         by_layer.setdefault(layers[n.block_name], []).append(n)
 
-    BOX_W = 260
-    BOX_MIN_H = 90
+    BOX_W = 150 if compact else 260
+    BOX_MIN_H = 40 if compact else 90
     LINE_H = 15
     LAYER_GAP_X_BASE = 170
     NODE_GAP_Y = 50
-    MARGIN = 60
+    MARGIN = 40 if compact else 60
     STUB_W = 150
     STUB_H = 30
     STUB_GUTTER = 50
@@ -1494,6 +1427,8 @@ def compute_diagram_layout(
         lines = []
         if n.comment:
             lines.append(f"\u201c{n.comment}\u201d")
+        if compact:
+            return lines
         if n.kernel_type and n.kernel_type != n.base_type_label:
             lines.append(f"type: {n.kernel_type}")
         if n.variable:
@@ -1510,7 +1445,7 @@ def compute_diagram_layout(
     for n in nodes:
         lines: List[str] = []
         for raw in node_lines(n):
-            lines.extend(wrap_text(raw, 34))
+            lines.extend(wrap_text(raw, 20 if compact else 34))
         node_content[n.block_name] = lines
         node_height[n.block_name] = max(BOX_MIN_H, 34 + LINE_H * len(lines))
 
@@ -1541,12 +1476,30 @@ def compute_diagram_layout(
     )
     TOP_MARGIN = MARGIN + back_lanes_height
 
+    # A node's external-input stub column is centered on its vertical
+    # center and can be taller than the node box itself. Reserve a
+    # "slot" tall enough for whichever of the two is bigger, and center
+    # the node box within its slot, so sibling nodes stacked in the same
+    # layer never overlap a neighbor's box or stub column.
+    def stub_column_height(block_name: str) -> float:
+        stubs = external_inputs.get(block_name, [])
+        if not stubs:
+            return 0.0
+        return len(stubs) * STUB_H + (len(stubs) - 1) * 12
+
+    slot_height: Dict[str, float] = {
+        n.block_name: max(node_height[n.block_name], stub_column_height(n.block_name))
+        for n in nodes
+    }
+
     positions: Dict[str, Tuple[float, float]] = {}
     for L, layer_nodes in by_layer.items():
         y = TOP_MARGIN
         for n in layer_nodes:
-            positions[n.block_name] = (layer_x[L], y)
-            y += node_height[n.block_name] + NODE_GAP_Y
+            slot_h = slot_height[n.block_name]
+            node_h = node_height[n.block_name]
+            positions[n.block_name] = (layer_x[L], y + (slot_h - node_h) / 2)
+            y += slot_h + NODE_GAP_Y
 
     stub_positions: Dict[Tuple[str, int], Tuple[float, float]] = {}
     for n in nodes:
@@ -1564,7 +1517,7 @@ def compute_diagram_layout(
     total_width = max(layer_x.values()) + BOX_W + MARGIN if layer_x else 400
     tallest_layer_height = 0
     for L, layer_nodes in by_layer.items():
-        h = sum(node_height[n.block_name] + NODE_GAP_Y for n in layer_nodes)
+        h = sum(slot_height[n.block_name] + NODE_GAP_Y for n in layer_nodes)
         tallest_layer_height = max(tallest_layer_height, h)
 
     total_height = TOP_MARGIN + tallest_layer_height + MARGIN
@@ -1719,25 +1672,32 @@ def compute_diagram_layout(
         )
         assigned_exit_x = out_port_x_stub.get(idx)
         assigned_entry_x = in_port_x_stub.get(idx)
-        # Any exit/entry x used for the first/last leg of this edge must
-        # stay strictly between the source box's right edge and the
-        # destination box's left edge. Without this bound, the retry
-        # search a few lines below (which tries assigned_x +/- k*STUB_FAN
-        # in BOTH directions when the preferred x collides) could accept
-        # a candidate that had crossed past the destination's left edge
-        # (for an exit) or the source's right edge (for an entry) --
-        # visually, a stub that runs INTO a box before turning back to
-        # the correct port, i.e. exactly the "enters the box and
-        # U-turns" artifact. `gap_lo`/`gap_hi` fence every candidate
-        # tried below to the open interval between the two boxes.
+        # Exit/entry x candidates must stay strictly between the source
+        # box's right edge and the destination box's left edge, or the
+        # retry search below (assigned_x +/- k*STUB_FAN) could pick a
+        # candidate past the opposite box's edge, producing a stub that
+        # runs into a box before turning back to the correct port.
         gap_lo = src_rect[0] + src_rect[2] + 2.0
         gap_hi = dst_rect[0] - 2.0
 
         def try_rewrite_exit(target_x: float) -> bool:
+            # path[1] and path[2] share an x by construction; shifting
+            # only path[1] would turn that leg diagonal, which
+            # `_path_collides`'s bounding-box check wouldn't catch. Shift
+            # the whole leading run sharing the old exit x together, so
+            # every segment stays vertical/horizontal as before.
             nonlocal path
             if len(path) <= 2:
                 return False
-            shifted = [path[0], (target_x, path[0][1])] + path[2:]
+            old_exit_x = path[1][0]
+            i = 1
+            while i < len(path) - 1 and abs(path[i][0] - old_exit_x) < 1e-6:
+                i += 1
+            shifted = (
+                [path[0]]
+                + [(target_x, y) for (_x, y) in path[1:i]]
+                + path[i:]
+            )
             if not _path_collides(
                 shifted, all_rects, skip=[src_rect, dst_rect], pad=CORNER_RADIUS
             ):
@@ -1746,10 +1706,20 @@ def compute_diagram_layout(
             return False
 
         def try_rewrite_entry(target_x: float) -> bool:
+            # Mirror of try_rewrite_exit's fix, for the trailing run of
+            # points sharing the old entry x.
             nonlocal path
             if len(path) <= 2:
                 return False
-            shifted = path[:-2] + [(target_x, path[-1][1]), path[-1]]
+            old_entry_x = path[-2][0]
+            j = len(path) - 2
+            while j > 0 and abs(path[j][0] - old_entry_x) < 1e-6:
+                j -= 1
+            shifted = (
+                path[: j + 1]
+                + [(target_x, y) for (_x, y) in path[j + 1 : -1]]
+                + [path[-1]]
+            )
             if not _path_collides(
                 shifted, all_rects, skip=[src_rect, dst_rect], pad=CORNER_RADIUS
             ):
@@ -1858,23 +1828,15 @@ def compute_diagram_layout(
             )
             stub_edge_paths.append((n.block_name, i, label, path))
 
-    # --- Fit the canvas to the ACTUAL rendered geometry, not just the
+    # --- Fit the canvas to the actual rendered geometry, not just the
     # box layout -----------------------------------------------------
     #
-    # `total_width`/`total_height` up to this point were sized from the
-    # node/stub BOXES only. But the edge router can legitimately place
-    # waypoints outside that box-derived footprint -- e.g. the
-    # single-elbow router's "probe a bit outside the gap span" fallback,
-    # or the back-edge staple's lane-offset search -- especially in
-    # graphs with many feedback edges or tightly packed layers, which
-    # force a lot of fallback routing. If the canvas isn't grown (and
-    # shifted, for anything that lands left of/above the origin) to
-    # match, those waypoints get silently clipped by the SVG viewBox /
-    # matplotlib axis limits: visually, edges appear to run off the
-    # edge of the diagram. This block re-derives the true bounding box
-    # of EVERY node, stub, and routed path in BOTH dimensions (not just
-    # y, as before) and adjusts the canvas to guarantee nothing is
-    # clipped.
+    # `total_width`/`total_height` above are sized from the node/stub
+    # boxes only, but the edge router can place waypoints outside that
+    # footprint (overflow lanes, back-edge lane offsets, etc). Re-derive
+    # the true bounding box of every node, stub, and routed path, and
+    # grow/shift the canvas so nothing gets clipped by the SVG viewBox
+    # or matplotlib axis limits.
     all_path_points = [p for _, _, _, path, _ in routed_edges for p in path] + [
         p for _, _, _, path in stub_edge_paths for p in path
     ]
@@ -1979,9 +1941,15 @@ def render_svg(
     title: str = "MOOSE Scalar Kernel Diagram",
     verify: bool = False,
     layout: Optional[LayoutDict] = None,
+    compact: bool = False,
+    width_in: Optional[float] = None,
 ) -> Tuple[str, List[str]]:
     if layout is None:
-        layout = compute_diagram_layout(nodes, edges, external_inputs, verify=verify)
+        layout = compute_diagram_layout(
+            nodes, edges, external_inputs, verify=verify, compact=compact
+        )
+    if compact:
+        external_inputs = {}
 
     if layout["empty"]:
         return _empty_svg(title), []
@@ -2000,8 +1968,12 @@ def render_svg(
     node_by_name = {n.block_name: n for n in nodes}
 
     svg_parts: List[str] = []
+    size_attrs = ""
+    if width_in:
+        height_in = width_in * total_height / total_width
+        size_attrs = f' width="{width_in:.3f}in" height="{height_in:.3f}in"'
     svg_parts.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total_width:.0f} {total_height:.0f}" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total_width:.0f} {total_height:.0f}"{size_attrs} '
         f'font-family="Helvetica, Arial, sans-serif">'
     )
     svg_parts.append(
@@ -2079,8 +2051,12 @@ def render_svg(
         )
 
     placed_label_rects: List[Rect] = []
+    obstacle_rects: List[Rect] = list(node_rects.values())
+    if not compact:
+        obstacle_rects += list(stub_rects.values())
+    all_edge_paths = [p for (_, _, _, p, _) in routed_edges]
 
-    for src, dst, varname, path, is_back in routed_edges:
+    for edge_idx, (src, dst, varname, path, is_back) in enumerate(routed_edges):
         d = waypoints_to_rounded_path(path)
         stroke = "#b7791f" if is_back else "#4a5568"
         marker = "url(#arrow-back)" if is_back else "url(#arrow)"
@@ -2090,9 +2066,14 @@ def render_svg(
             f'stroke-linecap="round" marker-end="{marker}"/>'
         )
 
-        label_x, label_y, anchor_x, anchor_y = place_label(
-            path, varname, placed_label_rects
+        other_paths = [p for j, p in enumerate(all_edge_paths) if j != edge_idx]
+        placement = place_label(
+            path, varname, placed_label_rects,
+            obstacle_rects=obstacle_rects, other_paths=other_paths, require_space=compact,
         )
+        if placement is None:
+            continue
+        label_x, label_y, anchor_x, anchor_y = placement
         lr = _label_rect_at(label_x, label_y, varname)
         placed_label_rects.append(lr)
 
@@ -2128,14 +2109,15 @@ def render_svg(
         f'<text x="{MARGIN+50}" y="{legend_y+24}" font-size="12" fill="#2d3748">'
         f"feedback / cycle edge</text>"
     )
-    svg_parts.append(
-        f'<line x1="{MARGIN}" y1="{legend_y+40}" x2="{MARGIN+40}" y2="{legend_y+40}" '
-        f'stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-stub)"/>'
-    )
-    svg_parts.append(
-        f'<text x="{MARGIN+50}" y="{legend_y+44}" font-size="12" fill="#4a5568">'
-        f"external input / other_sources</text>"
-    )
+    if not compact:
+        svg_parts.append(
+            f'<line x1="{MARGIN}" y1="{legend_y+40}" x2="{MARGIN+40}" y2="{legend_y+40}" '
+            f'stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-stub)"/>'
+        )
+        svg_parts.append(
+            f'<text x="{MARGIN+50}" y="{legend_y+44}" font-size="12" fill="#4a5568">'
+            f"external input / other_sources</text>"
+        )
 
     svg_parts.append("</svg>")
 
@@ -2168,6 +2150,8 @@ def render_png(
     verify: bool = False,
     dpi: int = 150,
     layout: Optional[LayoutDict] = None,
+    compact: bool = False,
+    width_in: Optional[float] = None,
 ) -> List[str]:
     """Render the diagram as a PNG using matplotlib, reusing the exact same
     layered layout and orthogonal edge routing as `render_svg` (via
@@ -2193,7 +2177,11 @@ def render_png(
         ) from e
 
     if layout is None:
-        layout = compute_diagram_layout(nodes, edges, external_inputs, verify=verify)
+        layout = compute_diagram_layout(
+            nodes, edges, external_inputs, verify=verify, compact=compact
+        )
+    if compact:
+        external_inputs = {}
 
     BOX_W = layout["BOX_W"]
     LINE_H = layout["LINE_H"]
@@ -2210,8 +2198,26 @@ def render_png(
     # upward, so rather than flip every coordinate we simply invert the
     # y-axis limits and draw everything using the original (x, y) values.
     UNIT_PX = 1.0  # 1 layout unit == 1 pixel at dpi=100 reference scale
-    fig_w_in = total_width / 100.0
-    fig_h_in = total_height / 100.0
+    natural_fig_w_in = total_width / 100.0
+    if width_in:
+        # Setting the figure's physical size directly is what determines
+        # the size a viewer/printer sees (pixel_count / dpi == fig_w_in);
+        # `dpi` still controls pixel density independently.
+        #
+        # Every fontsize/linewidth/arrow-size literal below is in
+        # absolute points, not data coordinates, so shrinking the figure
+        # would make text and lines swell relative to the boxes unless
+        # scaled too. `scale` (applied via `S()`) corrects for that.
+        fig_w_in = width_in
+        fig_h_in = width_in * total_height / total_width
+    else:
+        fig_w_in = natural_fig_w_in
+        fig_h_in = total_height / 100.0
+    scale = fig_w_in / natural_fig_w_in
+
+    def S(v: float) -> float:
+        return v * scale
+
     fig, ax = plt.subplots(figsize=(fig_w_in, fig_h_in))
     ax.set_xlim(0, total_width)
     ax.set_ylim(total_height, 0)  # inverted: y grows downward, matches SVG
@@ -2221,13 +2227,13 @@ def render_png(
         Rectangle((0, 0), total_width, total_height, facecolor="#fafafa", edgecolor="none", zorder=0)
     )
     ax.text(
-        MARGIN, 22, title, fontsize=13, fontweight="bold", color="#1a1a1a", va="center", zorder=10,
+        MARGIN, 22, title, fontsize=S(13), fontweight="bold", color="#1a1a1a", va="center", zorder=10,
     )
 
     if layout["empty"]:
         ax.text(
             20, 60, "No matching kernel blocks were found in this input file.",
-            fontsize=10, color="#718096", va="center",
+            fontsize=S(10), color="#718096", va="center",
         )
         fig.savefig(out_path, dpi=dpi, facecolor="#fafafa")
         plt.close(fig)
@@ -2237,14 +2243,14 @@ def render_png(
         xs = [p[0] for p in path]
         ys = [p[1] for p in path]
         ls = (0, (6, 3)) if dashed else "-"
-        ax.plot(xs, ys, color=color, linewidth=lw, linestyle=ls, solid_capstyle="round", zorder=zorder)
+        ax.plot(xs, ys, color=color, linewidth=S(lw), linestyle=ls, solid_capstyle="round", zorder=zorder)
 
     def draw_arrowhead(p_from, p_to, color, size, zorder):
         ax.annotate(
             "",
             xy=p_to,
             xytext=p_from,
-            arrowprops=dict(arrowstyle="-|>", color=color, lw=0.1, mutation_scale=size, shrinkA=0, shrinkB=0),
+            arrowprops=dict(arrowstyle="-|>", color=color, lw=0.1, mutation_scale=S(size), shrinkA=0, shrinkB=0),
             zorder=zorder,
         )
 
@@ -2257,15 +2263,15 @@ def render_png(
             ax.add_patch(
                 FancyBboxPatch(
                     (sx, sy), sw, sh,
-                    boxstyle="round,pad=0,rounding_size=6",
-                    facecolor="#edf2f7", edgecolor="#a0aec0", linewidth=1.2, zorder=2,
+                    boxstyle=f"round,pad=0,rounding_size={S(6):.3f}",
+                    facecolor="#edf2f7", edgecolor="#a0aec0", linewidth=S(1.2), zorder=2,
                 )
             )
             wrapped = wrap_text(label, 22)[:2]
             for li, wline in enumerate(wrapped):
                 ax.text(
                     sx + sw / 2, sy + 12 + li * 12, wline,
-                    fontsize=7.5, color="#4a5568", ha="center", va="center", zorder=3,
+                    fontsize=S(7.5), color="#4a5568", ha="center", va="center", zorder=3,
                 )
 
     # --- node boxes ---------------------------------------------------
@@ -2274,8 +2280,8 @@ def render_png(
         ax.add_patch(
             FancyBboxPatch(
                 (rx, ry), BOX_W, rh,
-                boxstyle="round,pad=0,rounding_size=10",
-                facecolor="#ebf8ff", edgecolor="#2b6cb0", linewidth=1.6, zorder=2,
+                boxstyle=f"round,pad=0,rounding_size={S(10):.3f}",
+                facecolor="#ebf8ff", edgecolor="#2b6cb0", linewidth=S(1.6), zorder=2,
             )
         )
         ax.add_patch(
@@ -2283,18 +2289,18 @@ def render_png(
         )
         ax.text(
             rx + BOX_W / 2, ry + 12, f"[{n.block_name}]",
-            fontsize=9, fontweight="bold", color="white", ha="center", va="center", zorder=4,
+            fontsize=S(9), fontweight="bold", color="white", ha="center", va="center", zorder=4,
         )
         content_lines = node_content[n.block_name]
         for li, line in enumerate(content_lines):
             ax.text(
                 rx + 10, ry + 34 + li * LINE_H, line,
-                fontsize=8, color="#1a202c", ha="left", va="top", zorder=4,
+                fontsize=S(8), color="#1a202c", ha="left", va="top", zorder=4,
             )
         if not content_lines:
             ax.text(
                 rx + 10, ry + 34, n.base_type_label or "scalar kernel",
-                fontsize=8, color="#718096", style="italic", ha="left", va="top", zorder=4,
+                fontsize=S(8), color="#718096", style="italic", ha="left", va="top", zorder=4,
             )
 
     # --- stub (dashed) edges -------------------------------------------
@@ -2305,52 +2311,64 @@ def render_png(
 
     # --- main routed edges + labels --------------------------------------
     placed_label_rects: List[Rect] = []
-    for src, dst, varname, path, is_back in routed_edges:
+    obstacle_rects: List[Rect] = list(node_rects.values())
+    if not compact:
+        obstacle_rects += list(stub_rects.values())
+    all_edge_paths = [p for (_, _, _, p, _) in routed_edges]
+    for edge_idx, (src, dst, varname, path, is_back) in enumerate(routed_edges):
         color = "#b7791f" if is_back else "#4a5568"
         draw_polyline(path, color, 1.5, dashed=is_back, zorder=6)
         if len(path) >= 2:
             draw_arrowhead(path[-2], path[-1], color, 10, zorder=6)
 
-        label_x, label_y, anchor_x, anchor_y = place_label(path, varname, placed_label_rects)
+        other_paths = [p for j, p in enumerate(all_edge_paths) if j != edge_idx]
+        placement = place_label(
+            path, varname, placed_label_rects,
+            obstacle_rects=obstacle_rects, other_paths=other_paths, require_space=compact,
+        )
+        if placement is None:
+            continue
+        label_x, label_y, anchor_x, anchor_y = placement
         lr = _label_rect_at(label_x, label_y, varname)
         placed_label_rects.append(lr)
 
         if (label_x - anchor_x) ** 2 + (label_y - anchor_y) ** 2 > 4.0:
             ax.plot(
                 [anchor_x, label_x], [anchor_y, label_y],
-                color=color, linewidth=0.7, alpha=0.5, zorder=6,
+                color=color, linewidth=S(0.7), alpha=0.5, zorder=6,
             )
 
         ax.add_patch(
             Rectangle(
                 (lr[0], lr[1]), lr[2], lr[3],
-                facecolor="#fafafa", edgecolor=color, linewidth=0.6, alpha=0.97, zorder=7,
+                facecolor="#fafafa", edgecolor=color, linewidth=S(0.6), alpha=0.97, zorder=7,
             )
         )
         ax.text(
             label_x, label_y, varname,
-            fontsize=7.5, color=color, ha="center", va="center", zorder=8,
+            fontsize=S(7.5), color=color, ha="center", va="center", zorder=8,
         )
 
     # --- legend ----------------------------------------------------------
     legend_y = total_height - 46
-    ax.plot([MARGIN, MARGIN + 40], [legend_y, legend_y], color="#4a5568", linewidth=1.5, zorder=9)
+    ax.plot([MARGIN, MARGIN + 40], [legend_y, legend_y], color="#4a5568", linewidth=S(1.5), zorder=9)
     draw_arrowhead((MARGIN + 30, legend_y), (MARGIN + 40, legend_y), "#4a5568", 9, zorder=9)
-    ax.text(MARGIN + 50, legend_y, "variable flowing between blocks", fontsize=8.5, color="#2d3748", va="center", zorder=9)
+    ax.text(MARGIN + 50, legend_y, "variable flowing between blocks", fontsize=S(8.5), color="#2d3748", va="center", zorder=9)
 
     ax.plot(
         [MARGIN, MARGIN + 40], [legend_y + 20, legend_y + 20],
-        color="#b7791f", linewidth=1.5, linestyle=(0, (6, 3)), zorder=9,
+        color="#b7791f", linewidth=S(1.5), linestyle=(0, (6, 3)), zorder=9,
     )
     draw_arrowhead((MARGIN + 30, legend_y + 20), (MARGIN + 40, legend_y + 20), "#b7791f", 9, zorder=9)
-    ax.text(MARGIN + 50, legend_y + 24, "feedback / cycle edge", fontsize=8.5, color="#2d3748", va="center", zorder=9)
+    ax.text(MARGIN + 50, legend_y + 24, "feedback / cycle edge", fontsize=S(8.5), color="#2d3748", va="center", zorder=9)
 
-    ax.plot(
-        [MARGIN, MARGIN + 40], [legend_y + 40, legend_y + 40],
-        color="#a0aec0", linewidth=1.1, linestyle=(0, (4, 3)), zorder=9,
-    )
-    draw_arrowhead((MARGIN + 30, legend_y + 40), (MARGIN + 40, legend_y + 40), "#a0aec0", 8, zorder=9)
-    ax.text(MARGIN + 50, legend_y + 44, "external input / other_sources", fontsize=8.5, color="#4a5568", va="center", zorder=9)
+    if not compact:
+        ax.plot(
+            [MARGIN, MARGIN + 40], [legend_y + 40, legend_y + 40],
+            color="#a0aec0", linewidth=S(1.1), linestyle=(0, (4, 3)), zorder=9,
+        )
+        draw_arrowhead((MARGIN + 30, legend_y + 40), (MARGIN + 40, legend_y + 40), "#a0aec0", 8, zorder=9)
+        ax.text(MARGIN + 50, legend_y + 44, "external input / other_sources", fontsize=S(8.5), color="#4a5568", va="center", zorder=9)
 
     fig.tight_layout(pad=0.3)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2667,6 +2685,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         "requested formats.",
     )
     parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="Generate a simplified diagram legible when printed/embedded "
+        "narrow (see --width-in). Drops external-input/other_sources stubs, "
+        "edge variable labels, and per-box type/variable/parameter detail; "
+        "keeps box titles and the high-level node-to-node connections. "
+        "Only affects 'svg'/'png' output.",
+    )
+    parser.add_argument(
+        "--width-in",
+        type=float,
+        default=None,
+        help="Target physical width in inches for 'svg'/'png' output (embeds "
+        "width/height on the svg tag, or sets the png's DPI metadata so its "
+        "pixel width maps to this many inches). Default: 5.0 when --compact "
+        "is given, otherwise unset (no physical size is embedded).",
+    )
+    parser.add_argument(
         "--debug-routing",
         action="store_true",
         help="Print, for every edge, which router handled it (single-elbow / "
@@ -2679,6 +2715,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.debug_routing:
         global DEBUG_ROUTING
         DEBUG_ROUTING = True
+
+    width_in = args.width_in if args.width_in is not None else (5.0 if args.compact else None)
 
     if args.list_kernel_families:
         print("Built-in kernel families:")
@@ -2766,7 +2804,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     elif args.output is not None:
         out_stem = args.output
     else:
-        out_stem = args.input_file.with_name(args.input_file.stem + "_kernels")
+        suffix = "_compact" if args.compact else "_kernels"
+        out_stem = args.input_file.with_name(args.input_file.stem + suffix)
 
     out_dir = args.output_dir if args.output_dir is not None else out_stem.parent
     out_stem_name = out_stem.name
@@ -2787,7 +2826,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     needs_layout = ("svg" in formats) or ("png" in formats)
     if needs_layout:
         shared_layout = compute_diagram_layout(
-            nodes, edges, external_inputs, verify=args.verify
+            nodes, edges, external_inputs, verify=args.verify, compact=args.compact
         )
 
     verify_warnings: List[str] = []
@@ -2798,7 +2837,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if fmt == "svg":
             svg_text, warnings = render_svg(
                 nodes, edges, external_inputs, title=title, verify=args.verify,
-                layout=shared_layout,
+                layout=shared_layout, compact=args.compact, width_in=width_in,
             )
             verify_warnings = warnings
             rendered_pixel_format = True
@@ -2811,6 +2850,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 warnings = render_png(
                     nodes, edges, external_inputs, out_path=out_path, title=title,
                     verify=args.verify, dpi=args.png_dpi, layout=shared_layout,
+                    compact=args.compact, width_in=width_in,
                 )
             except RuntimeError as e:
                 print(f"error: {e}", file=sys.stderr)

@@ -27,7 +27,8 @@ source_lines = create_fuel_cycle_diagram.expand_includes(
 )
 text = "\n".join(source_lines)
 root = create_fuel_cycle_diagram.parse_moose_file(text)
-nodes = create_fuel_cycle_diagram.build_fuelcycle_nodes(root, source_lines)
+families = list(create_fuel_cycle_diagram.BUILTIN_KERNEL_FAMILIES.values())
+nodes = create_fuel_cycle_diagram.build_kernel_nodes(root, source_lines, families)
 edges, external_inputs = create_fuel_cycle_diagram.build_edges(nodes)
 
 title = f"Abdou Fuel Cycle Diagram"
