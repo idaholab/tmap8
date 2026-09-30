@@ -1,4 +1,4 @@
-
+# TODO add descriptions, address PC's feedback
 
 length = 1.0
 R = 0.025
