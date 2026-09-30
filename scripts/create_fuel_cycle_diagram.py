@@ -87,9 +87,11 @@ Usage
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
 import io
 import json
+import math
 import re
 import sys
 import textwrap
@@ -101,17 +103,22 @@ from typing import Any, Dict, List, Optional, Tuple
 # 1. MOOSE input-file tokenizer / block parser
 # --------------------------------------------------------------------------
 
+
 @dataclass
 class MooseBlock:
+    """One `[block]...[]` (or nested `[./block]`) section of a parsed
+    MOOSE input file: its name, path from the root, `key = value`
+    params, and child blocks."""
+
     name: str
     path: Tuple[str, ...]
     params: Dict[str, str] = field(default_factory=dict)
     children: List["MooseBlock"] = field(default_factory=list)
-    parent: Optional["MooseBlock"] = None
     line_no: int = 0
 
 
 def _strip_comment(line: str) -> str:
+    """Removes a trailing MOOSE `#` comment from a line, honoring quotes."""
     in_squote = in_dquote = False
     for i, ch in enumerate(line):
         if ch == "'" and not in_dquote:
@@ -167,6 +174,8 @@ def expand_includes(path: Path, _seen: Optional[Tuple[Path, ...]] = None) -> Lis
 
 
 def parse_moose_file(text: str) -> MooseBlock:
+    """Parses MOOSE's `[block]`/`[./block]` + `key = value` syntax into a
+    `MooseBlock` tree, rooted at a synthetic `__root__` block."""
     root = MooseBlock(name="__root__", path=())
     stack: List[MooseBlock] = [root]
 
@@ -186,9 +195,7 @@ def parse_moose_file(text: str) -> MooseBlock:
         if m:
             name = m.group(1)
             parent = stack[-1]
-            block = MooseBlock(
-                name=name, path=parent.path + (name,), parent=parent, line_no=line_no
-            )
+            block = MooseBlock(name=name, path=parent.path + (name,), line_no=line_no)
             parent.children.append(block)
             stack.append(block)
             continue
@@ -209,6 +216,7 @@ def parse_moose_file(text: str) -> MooseBlock:
 
 
 def _strip_quotes(value: str) -> str:
+    """Strips one matching pair of surrounding quotes from a param value."""
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
         return value[1:-1].strip()
@@ -235,6 +243,11 @@ class KernelFamily:
     that is actually present on a given block is unioned together (split
     on whitespace/commas) -- the block doesn't need to use all of them,
     and most will use exactly one.
+
+    `input_fraction_params` (opt-in, empty by default) names a parameter
+    holding a per-input flow-fraction vector positionally aligned with
+    `input_params`'s union -- used to label edges with what fraction of
+    the flow they represent, when `--show-flow-fractions` is passed.
     """
 
     key: str
@@ -244,6 +257,7 @@ class KernelFamily:
     variable_param: str = "variable"
     input_params: Tuple[str, ...] = ("inputs",)
     other_source_params: Tuple[str, ...] = ("other_sources",)
+    input_fraction_params: Tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         self._compiled = [re.compile(p) for p in self.type_patterns]
@@ -267,6 +281,7 @@ BUILTIN_KERNEL_FAMILIES: Dict[str, KernelFamily] = {
         variable_param="variable",
         input_params=("inputs",),
         other_source_params=("other_sources",),
+        input_fraction_params=("input_fractions",),
     ),
     "moose-parsedode": KernelFamily(
         key="moose-parsedode",
@@ -320,6 +335,9 @@ def select_family(
 def find_kernel_blocks(
     root: MooseBlock, families: List[KernelFamily]
 ) -> List[Tuple[MooseBlock, KernelFamily]]:
+    """Walks the whole block tree and collects every block matching one
+    of `families`, paired with the family that matched it -- the input
+    to `build_kernel_nodes`."""
     found: List[Tuple[MooseBlock, KernelFamily]] = []
 
     def _walk(block: MooseBlock) -> None:
@@ -333,18 +351,130 @@ def find_kernel_blocks(
     return found
 
 
-def find_blocks_by_type(root: MooseBlock, type_name: str) -> List[MooseBlock]:
-    """Generic exact-type-name finder, independent of kernel families."""
-    found: List[MooseBlock] = []
+def _collect_postprocessors(root: MooseBlock) -> Dict[str, MooseBlock]:
+    """Returns every block directly under a top-level `[Postprocessors]`
+    block, keyed by name -- the input to `resolve_constant_value`. An
+    `!include`d file commonly contributes its own `[Postprocessors]`
+    block alongside the including file's, so every match is merged
+    rather than just the first."""
+    postprocessors: Dict[str, MooseBlock] = {}
+    for child in root.children:
+        if child.name == "Postprocessors":
+            for pp in child.children:
+                postprocessors[pp.name] = pp
+    return postprocessors
 
-    def _walk(block: MooseBlock) -> None:
-        if block.params.get("type") == type_name:
-            found.append(block)
-        for child in block.children:
-            _walk(child)
 
-    _walk(root)
-    return found
+_ALLOWED_BINOPS = (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow)
+_ALLOWED_UNARYOPS = (ast.UAdd, ast.USub)
+
+
+def _eval_simple_arith(expr: str, symbols: Dict[str, float]) -> Optional[float]:
+    """Evaluates `expr` (a MOOSE ParsedPostprocessor-style expression) if
+    it's built entirely from numeric constants, names bound in `symbols`,
+    and `+ - * / **` -- returns None for anything outside that whitelist,
+    or on a parse/arithmetic error. Never uses eval()/exec()."""
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        return None
+
+    def _walk(node: ast.AST) -> Optional[float]:
+        if isinstance(node, ast.Expression):
+            return _walk(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return float(node.value)
+        if isinstance(node, ast.Name):
+            return symbols.get(node.id)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, _ALLOWED_BINOPS):
+            left = _walk(node.left)
+            right = _walk(node.right)
+            if left is None or right is None:
+                return None
+            try:
+                if isinstance(node.op, ast.Add):
+                    return left + right
+                if isinstance(node.op, ast.Sub):
+                    return left - right
+                if isinstance(node.op, ast.Mult):
+                    return left * right
+                if isinstance(node.op, ast.Div):
+                    return left / right
+                return left**right
+            except (ZeroDivisionError, OverflowError, ValueError):
+                return None
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, _ALLOWED_UNARYOPS):
+            operand = _walk(node.operand)
+            if operand is None:
+                return None
+            return operand if isinstance(node.op, ast.UAdd) else -operand
+        return None
+
+    return _walk(tree)
+
+
+def resolve_constant_value(
+    name: str,
+    postprocessors: Dict[str, MooseBlock],
+    _seen: Optional[frozenset] = None,
+) -> Optional[float]:
+    """Attempts to resolve `name` to a plain number: directly if it's a
+    ConstantPostprocessor, or recursively if it's a ParsedPostprocessor
+    whose pp_names all themselves resolve to constants. Returns None if
+    `name` isn't a known postprocessor, uses an unsupported type/
+    expression, or the reference chain cycles."""
+    seen = _seen or frozenset()
+    if name in seen:
+        return None
+    pp = postprocessors.get(name)
+    if pp is None:
+        return None
+    pp_type = pp.params.get("type", "")
+
+    if pp_type == "ConstantPostprocessor":
+        try:
+            return float(pp.params.get("value", ""))
+        except ValueError:
+            return None
+
+    if pp_type == "ParsedPostprocessor":
+        expression = pp.params.get("expression")
+        if not expression:
+            return None
+        symbol_names = split_vector(pp.params.get("pp_names", ""))
+        symbols: Dict[str, float] = {}
+        for sym in symbol_names:
+            value = resolve_constant_value(sym, postprocessors, seen | {name})
+            if value is None:
+                return None
+            symbols[sym] = value
+        return _eval_simple_arith(expression, symbols)
+
+    return None
+
+
+def _format_number(x: float) -> str:
+    """Formats a resolved fraction value compactly, as a plain integer
+    when exact, else in 4-significant-figure (scientific for very small/
+    large) notation."""
+    if x == int(x):
+        return str(int(x))
+    return f"{x:.4g}"
+
+
+def _resolve_fraction(
+    token: str, postprocessors: Dict[str, MooseBlock]
+) -> Tuple[str, Optional[float]]:
+    """Resolves one raw `input_fractions` token to a (display string, raw
+    value) pair: the value is `token` itself if numeric, or what it
+    resolves to as a postprocessor name; the display string is that value
+    formatted, or `token` unchanged if neither applies."""
+    try:
+        value = float(token)
+    except ValueError:
+        value = resolve_constant_value(token, postprocessors)
+    label = _format_number(value) if value is not None else token
+    return label, value
 
 
 # --------------------------------------------------------------------------
@@ -353,6 +483,7 @@ def find_blocks_by_type(root: MooseBlock, type_name: str) -> List[MooseBlock]:
 
 
 def split_vector(value: str) -> List[str]:
+    """Splits a MOOSE vector param (space- or comma-separated) into tokens."""
     if not value:
         return []
     return [tok for tok in re.split(r"[\s,]+", value.strip()) if tok]
@@ -369,6 +500,8 @@ class KernelNode:
     inputs: List[str] = field(default_factory=list)
     other_sources: List[str] = field(default_factory=list)
     extra_params: Dict[str, str] = field(default_factory=dict)
+    input_fraction_labels: List[str] = field(default_factory=list)
+    input_fraction_values: List[Optional[float]] = field(default_factory=list)
 
 
 # Backwards-compatible alias for the original name.
@@ -380,7 +513,11 @@ IGNORED_PARAM_KEYS_BASE = {"type", "block"}
 def build_kernel_nodes(
     root: MooseBlock, source_lines: List[str], families: List[KernelFamily]
 ) -> List[KernelNode]:
+    """Graph-model stage: turns each matched kernel block into a
+    `KernelNode` carrying its variable, inputs/other-sources, and any
+    extra params -- the input to `build_edges`/`compute_layers`."""
     matched = find_kernel_blocks(root, families)
+    postprocessors = _collect_postprocessors(root)
     nodes: List[KernelNode] = []
 
     for b, fam in matched:
@@ -402,6 +539,15 @@ def build_kernel_nodes(
                 other_sources.extend(split_vector(b.params[p]))
         node.other_sources = other_sources
 
+        fractions: List[str] = []
+        for p in fam.input_fraction_params:
+            if p in b.params:
+                fractions.extend(split_vector(b.params[p]))
+        if fractions and len(fractions) == len(inputs):
+            resolved = [_resolve_fraction(token, postprocessors) for token in fractions]
+            node.input_fraction_labels = [label for label, _ in resolved]
+            node.input_fraction_values = [value for _, value in resolved]
+
         ignored = (
             IGNORED_PARAM_KEYS_BASE
             | {fam.variable_param}
@@ -420,6 +566,9 @@ def build_kernel_nodes(
 
 
 def build_edges(nodes: List[KernelNode]):
+    """Graph-model stage: matches each node's inputs to the node whose
+    variable produces them, yielding inter-block edges plus, for inputs
+    with no producing node, the per-block external_inputs list."""
     var_to_block = {n.variable: n.block_name for n in nodes if n.variable}
 
     edges: List[Tuple[str, str, str]] = []
@@ -438,6 +587,53 @@ def build_edges(nodes: List[KernelNode]):
     return edges, external_inputs
 
 
+def build_edge_fractions(
+    nodes: List[KernelNode], edges: List[Tuple[str, str, str]]
+) -> Dict[Tuple[str, str, str], str]:
+    """Maps each edge to its destination node's resolved input-fraction
+    display string (if any) -- additive companion to `build_edges` used
+    when `--show-flow-fractions` is passed, so edge labels can show what
+    fraction of the flow they represent."""
+    nodes_by_name = {n.block_name: n for n in nodes}
+    labels: Dict[Tuple[str, str, str], str] = {}
+    for src, dst, var in edges:
+        node = nodes_by_name.get(dst)
+        if node is None or not node.input_fraction_labels:
+            continue
+        try:
+            idx = node.inputs.index(var)
+        except ValueError:
+            continue
+        if idx < len(node.input_fraction_labels):
+            labels[(src, dst, var)] = node.input_fraction_labels[idx]
+    return labels
+
+
+def build_edge_fraction_values(
+    nodes: List[KernelNode], edges: List[Tuple[str, str, str]]
+) -> Dict[Tuple[str, str, str], float]:
+    """Same mapping as `build_edge_fractions`, but the destination node's
+    resolved numeric fraction (not its display string) -- used to scale
+    edge stroke width. Edges whose fraction didn't resolve to a number
+    (raw postprocessor name shown instead) are simply absent."""
+    nodes_by_name = {n.block_name: n for n in nodes}
+    values: Dict[Tuple[str, str, str], float] = {}
+    for src, dst, var in edges:
+        node = nodes_by_name.get(dst)
+        if node is None or not node.input_fraction_values:
+            continue
+        try:
+            idx = node.inputs.index(var)
+        except ValueError:
+            continue
+        if (
+            idx < len(node.input_fraction_values)
+            and node.input_fraction_values[idx] is not None
+        ):
+            values[(src, dst, var)] = node.input_fraction_values[idx]
+    return values
+
+
 # --------------------------------------------------------------------------
 # 4. Layered layout
 # --------------------------------------------------------------------------
@@ -446,6 +642,9 @@ def build_edges(nodes: List[KernelNode]):
 def compute_layers(
     nodes: List[KernelNode], edges: List[Tuple[str, str, str]]
 ) -> Dict[str, int]:
+    """Layout stage: assigns each node a layer index (longest-path depth
+    from its predecessors), the column ordering `compute_diagram_layout`
+    positions nodes into."""
     names = [n.block_name for n in nodes]
     preds: Dict[str, List[str]] = {name: [] for name in names}
     for src, dst, _ in edges:
@@ -473,12 +672,14 @@ def compute_layers(
 
 
 def wrap_text(text: str, width: int) -> List[str]:
+    """Wraps `text` to `width` characters per line, for box/label content."""
     if not text:
         return []
     return textwrap.wrap(text, width=width) or [text]
 
 
 def escape_xml(s: str) -> str:
+    """Escapes the characters SVG/XML text content requires escaped."""
     return (
         s.replace("&", "&amp;")
         .replace("<", "&lt;")
@@ -495,6 +696,7 @@ Rect = Tuple[float, float, float, float]  # (x, y, w, h)
 
 
 def _rects_overlap(a: Rect, b: Rect, pad: float = 0.0) -> bool:
+    """True if rects `a` and `b` (each padded by `pad`) overlap."""
     ax, ay, aw, ah = a
     bx, by, bw, bh = b
     ax -= pad
@@ -505,9 +707,22 @@ def _rects_overlap(a: Rect, b: Rect, pad: float = 0.0) -> bool:
 
 
 def _segment_box(x1: float, y1: float, x2: float, y2: float) -> Rect:
+    """The axis-aligned bounding rect of one line segment, for use with
+    `_rects_overlap`."""
     x0, x1_ = min(x1, x2), max(x1, x2)
     y0, y1_ = min(y1, y2), max(y1, y2)
     return (x0, y0, max(x1_ - x0, 1e-6), max(y1_ - y0, 1e-6))
+
+
+def _dist(a: Tuple[float, float], b: Tuple[float, float]) -> float:
+    """Euclidean distance between two (x, y) points."""
+    return ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5
+
+
+def _dist2(a: Tuple[float, float], b: Tuple[float, float]) -> float:
+    """Squared distance between two (x, y) points -- for threshold checks
+    that don't need a sqrt."""
+    return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 
 
 def _rect_hits_path(
@@ -527,6 +742,9 @@ def _path_collides(
     skip: List[Rect],
     pad: float = 5.0,
 ) -> bool:
+    """Routing stage: True if any segment of `points` overlaps a rect in
+    `rects` (other than those in `skip`, typically the edge's own
+    endpoints)."""
     for i in range(len(points) - 1):
         seg = _segment_box(*points[i], *points[i + 1])
         for rect in rects:
@@ -540,18 +758,50 @@ def _path_collides(
 def _simplify_path(
     points: List[Tuple[float, float]], min_gap: float = 1.5
 ) -> List[Tuple[float, float]]:
+    """Drops points that sit closer than `min_gap` to the last kept point,
+    collapsing near-duplicate waypoints before corner-rounding."""
     out: List[Tuple[float, float]] = []
     for p in points:
-        if (
-            out
-            and ((out[-1][0] - p[0]) ** 2 + (out[-1][1] - p[1]) ** 2) ** 0.5 < min_gap
-        ):
+        if out and _dist(out[-1], p) < min_gap:
             continue
         out.append(p)
     return out
 
 
+def _shift_path_end(
+    path: List[Tuple[float, float]],
+    target_x: float,
+    all_rects: List[Rect],
+    skip: List[Rect],
+    from_start: bool,
+) -> Optional[List[Tuple[float, float]]]:
+    """Shifts the leading (`from_start=True`) or trailing run of `path`
+    that shares its exit/entry x to `target_x`, keeping every segment
+    axis-aligned. Returns the rewritten path, or None if it would collide
+    with `all_rects` (other than those in `skip`)."""
+    if len(path) <= 2:
+        return None
+    if from_start:
+        old_x = path[1][0]
+        i = 1
+        while i < len(path) - 1 and abs(path[i][0] - old_x) < 1e-6:
+            i += 1
+        shifted = [path[0]] + [(target_x, y) for (_x, y) in path[1:i]] + path[i:]
+    else:
+        old_x = path[-2][0]
+        j = len(path) - 2
+        while j > 0 and abs(path[j][0] - old_x) < 1e-6:
+            j -= 1
+        shifted = (
+            path[: j + 1] + [(target_x, y) for (_x, y) in path[j + 1 : -1]] + [path[-1]]
+        )
+    if _path_collides(shifted, all_rects, skip=skip, pad=CORNER_RADIUS):
+        return None
+    return shifted
+
+
 def _distribute_points(center: float, n: int, spacing: float) -> List[float]:
+    """`n` positions evenly spaced by `spacing`, centered on `center`."""
     if n <= 1:
         return [center]
     span = spacing * (n - 1)
@@ -570,6 +820,9 @@ DEBUG_ROUTING = False
 def waypoints_to_rounded_path(
     points: List[Tuple[float, float]], radius: float = CORNER_RADIUS
 ) -> str:
+    """Rendering stage: converts a routed orthogonal polyline into an SVG
+    path `d` string, rounding each corner (bounded by the shorter of its
+    two adjoining segments)."""
     pts = points
     n = len(pts)
     if n < 2:
@@ -580,11 +833,8 @@ def waypoints_to_rounded_path(
 
     MIN_SEG_FOR_ROUNDING = 2.0
 
-    def dist(a, b):
-        return ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5
-
     def unit(a, b):
-        dd = dist(a, b) or 1.0
+        dd = _dist(a, b) or 1.0
         return ((b[0] - a[0]) / dd, (b[1] - a[1]) / dd)
 
     d = [f"M {pts[0][0]:.1f},{pts[0][1]:.1f}"]
@@ -593,8 +843,8 @@ def waypoints_to_rounded_path(
         corner = pts[i]
         next_pt = pts[i + 1]
 
-        seg_in_len = dist(prev_pt, corner)
-        seg_out_len = dist(corner, next_pt)
+        seg_in_len = _dist(prev_pt, corner)
+        seg_out_len = _dist(corner, next_pt)
         r = min(radius, seg_in_len / 2.0, seg_out_len / 2.0)
 
         if (
@@ -627,6 +877,8 @@ def verify_path_clear(
     skip: List[Rect],
     pad: float = 2.0,
 ) -> List[Rect]:
+    """`--verify` diagnostic: every rect in `all_rects` (other than
+    `skip`) that a final routed path still overlaps."""
     hits: List[Rect] = []
     for i in range(len(points) - 1):
         seg = _segment_box(*points[i], *points[i + 1])
@@ -1289,7 +1541,7 @@ def _segment_lengths(
     for i in range(len(path) - 1):
         x1, y1 = path[i]
         x2, y2 = path[i + 1]
-        L = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        L = _dist((x1, y1), (x2, y2))
         if L < 1e-6:
             continue
         mid = ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
@@ -1300,6 +1552,8 @@ def _segment_lengths(
 
 
 def _label_rect_at(cx: float, cy: float, text: str) -> Rect:
+    """The bounding rect a label reading `text` would occupy centered at
+    (cx, cy), for collision checks in `place_label`."""
     w = len(text) * 6.6 + 8
     h = 16
     return (cx - w / 2, cy - h / 2, w, h)
@@ -1380,11 +1634,16 @@ def compute_diagram_layout(
     external_inputs: Dict[str, List[str]],
     verify: bool = False,
     compact: bool = False,
+    show_flow_fractions: bool = False,
 ) -> LayoutDict:
+    """Layout stage: the single precomputed layout (box positions, routed
+    edges, label placements) shared by `render_svg` and `render_png` so
+    both backends draw the identical diagram."""
     # Compact mode targets a figure that stays legible printed ~5in wide:
     # drop external-input/other_sources stubs and per-box type/variable/
     # parameter detail (kept: box titles and node-to-node connections),
-    # and shrink the box/gap geometry.
+    # and shrink the box/gap geometry. Flow-fraction labels are dropped
+    # too, for the same reason.
     if compact:
         external_inputs = {}
 
@@ -1393,6 +1652,16 @@ def compute_diagram_layout(
         "BOX_W": 150 if compact else 260,
         "LINE_H": 15,
         "MARGIN": 40 if compact else 60,
+        "edge_fraction_labels": (
+            build_edge_fractions(nodes, edges)
+            if show_flow_fractions and not compact
+            else {}
+        ),
+        "edge_fraction_values": (
+            build_edge_fraction_values(nodes, edges)
+            if show_flow_fractions and not compact
+            else {}
+        ),
     }
     if not nodes:
         layout["total_width"] = 600.0
@@ -1683,97 +1952,64 @@ def compute_diagram_layout(
         def try_rewrite_exit(target_x: float) -> bool:
             # path[1] and path[2] share an x by construction; shifting
             # only path[1] would turn that leg diagonal, which
-            # `_path_collides`'s bounding-box check wouldn't catch. Shift
-            # the whole leading run sharing the old exit x together, so
-            # every segment stays vertical/horizontal as before.
+            # `_path_collides`'s bounding-box check wouldn't catch, so the
+            # whole leading run sharing the old exit x is shifted together.
             nonlocal path
-            if len(path) <= 2:
-                return False
-            old_exit_x = path[1][0]
-            i = 1
-            while i < len(path) - 1 and abs(path[i][0] - old_exit_x) < 1e-6:
-                i += 1
-            shifted = (
-                [path[0]]
-                + [(target_x, y) for (_x, y) in path[1:i]]
-                + path[i:]
+            shifted = _shift_path_end(
+                path, target_x, all_rects, [src_rect, dst_rect], from_start=True
             )
-            if not _path_collides(
-                shifted, all_rects, skip=[src_rect, dst_rect], pad=CORNER_RADIUS
-            ):
-                path = shifted
-                return True
-            return False
+            if shifted is None:
+                return False
+            path = shifted
+            return True
 
         def try_rewrite_entry(target_x: float) -> bool:
-            # Mirror of try_rewrite_exit's fix, for the trailing run of
-            # points sharing the old entry x.
+            # Mirror of try_rewrite_exit, for the trailing run of points.
             nonlocal path
-            if len(path) <= 2:
-                return False
-            old_entry_x = path[-2][0]
-            j = len(path) - 2
-            while j > 0 and abs(path[j][0] - old_entry_x) < 1e-6:
-                j -= 1
-            shifted = (
-                path[: j + 1]
-                + [(target_x, y) for (_x, y) in path[j + 1 : -1]]
-                + [path[-1]]
+            shifted = _shift_path_end(
+                path, target_x, all_rects, [src_rect, dst_rect], from_start=False
             )
-            if not _path_collides(
-                shifted, all_rects, skip=[src_rect, dst_rect], pad=CORNER_RADIUS
-            ):
-                path = shifted
-                return True
+            if shifted is None:
+                return False
+            path = shifted
+            return True
+
+        def _retry_rewrite(try_fn, assigned_x: float, old_x: float, kind: str) -> bool:
+            # Fans outward from the assigned x in alternating +/- steps of
+            # STUB_FAN, looking for the nearest alternative lane where
+            # try_fn's rewrite is collision-free.
+            for k in range(1, 15):
+                for sign in (1, -1):
+                    cand = assigned_x + sign * STUB_FAN * k
+                    if abs(cand - old_x) < 1.0:
+                        continue
+                    if gap_hi > gap_lo and not (gap_lo < cand < gap_hi):
+                        continue
+                    if try_fn(cand):
+                        global_elbow_xs.append(cand)
+                        return True
+            if DEBUG_ROUTING:
+                print(
+                    f"[rewrite-rejected {kind}] idx={idx} {src}->{dst} wanted {assigned_x}, kept {old_x} (no nearby alt clear)",
+                    file=sys.stderr,
+                )
             return False
 
         if assigned_exit_x is not None and len(path) >= 2:
             old_exit_x = path[1][0]
             if abs(old_exit_x - assigned_exit_x) > 0.5:
                 if not try_rewrite_exit(assigned_exit_x):
-                    found = False
-                    for k in range(1, 15):
-                        for sign in (1, -1):
-                            cand = assigned_exit_x + sign * STUB_FAN * k
-                            if abs(cand - old_exit_x) < 1.0:
-                                continue
-                            if gap_hi > gap_lo and not (gap_lo < cand < gap_hi):
-                                continue
-                            if try_rewrite_exit(cand):
-                                global_elbow_xs.append(cand)
-                                found = True
-                                break
-                        if found:
-                            break
-                    if not found and DEBUG_ROUTING:
-                        print(
-                            f"[rewrite-rejected exit] idx={idx} {src}->{dst} wanted {assigned_exit_x}, kept {old_exit_x} (no nearby alt clear)",
-                            file=sys.stderr,
-                        )
+                    _retry_rewrite(
+                        try_rewrite_exit, assigned_exit_x, old_exit_x, "exit"
+                    )
 
         if assigned_entry_x is not None and len(path) >= 2:
             old_entry_x = path[-2][0]
             if abs(old_entry_x - assigned_entry_x) > 0.5:
                 if not try_rewrite_entry(assigned_entry_x):
-                    found = False
-                    for k in range(1, 15):
-                        for sign in (1, -1):
-                            cand = assigned_entry_x + sign * STUB_FAN * k
-                            if abs(cand - old_entry_x) < 1.0:
-                                continue
-                            if gap_hi > gap_lo and not (gap_lo < cand < gap_hi):
-                                continue
-                            if try_rewrite_entry(cand):
-                                global_elbow_xs.append(cand)
-                                found = True
-                                break
-                        if found:
-                            break
-                    if not found and DEBUG_ROUTING:
-                        print(
-                            f"[rewrite-rejected entry] idx={idx} {src}->{dst} wanted {assigned_entry_x}, kept {old_entry_x} (no nearby alt clear)",
-                            file=sys.stderr,
-                        )
+                    _retry_rewrite(
+                        try_rewrite_entry, assigned_entry_x, old_entry_x, "entry"
+                    )
 
         if DEBUG_ROUTING:
             print(
@@ -1840,12 +2076,16 @@ def compute_diagram_layout(
     all_path_points = [p for _, _, _, path, _ in routed_edges for p in path] + [
         p for _, _, _, path in stub_edge_paths for p in path
     ]
-    all_xs_seen = [r[0] for r in all_rects] + [r[0] + r[2] for r in all_rects] + [
-        p[0] for p in all_path_points
-    ]
-    all_ys_seen = [r[1] for r in all_rects] + [r[1] + r[3] for r in all_rects] + [
-        p[1] for p in all_path_points
-    ]
+    all_xs_seen = (
+        [r[0] for r in all_rects]
+        + [r[0] + r[2] for r in all_rects]
+        + [p[0] for p in all_path_points]
+    )
+    all_ys_seen = (
+        [r[1] for r in all_rects]
+        + [r[1] + r[3] for r in all_rects]
+        + [p[1] for p in all_path_points]
+    )
     min_x_seen = min(all_xs_seen, default=0.0)
     min_y_seen = min(all_ys_seen, default=0.0)
 
@@ -1854,9 +2094,7 @@ def compute_diagram_layout(
 
     if dx or dy:
         positions = {k: (x + dx, y + dy) for k, (x, y) in positions.items()}
-        stub_positions = {
-            k: (x + dx, y + dy) for k, (x, y) in stub_positions.items()
-        }
+        stub_positions = {k: (x + dx, y + dy) for k, (x, y) in stub_positions.items()}
         node_rects = {
             k: (r[0] + dx, r[1] + dy, r[2], r[3]) for k, r in node_rects.items()
         }
@@ -1933,6 +2171,34 @@ def compute_diagram_layout(
 # 10. SVG rendering (consumes a precomputed layout)
 # --------------------------------------------------------------------------
 
+# Resolved flow fractions span orders of magnitude (e.g. 5.8e-07 to 1), so
+# stroke width is scaled log-ish rather than linearly, as a multiplier of
+# each renderer's own default edge width -- clamped so the widest and
+# thinnest lines both stay legible.
+_FRACTION_WIDTH_MIN_RATIO = 0.5
+_FRACTION_WIDTH_MAX_RATIO = 3.0
+_FRACTION_WIDTH_LOG_FLOOR = 1e-6
+
+
+def _fraction_width_ratio(value: Optional[float]) -> float:
+    """Maps a resolved flow-fraction value to a multiplier of the default
+    edge stroke width. `None` (the feature is off, or this edge's fraction
+    didn't resolve to a number) maps to 1.0 -- unscaled, so default output
+    and unresolved edges keep today's line width. A resolved, non-positive
+    value maps to the thinnest ratio; other values are clamped to
+    [_FRACTION_WIDTH_LOG_FLOOR, 1] and log-scale spread across
+    [_FRACTION_WIDTH_MIN_RATIO, _FRACTION_WIDTH_MAX_RATIO]."""
+    if value is None:
+        return 1.0
+    if value <= 0:
+        return _FRACTION_WIDTH_MIN_RATIO
+    clamped = min(max(value, _FRACTION_WIDTH_LOG_FLOOR), 1.0)
+    span = -math.log10(_FRACTION_WIDTH_LOG_FLOOR)
+    t = (math.log10(clamped) - math.log10(_FRACTION_WIDTH_LOG_FLOOR)) / span
+    return _FRACTION_WIDTH_MIN_RATIO + t * (
+        _FRACTION_WIDTH_MAX_RATIO - _FRACTION_WIDTH_MIN_RATIO
+    )
+
 
 def render_svg(
     nodes: List[KernelNode],
@@ -1944,6 +2210,9 @@ def render_svg(
     compact: bool = False,
     width_in: Optional[float] = None,
 ) -> Tuple[str, List[str]]:
+    """Rendering stage: draws `layout` (computing one via
+    `compute_diagram_layout` if not supplied) as a standalone SVG
+    document; returns the SVG text and any `--verify` warnings."""
     if layout is None:
         layout = compute_diagram_layout(
             nodes, edges, external_inputs, verify=verify, compact=compact
@@ -1964,8 +2233,8 @@ def render_svg(
     node_content: Dict[str, List[str]] = layout["node_content"]
     routed_edges = layout["routed_edges"]
     stub_edge_paths = layout["stub_edge_paths"]
-
-    node_by_name = {n.block_name: n for n in nodes}
+    edge_fraction_labels = layout.get("edge_fraction_labels", {})
+    edge_fraction_values = layout.get("edge_fraction_values", {})
 
     svg_parts: List[str] = []
     size_attrs = ""
@@ -2061,23 +2330,34 @@ def render_svg(
         stroke = "#b7791f" if is_back else "#4a5568"
         marker = "url(#arrow-back)" if is_back else "url(#arrow)"
         dash = ' stroke-dasharray="6,3"' if is_back else ""
+        width_ratio = _fraction_width_ratio(
+            edge_fraction_values.get((src, dst, varname))
+        )
+        width = "2" if width_ratio == 1.0 else f"{2 * width_ratio:.2f}"
         svg_parts.append(
-            f'<path d="{d}" fill="none" stroke="{stroke}" stroke-width="2"{dash} '
+            f'<path d="{d}" fill="none" stroke="{stroke}" stroke-width="{width}"{dash} '
             f'stroke-linecap="round" marker-end="{marker}"/>'
         )
 
+        frac = edge_fraction_labels.get((src, dst, varname))
+        label_text = f"{varname} ({frac})" if frac else varname
+
         other_paths = [p for j, p in enumerate(all_edge_paths) if j != edge_idx]
         placement = place_label(
-            path, varname, placed_label_rects,
-            obstacle_rects=obstacle_rects, other_paths=other_paths, require_space=compact,
+            path,
+            label_text,
+            placed_label_rects,
+            obstacle_rects=obstacle_rects,
+            other_paths=other_paths,
+            require_space=compact,
         )
         if placement is None:
             continue
         label_x, label_y, anchor_x, anchor_y = placement
-        lr = _label_rect_at(label_x, label_y, varname)
+        lr = _label_rect_at(label_x, label_y, label_text)
         placed_label_rects.append(lr)
 
-        if (label_x - anchor_x) ** 2 + (label_y - anchor_y) ** 2 > 4.0:
+        if _dist2((anchor_x, anchor_y), (label_x, label_y)) > 4.0:
             svg_parts.append(
                 f'<line x1="{anchor_x:.0f}" y1="{anchor_y:.0f}" x2="{label_x:.0f}" y2="{label_y:.0f}" '
                 f'stroke="{stroke}" stroke-width="1" opacity="0.5"/>'
@@ -2089,7 +2369,7 @@ def render_svg(
         )
         svg_parts.append(
             f'<text x="{label_x:.0f}" y="{label_y + 4:.0f}" font-size="11" fill="{stroke}" '
-            f'text-anchor="middle">{escape_xml(varname)}</text>'
+            f'text-anchor="middle">{escape_xml(label_text)}</text>'
         )
 
     legend_y = total_height - 46
@@ -2125,6 +2405,7 @@ def render_svg(
 
 
 def _empty_svg(title: str) -> str:
+    """Fallback SVG shown when no matching kernel blocks were found."""
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" '
         'font-family="Helvetica, Arial, sans-serif">'
@@ -2137,7 +2418,7 @@ def _empty_svg(title: str) -> str:
 
 
 # --------------------------------------------------------------------------
-# 11. PNG rendering via matplotlib (consumes the SAME precomputed layout)
+# 11. PNG rendering via matplotlib (consumes the same precomputed layout)
 # --------------------------------------------------------------------------
 
 
@@ -2193,11 +2474,12 @@ def render_png(
     node_content: Dict[str, List[str]] = layout["node_content"]
     routed_edges = layout["routed_edges"]
     stub_edge_paths = layout["stub_edge_paths"]
+    edge_fraction_labels = layout.get("edge_fraction_labels", {})
+    edge_fraction_values = layout.get("edge_fraction_values", {})
 
     # SVG coordinates grow downward; matplotlib's default y-axis grows
     # upward, so rather than flip every coordinate we simply invert the
     # y-axis limits and draw everything using the original (x, y) values.
-    UNIT_PX = 1.0  # 1 layout unit == 1 pixel at dpi=100 reference scale
     natural_fig_w_in = total_width / 100.0
     if width_in:
         # Setting the figure's physical size directly is what determines
@@ -2224,16 +2506,34 @@ def render_png(
     ax.set_aspect("equal")
     ax.axis("off")
     ax.add_patch(
-        Rectangle((0, 0), total_width, total_height, facecolor="#fafafa", edgecolor="none", zorder=0)
+        Rectangle(
+            (0, 0),
+            total_width,
+            total_height,
+            facecolor="#fafafa",
+            edgecolor="none",
+            zorder=0,
+        )
     )
     ax.text(
-        MARGIN, 22, title, fontsize=S(13), fontweight="bold", color="#1a1a1a", va="center", zorder=10,
+        MARGIN,
+        22,
+        title,
+        fontsize=S(13),
+        fontweight="bold",
+        color="#1a1a1a",
+        va="center",
+        zorder=10,
     )
 
     if layout["empty"]:
         ax.text(
-            20, 60, "No matching kernel blocks were found in this input file.",
-            fontsize=S(10), color="#718096", va="center",
+            20,
+            60,
+            "No matching kernel blocks were found in this input file.",
+            fontsize=S(10),
+            color="#718096",
+            va="center",
         )
         fig.savefig(out_path, dpi=dpi, facecolor="#fafafa")
         plt.close(fig)
@@ -2243,14 +2543,29 @@ def render_png(
         xs = [p[0] for p in path]
         ys = [p[1] for p in path]
         ls = (0, (6, 3)) if dashed else "-"
-        ax.plot(xs, ys, color=color, linewidth=S(lw), linestyle=ls, solid_capstyle="round", zorder=zorder)
+        ax.plot(
+            xs,
+            ys,
+            color=color,
+            linewidth=S(lw),
+            linestyle=ls,
+            solid_capstyle="round",
+            zorder=zorder,
+        )
 
     def draw_arrowhead(p_from, p_to, color, size, zorder):
         ax.annotate(
             "",
             xy=p_to,
             xytext=p_from,
-            arrowprops=dict(arrowstyle="-|>", color=color, lw=0.1, mutation_scale=S(size), shrinkA=0, shrinkB=0),
+            arrowprops=dict(
+                arrowstyle="-|>",
+                color=color,
+                lw=0.1,
+                mutation_scale=S(size),
+                shrinkA=0,
+                shrinkB=0,
+            ),
             zorder=zorder,
         )
 
@@ -2262,16 +2577,27 @@ def render_png(
             sx, sy, sw, sh = stub_rects[key]
             ax.add_patch(
                 FancyBboxPatch(
-                    (sx, sy), sw, sh,
+                    (sx, sy),
+                    sw,
+                    sh,
                     boxstyle=f"round,pad=0,rounding_size={S(6):.3f}",
-                    facecolor="#edf2f7", edgecolor="#a0aec0", linewidth=S(1.2), zorder=2,
+                    facecolor="#edf2f7",
+                    edgecolor="#a0aec0",
+                    linewidth=S(1.2),
+                    zorder=2,
                 )
             )
             wrapped = wrap_text(label, 22)[:2]
             for li, wline in enumerate(wrapped):
                 ax.text(
-                    sx + sw / 2, sy + 12 + li * 12, wline,
-                    fontsize=S(7.5), color="#4a5568", ha="center", va="center", zorder=3,
+                    sx + sw / 2,
+                    sy + 12 + li * 12,
+                    wline,
+                    fontsize=S(7.5),
+                    color="#4a5568",
+                    ha="center",
+                    va="center",
+                    zorder=3,
                 )
 
     # --- node boxes ---------------------------------------------------
@@ -2279,28 +2605,55 @@ def render_png(
         rx, ry, rw, rh = node_rects[n.block_name]
         ax.add_patch(
             FancyBboxPatch(
-                (rx, ry), BOX_W, rh,
+                (rx, ry),
+                BOX_W,
+                rh,
                 boxstyle=f"round,pad=0,rounding_size={S(10):.3f}",
-                facecolor="#ebf8ff", edgecolor="#2b6cb0", linewidth=S(1.6), zorder=2,
+                facecolor="#ebf8ff",
+                edgecolor="#2b6cb0",
+                linewidth=S(1.6),
+                zorder=2,
             )
         )
         ax.add_patch(
-            Rectangle((rx, ry), BOX_W, 24, facecolor="#2b6cb0", edgecolor="none", zorder=3)
+            Rectangle(
+                (rx, ry), BOX_W, 24, facecolor="#2b6cb0", edgecolor="none", zorder=3
+            )
         )
         ax.text(
-            rx + BOX_W / 2, ry + 12, f"[{n.block_name}]",
-            fontsize=S(9), fontweight="bold", color="white", ha="center", va="center", zorder=4,
+            rx + BOX_W / 2,
+            ry + 12,
+            f"[{n.block_name}]",
+            fontsize=S(9),
+            fontweight="bold",
+            color="white",
+            ha="center",
+            va="center",
+            zorder=4,
         )
         content_lines = node_content[n.block_name]
         for li, line in enumerate(content_lines):
             ax.text(
-                rx + 10, ry + 34 + li * LINE_H, line,
-                fontsize=S(8), color="#1a202c", ha="left", va="top", zorder=4,
+                rx + 10,
+                ry + 34 + li * LINE_H,
+                line,
+                fontsize=S(8),
+                color="#1a202c",
+                ha="left",
+                va="top",
+                zorder=4,
             )
         if not content_lines:
             ax.text(
-                rx + 10, ry + 34, n.base_type_label or "scalar kernel",
-                fontsize=S(8), color="#718096", style="italic", ha="left", va="top", zorder=4,
+                rx + 10,
+                ry + 34,
+                n.base_type_label or "scalar kernel",
+                fontsize=S(8),
+                color="#718096",
+                style="italic",
+                ha="left",
+                va="top",
+                zorder=4,
             )
 
     # --- stub (dashed) edges -------------------------------------------
@@ -2317,58 +2670,136 @@ def render_png(
     all_edge_paths = [p for (_, _, _, p, _) in routed_edges]
     for edge_idx, (src, dst, varname, path, is_back) in enumerate(routed_edges):
         color = "#b7791f" if is_back else "#4a5568"
-        draw_polyline(path, color, 1.5, dashed=is_back, zorder=6)
+        width_ratio = _fraction_width_ratio(
+            edge_fraction_values.get((src, dst, varname))
+        )
+        draw_polyline(path, color, 1.5 * width_ratio, dashed=is_back, zorder=6)
         if len(path) >= 2:
             draw_arrowhead(path[-2], path[-1], color, 10, zorder=6)
 
+        frac = edge_fraction_labels.get((src, dst, varname))
+        label_text = f"{varname} ({frac})" if frac else varname
+
         other_paths = [p for j, p in enumerate(all_edge_paths) if j != edge_idx]
         placement = place_label(
-            path, varname, placed_label_rects,
-            obstacle_rects=obstacle_rects, other_paths=other_paths, require_space=compact,
+            path,
+            label_text,
+            placed_label_rects,
+            obstacle_rects=obstacle_rects,
+            other_paths=other_paths,
+            require_space=compact,
         )
         if placement is None:
             continue
         label_x, label_y, anchor_x, anchor_y = placement
-        lr = _label_rect_at(label_x, label_y, varname)
+        lr = _label_rect_at(label_x, label_y, label_text)
         placed_label_rects.append(lr)
 
-        if (label_x - anchor_x) ** 2 + (label_y - anchor_y) ** 2 > 4.0:
+        if _dist2((anchor_x, anchor_y), (label_x, label_y)) > 4.0:
             ax.plot(
-                [anchor_x, label_x], [anchor_y, label_y],
-                color=color, linewidth=S(0.7), alpha=0.5, zorder=6,
+                [anchor_x, label_x],
+                [anchor_y, label_y],
+                color=color,
+                linewidth=S(0.7),
+                alpha=0.5,
+                zorder=6,
             )
 
         ax.add_patch(
             Rectangle(
-                (lr[0], lr[1]), lr[2], lr[3],
-                facecolor="#fafafa", edgecolor=color, linewidth=S(0.6), alpha=0.97, zorder=7,
+                (lr[0], lr[1]),
+                lr[2],
+                lr[3],
+                facecolor="#fafafa",
+                edgecolor=color,
+                linewidth=S(0.6),
+                alpha=0.97,
+                zorder=7,
             )
         )
         ax.text(
-            label_x, label_y, varname,
-            fontsize=S(7.5), color=color, ha="center", va="center", zorder=8,
+            label_x,
+            label_y,
+            label_text,
+            fontsize=S(7.5),
+            color=color,
+            ha="center",
+            va="center",
+            zorder=8,
         )
 
     # --- legend ----------------------------------------------------------
     legend_y = total_height - 46
-    ax.plot([MARGIN, MARGIN + 40], [legend_y, legend_y], color="#4a5568", linewidth=S(1.5), zorder=9)
-    draw_arrowhead((MARGIN + 30, legend_y), (MARGIN + 40, legend_y), "#4a5568", 9, zorder=9)
-    ax.text(MARGIN + 50, legend_y, "variable flowing between blocks", fontsize=S(8.5), color="#2d3748", va="center", zorder=9)
+    ax.plot(
+        [MARGIN, MARGIN + 40],
+        [legend_y, legend_y],
+        color="#4a5568",
+        linewidth=S(1.5),
+        zorder=9,
+    )
+    draw_arrowhead(
+        (MARGIN + 30, legend_y), (MARGIN + 40, legend_y), "#4a5568", 9, zorder=9
+    )
+    ax.text(
+        MARGIN + 50,
+        legend_y,
+        "variable flowing between blocks",
+        fontsize=S(8.5),
+        color="#2d3748",
+        va="center",
+        zorder=9,
+    )
 
     ax.plot(
-        [MARGIN, MARGIN + 40], [legend_y + 20, legend_y + 20],
-        color="#b7791f", linewidth=S(1.5), linestyle=(0, (6, 3)), zorder=9,
+        [MARGIN, MARGIN + 40],
+        [legend_y + 20, legend_y + 20],
+        color="#b7791f",
+        linewidth=S(1.5),
+        linestyle=(0, (6, 3)),
+        zorder=9,
     )
-    draw_arrowhead((MARGIN + 30, legend_y + 20), (MARGIN + 40, legend_y + 20), "#b7791f", 9, zorder=9)
-    ax.text(MARGIN + 50, legend_y + 24, "feedback / cycle edge", fontsize=S(8.5), color="#2d3748", va="center", zorder=9)
+    draw_arrowhead(
+        (MARGIN + 30, legend_y + 20),
+        (MARGIN + 40, legend_y + 20),
+        "#b7791f",
+        9,
+        zorder=9,
+    )
+    ax.text(
+        MARGIN + 50,
+        legend_y + 24,
+        "feedback / cycle edge",
+        fontsize=S(8.5),
+        color="#2d3748",
+        va="center",
+        zorder=9,
+    )
 
     if not compact:
         ax.plot(
-            [MARGIN, MARGIN + 40], [legend_y + 40, legend_y + 40],
-            color="#a0aec0", linewidth=S(1.1), linestyle=(0, (4, 3)), zorder=9,
+            [MARGIN, MARGIN + 40],
+            [legend_y + 40, legend_y + 40],
+            color="#a0aec0",
+            linewidth=S(1.1),
+            linestyle=(0, (4, 3)),
+            zorder=9,
         )
-        draw_arrowhead((MARGIN + 30, legend_y + 40), (MARGIN + 40, legend_y + 40), "#a0aec0", 8, zorder=9)
-        ax.text(MARGIN + 50, legend_y + 44, "external input / other_sources", fontsize=S(8.5), color="#4a5568", va="center", zorder=9)
+        draw_arrowhead(
+            (MARGIN + 30, legend_y + 40),
+            (MARGIN + 40, legend_y + 40),
+            "#a0aec0",
+            8,
+            zorder=9,
+        )
+        ax.text(
+            MARGIN + 50,
+            legend_y + 44,
+            "external input / other_sources",
+            fontsize=S(8.5),
+            color="#4a5568",
+            va="center",
+            zorder=9,
+        )
 
     fig.tight_layout(pad=0.3)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2388,6 +2819,7 @@ def render_dot(
     edges: List[Tuple[str, str, str]],
     external_inputs: Dict[str, List[str]],
 ) -> str:
+    """Rendering stage: emits Graphviz DOT source for the diagram."""
     lines = [
         "digraph KernelDiagram {",
         "  rankdir=LR;",
@@ -2429,6 +2861,7 @@ def render_dot(
 
 
 def _mermaid_id(name: str) -> str:
+    """Sanitizes a block name into a valid Mermaid node id."""
     return "n_" + re.sub(r"[^A-Za-z0-9_]", "_", name)
 
 
@@ -2438,6 +2871,7 @@ def render_mermaid(
     external_inputs: Dict[str, List[str]],
     title: str = "",
 ) -> str:
+    """Rendering stage: emits Mermaid `flowchart` source for the diagram."""
     lines = ["flowchart LR"]
     if title:
         lines.append(f"  %% {title}")
@@ -2477,11 +2911,15 @@ def render_markdown(
     external_inputs: Dict[str, List[str]],
     title: str = "Kernel diagram",
 ) -> str:
+    """Rendering stage: emits a Markdown block/edge table summary."""
+
     def esc_cell(s: str) -> str:
         return s.replace("|", "\\|").replace("\n", " ")
 
     lines = [f"# {title}", "", "## Blocks", ""]
-    lines.append("| Block | Family | Type | Variable | Inputs | Other sources | External inputs |")
+    lines.append(
+        "| Block | Family | Type | Variable | Inputs | Other sources | External inputs |"
+    )
     lines.append("|---|---|---|---|---|---|---|")
     for n in nodes:
         ext = external_inputs.get(n.block_name, [])
@@ -2504,6 +2942,7 @@ def render_markdown(
 
 
 def render_csv(edges: List[Tuple[str, str, str]]) -> str:
+    """Rendering stage: emits the edge list as CSV (from, to, variable)."""
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(["from", "to", "variable"])
@@ -2517,6 +2956,7 @@ def build_json_payload(
     edges: List[Tuple[str, str, str]],
     external_inputs: Dict[str, List[str]],
 ) -> dict:
+    """Rendering stage: emits the graph model as a plain JSON-serializable dict."""
     return {
         "blocks": [
             {
@@ -2558,6 +2998,9 @@ FORMAT_EXTENSIONS: Dict[str, str] = {
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """CLI entry point: parses args, runs the full parse -> graph model ->
+    layout -> render pipeline for each requested output format, and
+    writes the results."""
     parser = argparse.ArgumentParser(
         description="Diagram scalar-kernel blocks (TMAP8 FuelCycleSystemScalarKernel, "
         "MOOSE ParsedODEKernel, SAM-style ScalarKernels, or custom families) in a "
@@ -2666,6 +3109,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         "family created by --extra-kernel-type-pattern. Default: variable.",
     )
     parser.add_argument(
+        "--extra-input-fraction-param",
+        dest="extra_input_fraction_params",
+        action="append",
+        default=None,
+        help="Parameter name (repeatable) to read per-input flow-fraction "
+        "vectors from, for the custom family created by "
+        "--extra-kernel-type-pattern. Only used with --show-flow-fractions. "
+        "Default: none.",
+    )
+    parser.add_argument(
         "--list-kernel-types",
         action="store_true",
         help="Print the distinct `type = ...` values matched (with their "
@@ -2689,9 +3142,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         action="store_true",
         help="Generate a simplified diagram legible when printed/embedded "
         "narrow (see --width-in). Drops external-input/other_sources stubs, "
-        "edge variable labels, and per-box type/variable/parameter detail; "
-        "keeps box titles and the high-level node-to-node connections. "
-        "Only affects 'svg'/'png' output.",
+        "edge variable labels, flow-fraction labels, and per-box type/"
+        "variable/parameter detail; keeps box titles and the high-level "
+        "node-to-node connections. Only affects 'svg'/'png' output.",
+    )
+    parser.add_argument(
+        "--show-flow-fractions",
+        action="store_true",
+        help="Append each edge's flow fraction to its label, when the "
+        "destination kernel has an input_fractions-style parameter (see "
+        "--extra-input-fraction-param) whose entry for that edge is a "
+        "literal number or names a postprocessor that is a constant, or "
+        "resolves to one through a simple +-*/ expression -- otherwise the "
+        "raw name is shown. Also scales that edge's line thickness by the "
+        "resolved fraction (log-scaled; edges without a resolved fraction "
+        "keep the default width). No-op in --compact mode, or unless "
+        "'svg'/'png' is among the requested formats.",
     )
     parser.add_argument(
         "--width-in",
@@ -2716,7 +3182,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         global DEBUG_ROUTING
         DEBUG_ROUTING = True
 
-    width_in = args.width_in if args.width_in is not None else (5.0 if args.compact else None)
+    width_in = (
+        args.width_in if args.width_in is not None else (5.0 if args.compact else None)
+    )
 
     if args.list_kernel_families:
         print("Built-in kernel families:")
@@ -2725,7 +3193,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"      type pattern(s):        {', '.join(fam.type_patterns)}")
             print(f"      variable param:          {fam.variable_param}")
             print(f"      input param(s) tried:    {', '.join(fam.input_params)}")
-            print(f"      other_source param(s):   {', '.join(fam.other_source_params)}")
+            print(
+                f"      other_source param(s):   {', '.join(fam.other_source_params)}"
+            )
+            print(
+                "      input_fraction param(s): "
+                f"{', '.join(fam.input_fraction_params) or '(none)'}"
+            )
         return 0
 
     if args.input_file is None:
@@ -2749,12 +3223,21 @@ def main(argv: Optional[List[str]] = None) -> int:
             type_patterns=tuple(args.extra_patterns),
             base_label="",
             variable_param=args.extra_variable_param,
-            input_params=tuple(args.extra_input_params)
-            if args.extra_input_params
-            else ("inputs",),
-            other_source_params=tuple(args.extra_other_source_params)
-            if args.extra_other_source_params
-            else ("other_sources",),
+            input_params=(
+                tuple(args.extra_input_params)
+                if args.extra_input_params
+                else ("inputs",)
+            ),
+            other_source_params=(
+                tuple(args.extra_other_source_params)
+                if args.extra_other_source_params
+                else ("other_sources",)
+            ),
+            input_fraction_params=(
+                tuple(args.extra_input_fraction_params)
+                if args.extra_input_fraction_params
+                else ()
+            ),
         )
         # Custom patterns take priority over the built-ins.
         active_families = [custom_family] + active_families
@@ -2826,7 +3309,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     needs_layout = ("svg" in formats) or ("png" in formats)
     if needs_layout:
         shared_layout = compute_diagram_layout(
-            nodes, edges, external_inputs, verify=args.verify, compact=args.compact
+            nodes,
+            edges,
+            external_inputs,
+            verify=args.verify,
+            compact=args.compact,
+            show_flow_fractions=args.show_flow_fractions,
         )
 
     verify_warnings: List[str] = []
@@ -2836,8 +3324,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         out_path = path_for(fmt)
         if fmt == "svg":
             svg_text, warnings = render_svg(
-                nodes, edges, external_inputs, title=title, verify=args.verify,
-                layout=shared_layout, compact=args.compact, width_in=width_in,
+                nodes,
+                edges,
+                external_inputs,
+                title=title,
+                verify=args.verify,
+                layout=shared_layout,
+                compact=args.compact,
+                width_in=width_in,
             )
             verify_warnings = warnings
             rendered_pixel_format = True
@@ -2848,9 +3342,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         elif fmt == "png":
             try:
                 warnings = render_png(
-                    nodes, edges, external_inputs, out_path=out_path, title=title,
-                    verify=args.verify, dpi=args.png_dpi, layout=shared_layout,
-                    compact=args.compact, width_in=width_in,
+                    nodes,
+                    edges,
+                    external_inputs,
+                    out_path=out_path,
+                    title=title,
+                    verify=args.verify,
+                    dpi=args.png_dpi,
+                    layout=shared_layout,
+                    compact=args.compact,
+                    width_in=width_in,
                 )
             except RuntimeError as e:
                 print(f"error: {e}", file=sys.stderr)
