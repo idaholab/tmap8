@@ -15,8 +15,16 @@ from pathlib import Path
 script_folder = os.path.dirname(__file__)
 os.chdir(script_folder)
 
+if "TMAP8_DIR" in os.environ:
+    scripts_folder = os.path.join(os.environ["TMAP8_DIR"], "scripts") + "/"
+elif "/tmap8/doc" in script_folder.lower():
+    scripts_folder = "../../../../scripts/"
+else:
+    scripts_folder = "../../../scripts/"
+
+
 spec = importlib.util.spec_from_file_location(
-    "create_fuel_cycle_diagram", "../../../scripts/create_fuel_cycle_diagram.py"
+    "create_fuel_cycle_diagram", scripts_folder + "create_fuel_cycle_diagram.py"
 )
 cfd = importlib.util.module_from_spec(spec)
 sys.modules["create_fuel_cycle_diagram"] = cfd

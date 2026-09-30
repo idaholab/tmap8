@@ -8,7 +8,12 @@ from pathlib import Path
 script_folder = os.path.dirname(__file__)
 os.chdir(script_folder)
 
-if "/tmap8/doc" in script_folder.lower():
+if "TMAP8_DIR" in os.environ:
+    input_folder = (
+        os.path.join(os.environ["TMAP8_DIR"], "test/tests/fuel_cycle_Abdou") + "/"
+    )
+    scripts_folder = os.path.join(os.environ["TMAP8_DIR"], "scripts") + "/"
+elif "/tmap8/doc" in script_folder.lower():
     input_folder = "../../../../test/tests/fuel_cycle_Abdou/"
     scripts_folder = "../../../../scripts/"
 else:
