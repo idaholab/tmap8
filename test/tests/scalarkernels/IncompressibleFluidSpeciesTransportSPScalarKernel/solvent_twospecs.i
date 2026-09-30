@@ -113,6 +113,10 @@ equib = 0.5
     g = ${gravity}
     is_implicit = True
   []
+  [pipe1_DT]
+    type = ODETimeDerivative
+    variable = 'm1'
+  []
   [temp0]
     type = ParsedODEKernel
     expression = 'T0 - ${Tin}'
@@ -131,6 +135,10 @@ equib = 0.5
     reference_pressure = ${Pin}
     variable = T1
     is_implicit = True
+  []
+  [temp1_DT]
+    type = ODETimeDerivative
+    variable = 'T1'
   []
   [temp2]
     type = ParsedODEKernel
@@ -175,6 +183,10 @@ equib = 0.5
     is_homonuclear = false
     equilibrium_constant = '${equib}'
     wall_solubility = '${fparse ${wsol}} ${wsol}'
+  []
+  [conc1_DT]
+    type = ODETimeDerivative
+    variable = 'C1'
   []
   [conc2]
     type = ParsedODEKernel

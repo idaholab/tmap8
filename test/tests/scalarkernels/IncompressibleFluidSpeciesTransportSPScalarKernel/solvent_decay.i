@@ -108,6 +108,10 @@ ftype = "solvent"
     g = ${gravity}
     is_implicit = True
   []
+  [pipe1_DT]
+    type = ODETimeDerivative
+    variable = 'm1'
+  []
   [temp0]
     type = ParsedODEKernel
     expression = 'T0 - ${Tin}'
@@ -126,6 +130,10 @@ ftype = "solvent"
     reference_pressure = ${Pin}
     variable = T1
     is_implicit = True
+  []
+  [temp1_DT]
+    type = ODETimeDerivative
+    variable = 'T1'
   []
   [temp2]
     type = ParsedODEKernel
@@ -170,6 +178,10 @@ ftype = "solvent"
     is_homonuclear = true
     equilibrium_constant = '${fsol}'
     wall_solubility = '${wsol}'
+  []
+  [conc1_DT]
+    type = ODETimeDerivative
+    variable = 'C1'
   []
   [conc2]
     type = ParsedODEKernel

@@ -10,11 +10,7 @@
 #include "IncompressibleFluidSpeciesTransportSPScalarKernel.h"
 
 // MOOSE includes
-#include "Assembly.h"
-#include "MooseVariableScalar.h"
-#include "FunctorInterface.h"
 #include "ScalarCoupleable.h"
-#include "SinglePhaseFluidProperties.h"
 
 registerMooseObject("TMAP8App", IncompressibleFluidSpeciesTransportSPScalarKernel);
 registerMooseObject("TMAP8App", ADIncompressibleFluidSpeciesTransportSPScalarKernel);
@@ -25,12 +21,8 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
 {
   InputParameters params = is_ad ? ADIncompressibleEnergySPScalarKernel::validParams()
                                  : IncompressibleEnergySPScalarKernel::validParams();
-  // params += FunctorInterface::validParams();
   params.addClassDescription(
       "Implements a generic mass transport solve over a 1D flow path segment.");
-  // Lots of inputs so we need to be clear what is what
-  // This block defines coupled state variables the kernel relies on, that aren't inherited from the
-  // energy kernel.
   params.addCoupledVar("temperature",
                        {},
                        "Fluid temperature in segment. Takes a "
@@ -53,7 +45,6 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
                        "Concentration of dissociated atoms in the wall that form the molecular "
                        "primary species or are the atomic primary species. Takes a "
                        "list of scalar variable names");
-  // This block specifies the radioactive decay behaviors of precursors and primary species
   params.addParam<std::vector<MooseFunctorName>>(
       "precursor_half_lives",
       std::vector<MooseFunctorName>({}),
@@ -61,15 +52,9 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
       "vector of functors.");
   params.addParam<MooseFunctorName>("half_life",
                                     "primary molecular or atomic species half life [s].");
-  // This block defines the fluid type and chemical characteristics of fluid/species/wall
-  // interactions
-  params.addRequiredParam<std::string>(
-      "fluid_type",
-      "Define fluid type with regard to dissolved species state. Accepted values: "
-      "1) solvent: Dissolves molecular gases, primary species is a molecule, EG water/salts."
-      "2) metal: Dissociates molecules into atoms, primary species is an atom, EG lead/sodium."
-      "3) gas: Collection of gases with partial pressures, primary species is a molecule, EG "
-      "air/helium.");
+  params.addRequiredParam<std::string>("fluid_type",
+                                       "Define fluid type with regard to dissolved species state. "
+                                       "Accepted values: solvent, metal, gas");
   params.addRequiredParam<MooseFunctorName>("species_diffusivity",
                                             "Diffusivity of primary"
                                             "molecular or atomic species in fluid [m^2/s]");
@@ -81,34 +66,25 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
       "dissociation_coeff",
       0.0,
       "dissociation coefficient for primary molecular species at surface."
-      "Only used if fluid type is gas. [mol/Pa*m^2*s]."
-      "If disociation & recombination coefficients are not given for gas, we'll proceed assuming "
-      "equilibrium and use Sievert's law.");
+      "Only used if fluid type is gas. [mol/Pa*m^2*s].");
   params.addParam<MooseFunctorName>(
       "recombination_coeff",
       0.0,
       "recombination coefficient for primary molecular species consisting of two atomic species "
       "(coupled variables)."
-      "Only used if fluid type is gas. [m^4/s]."
-      "If disociation & recombination coefficients are not given for gas, , we'll proceed assuming "
-      "equilibrium and use Sievert's law.");
+      "Only used if fluid type is gas. [m^4/s].");
   params.addParam<std::vector<MooseFunctorName>>(
       "wall_solubility",
       std::vector<MooseFunctorName>({}),
       "wall solubility coefficient(s) [mol/Pa*m^3] or [mol/Pa^0.5*m^3]"
       "(Henry's if fluid type is metal [atomic primary species], Sievert's for solvents/gases "
-      "[molecular primary species])."
-      "If primary molecular species is not monatomic, must provide multiple solubility "
-      "coefficients."
-      "Takes a vector of functors.");
+      "[molecular primary species]).");
   params.addParam<bool>("is_homonuclear",
                         true,
                         "Whether primary molecular species is a homonuclear molecule. Does nothing "
                         "if fluid type is metal.");
   params.addParam<MooseFunctorName>(
-      "equilibrium_constant",
-      "equilibrium constant for primary non-monatomic molecular species."
-      "Does nothing if primary species is monatomic or if fluid type is metal or gas.");
+      "equilibrium_constant", "equilibrium constant for primary non-monatomic molecular species.");
 
   return params;
 }
@@ -117,10 +93,6 @@ template <bool is_ad>
 IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
     IncompressibleFluidSpeciesTransportSPScalarKernelTempl(const InputParameters & parameters)
   : Base(parameters),
-    // FunctorInterface(this),
-    // Lots of inputs so we need to be clear what is what
-    // This block defines coupled state variables the kernel relies on, that aren't inherited from
-    // the energy kernel.
     _T(ScalarCoupleable::coupledScalarValue("temperature")),
     _Cup(ScalarCoupleable::coupledScalarValue("upstream_concentration")),
     _Cdown(ScalarCoupleable::coupledScalarValue("downstream_concentration")),
@@ -128,12 +100,9 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
     _precursors(_n_precursors),
     _n_diss(ScalarCoupleable::coupledScalarComponents("wall_dissociated_atoms")),
     _diss(_n_diss),
-    // This block specifies the radioactive decay behaviors of precursors and primary species
     _precursorHLs(
         this->template getParam<std::vector<MooseFunctorName>>("precursor_half_lives").size()),
     _primaryHL(this->template getFunctor<GenericReal<is_ad>>("half_life")),
-    // This block defines the fluid type and chemical characteristics of fluid/species/wall
-    // interactions
     _fluid_type(this->template getParam<std::string>("fluid_type")),
     _diffus(this->template getFunctor<GenericReal<is_ad>>("species_diffusivity")),
     _fluid_sol(this->template getFunctor<GenericReal<is_ad>>("fluid_solubility")),
@@ -149,19 +118,19 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
   {
     mooseError("Must provide consistent number of precursors and precursor half lives!");
   }
-  for (size_t i = 0; i < _n_precursors; ++i)
+  for (const auto j : make_range(_n_precursors))
   {
-    _precursors[i] = &(ScalarCoupleable::coupledScalarValue("precursors", i));
-    _precursorHLs[i] = &(this->template getFunctor<GenericReal<is_ad>>(PHL_names[i]));
+    _precursors[j] = &(ScalarCoupleable::coupledScalarValue("precursors", j));
+    _precursorHLs[j] = &(this->template getFunctor<GenericReal<is_ad>>(PHL_names[j]));
   }
   if (_n_diss != wallsol_names.size())
   {
     mooseError("Must provide consistent number of dissociated atoms and wall solubilities!");
   }
-  for (size_t i = 0; i < _n_diss; ++i)
+  for (const auto j : make_range(_n_diss))
   {
-    _diss[i] = &(ScalarCoupleable::coupledScalarValue("wall_dissociated_atoms", i));
-    _wall_sol[i] = &(this->template getFunctor<GenericReal<is_ad>>(wallsol_names[i]));
+    _diss[j] = &(ScalarCoupleable::coupledScalarValue("wall_dissociated_atoms", j));
+    _wall_sol[j] = &(this->template getFunctor<GenericReal<is_ad>>(wallsol_names[j]));
   }
 }
 
@@ -170,43 +139,41 @@ GenericReal<is_ad>
 IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual()
 {
   GenericReal<is_ad> mass_residual = 0;
-  const Moose::ElemArg _qp = Moose::ElemArg();
-  const int _i = 0;
-  const auto _state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
+  const Moose::ElemArg qp = Moose::ElemArg();
+  const int i = 0;
+  const auto state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
   // start by getting fluid properties
-  auto _Tin = 1.0 / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tdown[_i] +
-              1.0 / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tup[_i];
-  auto _mu = Base::_fp.mu_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
-  auto _rho = Base::_fp.rho_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+  const auto Tin = 1.0 / 2.0 * (1 - abs(Base::_m[i]) / Base::_m[i]) * Base::_Tdown[i] +
+                   1.0 / 2.0 * (1 + abs(Base::_m[i]) / Base::_m[i]) * Base::_Tup[i];
+  const auto mu = Base::_fp.mu_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
+  const auto rho = Base::_fp.rho_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
 
   // Decide flow regime for MTC
-  auto _Dh = 4.0 * Base::_area(_qp, _state) / Base::_perimeter(_qp, _state);
-  auto _G = abs(Base::_m[_i]) / Base::_area(_qp, _state);
-  auto _Re = _G * _Dh / _mu;
-  auto _Sc = _mu / _rho / _diffus(_qp, _state);
+  const auto Dh = 4.0 * Base::_area(qp, state) / Base::_perimeter(qp, state);
+  const auto G = abs(Base::_m[i]) / Base::_area(qp, state);
+  const auto Re = G * Dh / mu;
+  const auto Sc = mu / rho / _diffus(qp, state);
   // Mass transfer to fluid (Linton-Sherwood)
-  auto _KT = 0.023 * pow(_Re, 0.8) * pow(_Sc, 1.0 / 3.0) * _diffus(_qp, _state) / _Dh;
-  auto _pKT = &_KT;
-  GenericReal<is_ad> _Jm = 0.0;
-  auto _pJm = &_Jm;
+  const auto KT = 0.023 * pow(Re, 0.8) * pow(Sc, 1.0 / 3.0) * _diffus(qp, state) / Dh;
+  GenericReal<is_ad> Jm = 0.0;
   if (_fluid_type == "gas")
   {
-    if (_recomb(_qp, _state) != 0.0 & _dissoc(_qp, _state) != 0.0)
+    if (_recomb(qp, state) != 0.0 & _dissoc(qp, state) != 0.0)
     {
       if (_is_homonuc)
       {
-        *_pJm = 2.0 * _recomb(_qp, _state) * pow((*(_diss[0]))[_i], 2);
+        Jm = 2.0 * _recomb(qp, state) * pow((*(_diss[0]))[i], 2);
       }
       else
       {
-        *_pJm = 1.0;
-        for (size_t i = 0; i < _n_diss; ++i)
+        Jm = 1.0;
+        for (const auto j : make_range(_n_diss))
         {
-          *_pJm = (*(_diss[i]))[_i] * *_pJm;
+          Jm = (*(_diss[j]))[i] * Jm;
         }
-        *_pJm = 2.0 * _recomb(_qp, _state) * *_pJm;
+        Jm = 2.0 * _recomb(qp, state) * Jm;
       }
-      *_pJm = *_pJm - _dissoc(_qp, _state) * Base::_u[_i] / _fluid_sol(_qp, _state);
+      Jm = Jm - _dissoc(qp, state) * Base::_u[i] / _fluid_sol(qp, state);
     }
     else
     {
@@ -215,46 +182,43 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   }
   else if (_fluid_type == "metal")
   {
-    *_pJm = *_pKT * ((*(_wall_sol[0]))(_qp, _state) / _fluid_sol(_qp, _state) * (*(_diss[0]))[_i] -
-                     Base::_u[_i]);
+    Jm = KT *
+         ((*(_wall_sol[0]))(qp, state) / _fluid_sol(qp, state) * (*(_diss[0]))[i] - Base::_u[i]);
   }
   else if (_fluid_type == "solvent")
   {
     if (_is_homonuc)
     {
-      *_pJm =
-          2 * (*_pKT) *
-          (_fluid_sol(_qp, _state) * pow((*(_diss[0]))[_i] / (*(_wall_sol[0]))(_qp, _state), 2) -
-           Base::_u[_i]);
+      Jm = 2 * KT *
+           (_fluid_sol(qp, state) * pow((*(_diss[0]))[i] / (*(_wall_sol[0]))(qp, state), 2) -
+            Base::_u[i]);
     }
     else
     {
-      *_pJm = (*(_diss[0]))[_i] / (*(_wall_sol[0]))(_qp, _state);
-      for (size_t i = 1; i < _n_diss; ++i)
+      Jm = 1.0;
+      for (const auto j : make_range(_n_diss))
       {
-        *_pJm = (*(_diss[i]))[_i] / (*(_wall_sol[i]))(_qp, _state) * (*_pJm);
+        Jm = (*(_diss[j]))[i] / (*(_wall_sol[j]))(qp, state) * Jm;
       }
-      *_pJm = sqrt(_equib(_qp, _state)) * (*_pJm);
-      *_pJm = (*_pJm) - Base::_u[_i];
-      *_pJm = (*_pKT) / 1.380649E-23 / 6.022E+23 / _T[_i] * (*_pJm);
+      Jm = sqrt(_equib(qp, state)) * Jm;
+      Jm = Jm - Base::_u[i];
+      Jm = KT / 1.380649E-23 / 6.022E+23 / _T[i] * Jm;
     }
   }
   // Advection component
-  mass_residual += (Base::_m[_i] / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * _Cdown[_i] -
-                    Base::_m[_i] / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * _Cup[_i] +
-                    abs(Base::_m[_i]) * Base::_u[_i]) /
-                   Base::_length(_qp, _state) / Base::_area(_qp, _state) / _rho;
+  mass_residual += (Base::_m[i] / 2.0 * (1 - abs(Base::_m[i]) / Base::_m[i]) * _Cdown[i] -
+                    Base::_m[i] / 2.0 * (1 + abs(Base::_m[i]) / Base::_m[i]) * _Cup[i] +
+                    abs(Base::_m[i]) * Base::_u[i]) /
+                   Base::_length(qp, state) / Base::_area(qp, state) / rho;
   // Precursor decay
-  for (size_t i = 0; i < _n_precursors; ++i)
+  for (const auto j : make_range(_n_precursors))
   {
-    mass_residual -= (*(_precursors[i]))[_i] * log(2) / (*(_precursorHLs[i]))(_qp, _state);
+    mass_residual -= (*(_precursors[j]))[i] * log(2) / (*(_precursorHLs[j]))(qp, state);
   }
   // Primary species decay
-  mass_residual += Base::_u[_i] * log(2) / _primaryHL(_qp, _state);
+  mass_residual += Base::_u[i] * log(2) / _primaryHL(qp, state);
   // Wall mass transfer
-  mass_residual -= _Jm * Base::_perimeter(_qp, _state) / Base::_area(_qp, _state);
-  // Transient term
-  mass_residual += Base::_u_dot[_i];
+  mass_residual -= Jm * Base::_perimeter(qp, state) / Base::_area(qp, state);
 
   return mass_residual;
 }
@@ -265,31 +229,29 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian
 {
   if constexpr (!is_ad)
   {
-    GenericReal<is_ad> mass_residual = 0;
-    const Moose::ElemArg _qp = Moose::ElemArg();
-    const int _i = 0;
-    const auto _state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
+    GenericReal<is_ad> mass_jacob = 0;
+    const Moose::ElemArg qp = Moose::ElemArg();
+    const int i = 0;
+    const auto state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
     // start by getting fluid properties
-    auto _Tin = 1.0 / 2.0 * (1 - abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tdown[_i] +
-                1.0 / 2.0 * (1 + abs(Base::_m[_i]) / Base::_m[_i]) * Base::_Tup[_i];
-    auto _mu = Base::_fp.mu_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
-    auto _rho = Base::_fp.rho_from_p_T(Base::_Pref(_qp, _state), (_T[_i] + _Tin) / 2);
+    const auto Tin = 1.0 / 2.0 * (1 - abs(Base::_m[i]) / Base::_m[i]) * Base::_Tdown[i] +
+                     1.0 / 2.0 * (1 + abs(Base::_m[i]) / Base::_m[i]) * Base::_Tup[i];
+    const auto mu = Base::_fp.mu_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
+    const auto rho = Base::_fp.rho_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
 
     // Decide flow regime for MTC
-    auto _Dh = 4.0 * Base::_area(_qp, _state) / Base::_perimeter(_qp, _state);
-    auto _G = abs(Base::_m[_i]) / Base::_area(_qp, _state);
-    auto _Re = _G * _Dh / _mu;
-    auto _Sc = _mu / _rho / _diffus(_qp, _state);
+    const auto Dh = 4.0 * Base::_area(qp, state) / Base::_perimeter(qp, state);
+    const auto G = abs(Base::_m[i]) / Base::_area(qp, state);
+    const auto Re = G * Dh / mu;
+    const auto Sc = mu / rho / _diffus(qp, state);
     // Mass transfer to fluid (Linton-Sherwood)
-    auto _KT = 0.023 * pow(_Re, 0.8) * pow(_Sc, 1.0 / 3.0) * _diffus(_qp, _state) / _Dh;
-    auto _pKT = &_KT;
-    auto _Jm = 0.0;
-    auto _pJm = &_Jm;
+    const auto KT = 0.023 * pow(Re, 0.8) * pow(Sc, 1.0 / 3.0) * _diffus(qp, state) / Dh;
+    auto Jm = 0.0;
     if (_fluid_type == "gas")
     {
-      if (_recomb(_qp, _state) != 0.0 & _dissoc(_qp, _state) != 0.0)
+      if (_recomb(qp, state) != 0.0 & _dissoc(qp, state) != 0.0)
       {
-        *_pJm = -_dissoc(_qp, _state) / _fluid_sol(_qp, _state);
+        Jm = -_dissoc(qp, state) / _fluid_sol(qp, state);
       }
       else
       {
@@ -298,31 +260,27 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian
     }
     else if (_fluid_type == "metal")
     {
-      *_pJm = -*_pKT;
+      Jm = -KT;
     }
     else if (_fluid_type == "solvent")
     {
       if (_is_homonuc)
       {
-        *_pJm = -2 * (*_pKT);
+        Jm = -2 * KT;
       }
       else
       {
-        *_pJm = -(*_pKT) / 1.380649E-23 / 6.022E+23 / _T[_i];
+        Jm = -KT / 1.380649E-23 / 6.022E+23 / _T[i];
       }
     }
     // Advection component
-    mass_residual +=
-        (abs(Base::_m[_i])) / Base::_length(_qp, _state) / Base::_area(_qp, _state) / _rho;
+    mass_jacob += (abs(Base::_m[i])) / Base::_length(qp, state) / Base::_area(qp, state) / rho;
     // Primary species decay
-    mass_residual +=
-        log(2) / _primaryHL(_qp, _state) * exp(-log(2) / _primaryHL(_qp, _state) * Base::_dt);
+    mass_jacob += log(2) / _primaryHL(qp, state) * exp(-log(2) / _primaryHL(qp, state) * Base::_dt);
     // Wall mass transfer
-    mass_residual -= _Jm * Base::_perimeter(_qp, _state) / Base::_area(_qp, _state);
-    // Transient term
-    mass_residual += Base::_du_dot_du[_i];
+    mass_jacob -= Jm * Base::_perimeter(qp, state) / Base::_area(qp, state);
 
-    return mass_residual;
+    return mass_jacob;
   }
   else
   {
