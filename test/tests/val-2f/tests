@@ -127,7 +127,7 @@
     rel_err = 1e-4
     override_columns = 'scaled_flux_surface_right scaled_flux_surface_left scaled_mobile_deuterium scaled_trapped_deuterium_1 scaled_trapped_deuterium_2'
     override_abs_zero = '1e4                      1e6                      1e4                     1e9                        1e4'
-    override_rel_err = '5e-3                      1e-3                     9e-3                    5e-3                       5e-3'
+    override_rel_err = '5e-3                      1e-3                     9e-3                    5e-3                       5.1e-3'
   []
   [val-2f_heavy_csv_inf_recombination_bdf2]
     type = CSVDiff

@@ -773,28 +773,28 @@ diffusivity_e_prefactor = '${units ${diffusivity_e_prefactor_m2s} m^2/s -> mum^2
     type = ADSideAverageMaterialProperty
     boundary = left
     property = flux_on_T2O_dry
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'TIMESTEP_END'
     outputs = 'console csv exodus'
   []
   [recombination_flux_T2_dry_left]
     type = ADSideAverageMaterialProperty
     boundary = left
     property = flux_on_T2_dry
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'TIMESTEP_END'
     outputs = 'console csv exodus'
   []
   [recombination_flux_T2O_wet_left]
     type = ADSideAverageMaterialProperty
     boundary = left
     property = flux_on_T2O_wet
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'TIMESTEP_END'
     outputs = 'console csv exodus'
   []
   [recombination_flux_T2_wet_left]
     type = ADSideAverageMaterialProperty
     boundary = left
     property = flux_on_T2_wet
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'TIMESTEP_END'
     outputs = 'console csv exodus'
   []
   # necessary parameters
