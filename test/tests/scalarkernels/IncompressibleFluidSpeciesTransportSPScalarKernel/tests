@@ -23,42 +23,42 @@
     type = CSVDiff
     input = solvent_decay.i
     csvdiff = solvent_decay_out.csv
-    cli_args = 'HL=100'
+    cli_args = 'primary_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a solvent with primary species decay within 1%'
   []
   [decay_metal]
     type = CSVDiff
     input = metal_decay.i
     csvdiff = metal_decay_out.csv
-    cli_args = 'HL=100'
+    cli_args = 'primary_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a liquid metal with primary species decay within 1%'
   []
   [decay_gas]
     type = CSVDiff
     input = gas_decay.i
     csvdiff = gas_decay_out.csv
-    cli_args = 'HL=100'
+    cli_args = 'primary_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a gas with primary species decay within 1%'
   []
   [precursor_solvent]
     type = CSVDiff
     input = solvent_precursor.i
     csvdiff = solvent_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a solvent with precursor species decay within 1%'
   []
   [precursor_metal]
     type = CSVDiff
     input = metal_precursor.i
     csvdiff = metal_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a liquid metal with precursor species decay within 1%'
   []
   [precursor_gas]
     type = CSVDiff
     input = gas_precursor.i
     csvdiff = gas_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100'
     requirement = 'The kernel must reproduce an analytical expression for transport to a gas with precursor species decay within 1%'
   []
   [twospecs_solvent]
@@ -98,42 +98,42 @@
     type = CSVDiff
     input = solvent_decay.i
     csvdiff = solvent_decay_out.csv
-    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'primary_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a solvent with primary species decay within 1%'
   []
   [ADdecay_metal]
     type = CSVDiff
     input = metal_decay.i
     csvdiff = metal_decay_out.csv
-    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'primary_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a liquid metal with primary species decay within 1%'
   []
   [ADdecay_gas]
     type = CSVDiff
     input = gas_decay.i
     csvdiff = gas_decay_out.csv
-    cli_args = 'HL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'primary_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a gas with primary species decay within 1%'
   []
   [ADprecursor_solvent]
     type = CSVDiff
     input = solvent_precursor.i
     csvdiff = solvent_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a solvent with precursor species decay within 1%'
   []
   [ADprecursor_metal]
     type = CSVDiff
     input = metal_precursor.i
     csvdiff = metal_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a liquid metal with precursor species decay within 1%'
   []
   [ADprecursor_gas]
     type = CSVDiff
     input = gas_precursor.i
     csvdiff = gas_precursor_out.csv
-    cli_args = 'Prein=0.01 PHL=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
+    cli_args = 'precursor_concentration_inlet=0.01 precursor_half_life=100 ScalarKernels/conc1/type=ADIncompressibleFluidSpeciesTransportSPScalarKernel'
     requirement = 'The AD kernel must reproduce an analytical expression for transport to a gas with precursor species decay within 1%'
   []
   [ADtwospecs_solvent]
