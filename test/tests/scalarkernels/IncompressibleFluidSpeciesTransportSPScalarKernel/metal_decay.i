@@ -1,4 +1,4 @@
-# TODO add description
+# Test liquid metal type fluid, with primary species radioactive decay
 
 !include base.i
 

@@ -1,4 +1,4 @@
-# TODO add description
+# Test solvent type fluid (water, salt, etc)
 
 !include base.i
 

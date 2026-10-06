@@ -1,5 +1,7 @@
 # Base input file for the incompressibleFluidSpeciesTransportSPScalarKernel tests.
-# Sets up an incompressible single pipe model with momentum, energy, and mass transfer.
+# Sets up an incompressible single phase pipe model with momentum, energy, and mass transfer.
+# These are simple verification tests, should not be taken as accurate example cases.
+
 pipe_length = ${units 1.0 m}
 pipe_radius = ${units 0.025 m}
 mass_flow_rate = ${units 1.0 kg/s}

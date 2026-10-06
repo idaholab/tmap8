@@ -1,4 +1,4 @@
-# TODO add description
+# Test gas type fluid (air, etc.), with precursor species radioactive decay
 
 !include base.i
 
