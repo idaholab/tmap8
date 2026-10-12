@@ -114,10 +114,10 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal PLim = exp(-9.41 + 3.32e-02 * _neighbor_temperature[_qp] -
                           3.30e-06 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
-  // Transition fitted parameters, beta -> high pressure; alpha -> low pressure
-  const ADReal beta_corr = 2.39 - 5.1e-03 * _neighbor_temperature[_qp] +
+  // Transition fitted parameters, zeta -> high pressure; delta -> low pressure
+  const ADReal zeta_corr = 2.39 - 5.1e-03 * _neighbor_temperature[_qp] +
                            5.42e-06 * Utility::pow<2>(_neighbor_temperature[_qp]);
-  const Real alpha = 1.008;
+  const Real delta = 1.008;
 
   // -------------------------------
   // Ratio r = P / P_limit   (used for blending thresholds in log-space)
@@ -133,27 +133,27 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
       pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, neighbor_pressure - PLim);
 
   // -------------------------------
-  // Mid branch (exact continuity at alpha*Plim and beta*Plim)
+  // Mid branch (exact continuity at delta*Plim and zeta*Plim)
   // -------------------------------
   // Boundaries in absolute pressure
-  const ADReal alpha_Plim = alpha * PLim;    // LP
-  const ADReal beta_Plim = beta_corr * PLim; // HP
+  const ADReal delta_Plim = delta * PLim;    // LP
+  const ADReal zeta_Plim = zeta_corr * PLim; // HP
 
-  // LP value at alpha_Plim
-  const ADReal f_LP_alpha_Plim =
-      pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - alpha_Plim);
+  // LP value at delta_Plim
+  const ADReal f_LP_delta_Plim =
+      pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - delta_Plim);
 
-  // HP value at beta_Plim
-  const ADReal f_HP_beta_Plim =
-      pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, beta_Plim - PLim);
+  // HP value at zeta_Plim
+  const ADReal f_HP_zeta_Plim =
+      pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, zeta_Plim - PLim);
 
   // Solve for af_mid(P) = m0 + m1 * log(P)
-  const ADReal L_a = log(max(alpha_Plim, 1e-10));
-  const ADReal L_b = log(max(beta_Plim, 1e-10));
+  const ADReal L_a = log(max(delta_Plim, 1e-10));
+  const ADReal L_b = log(max(zeta_Plim, 1e-10));
 
   // Determine af_mid(P) slopes
-  m1 = (f_HP_beta_Plim - f_LP_alpha_Plim) / (L_b - L_a);
-  m0 = f_LP_alpha_Plim - (f_HP_beta_Plim - f_LP_alpha_Plim) / (L_b - L_a) * L_a;
+  m1 = (f_HP_zeta_Plim - f_LP_delta_Plim) / (L_b - L_a);
+  m0 = f_LP_delta_Plim - (f_HP_zeta_Plim - f_LP_delta_Plim) / (L_b - L_a) * L_a;
 
   // Mid branch at current pressure using limited slope
   const ADReal f_mid = m0 + m1 * log(max(neighbor_pressure, 1e-10));
@@ -162,16 +162,16 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // Smooth blending in log-space (LP ↔ mid ↔ HP)
   // -------------------------------
   // Base widths (tunable)
-  const Real base_delta_alpha_log = 0.08; // typical: 0.05–0.12
-  const Real base_delta_beta_log = 0.08;  // typical: 0.05–0.12
+  const Real base_delta_delta_log = 0.08; // typical: 0.05–0.12
+  const Real base_delta_zeta_log = 0.08;  // typical: 0.05–0.12
 
   const ADReal x = log(max(ratio_r, 1e-10));      // log(ratio)
-  const Real x_alpha = log(alpha);                // constant threshold (Real)
-  const ADReal x_beta = log(max(beta_corr, 1.0)); // log(beta(T))
+  const Real x_delta = log(delta);                // constant threshold (Real)
+  const ADReal x_zeta = log(max(zeta_corr, 1.0)); // log(zeta(T))
 
   // Sigmoid steps (AD-safe)
-  const ADReal s_LP_to_mid = 1.0 / (1.0 + exp(-(x - x_alpha) / base_delta_alpha_log)); // LP→mid
-  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_beta) / base_delta_beta_log));   // mid→HP
+  const ADReal s_LP_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / base_delta_delta_log)); // LP→mid
+  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_zeta) / base_delta_zeta_log));   // mid→HP
 
   // Weights
   ADReal w_LP = 1.0 - s_LP_to_mid;                  // Low pressure weights

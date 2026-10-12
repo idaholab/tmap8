@@ -1,10 +1,13 @@
 # Import Required Libraries
 import os
+from pathlib import Path
+import matplotlib
+matplotlib.use("Agg")  # non-interactive backend: avoids needing a display (fixes _tkinter.TclError on headless/SSH sessions)
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
 from matplotlib.lines import Line2D
+from matplotlib.patches import Polygon as MplPolygon
 
 # ------------------------------------------------------------------------------
 # Setup
@@ -15,6 +18,8 @@ os.chdir(script_folder)
 TEMPERATURES_K = [423, 524, 544, 564, 584, 604, 624]  # K
 ATOM_RATIO_LOW = 0.7
 ATOM_RATIO_HIGH = 1.1
+AR_ALPHA_BOUNDARY = 0.5  # alpha -> alpha+beta boundary; low-pressure fit curve stops here
+AR_BETA_BOUNDARY = 1.6  # alpha+beta -> beta boundary (at 524.15 K); high-pressure fit curve starts here
 FIG_DPI = 300
 N_SMOOTH = 1000  # number of points for smoother analytical curves
 
@@ -63,6 +68,36 @@ def atom_ratio_eq_upper_func(T, P):
     return 2.7 - 1.45 * (
         1.0 + np.exp(6.57 - 2.21e-02 * T + (6.52e-01 - 1.17e-05 * T) * np.log(arg))
     ) ** (-1)
+
+
+def solve_pressure_for_ar_lower(T, target_ar, n=200_000):
+    """Invert the low-pressure (alpha) fit to find the pressure where AR = target_ar."""
+    p0 = p0_lim_func(T)
+    P_grid = np.geomspace(1e-3, p0 * (1 - 1e-9), n)
+    AR_grid = atom_ratio_eq_lower_func(T, P_grid)
+    return float(np.interp(target_ar, AR_grid, P_grid))
+
+
+def solve_pressure_for_ar_upper(T, target_ar, P_max_search=3e5, n=200_000):
+    """Invert the high-pressure (beta) fit to find the pressure where AR = target_ar."""
+    p0 = p0_lim_func(T)
+    P_grid = np.geomspace(p0 * (1 + 1e-9), P_max_search, n)
+    AR_grid = atom_ratio_eq_upper_func(T, P_grid)
+    return float(np.interp(target_ar, AR_grid, P_grid))
+
+
+def ar_beta_boundary_for_T(T, T_anchor_lo=423, AR_anchor_lo=1.8, T_anchor_hi=524, AR_anchor_hi=AR_BETA_BOUNDARY):
+    """Target AR where the beta fit curve should meet the alpha+beta/beta boundary (L2).
+
+    Matches the slanted L2 boundary: AR_anchor_lo at T_anchor_lo, AR_anchor_hi at
+    T_anchor_hi, linearly interpolated between them and clamped outside that range.
+    """
+    if T <= T_anchor_lo:
+        return AR_anchor_lo
+    if T >= T_anchor_hi:
+        return AR_anchor_hi
+    frac = (T - T_anchor_lo) / (T_anchor_hi - T_anchor_lo)
+    return AR_anchor_lo + frac * (AR_anchor_hi - AR_anchor_lo)
 
 
 # ---------------------------------------------------------------------------
@@ -238,12 +273,13 @@ for Tk in TEMPERATURES_K:
         low_rmse_list.append(rmse(AR_lo, fit_lo))
 
         Pmin = float(np.nanmax([np.min(P_lo), 1e-12]))
-        Pmax = float(np.max(P_lo))
+        Pmax = solve_pressure_for_ar_lower(Tk, AR_ALPHA_BOUNDARY)  # extend curve to the alpha boundary, not just the last data point
         Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
         fits = atom_ratio_eq_lower_func(Tk, Ps)
+        mask_ar = fits <= AR_ALPHA_BOUNDARY  # safety net for any numerical overshoot at the boundary
         ax.plot(
-            fits,
-            Ps,
+            fits[mask_ar],
+            Ps[mask_ar],
             linestyle="-",
             marker="^",
             markevery=0.05,
@@ -255,11 +291,11 @@ for Tk in TEMPERATURES_K:
             label=f"{Tk}.15 K Low P Fit RMSE {rmse(AR_lo, fit_lo):.3f}",
         )
 
-    idx_mid = (AR >= ATOM_RATIO_LOW) & (AR < 1.4)
+    idx_mid = (AR >= ATOM_RATIO_LOW) & (AR < ar_beta_boundary_for_T(Tk))
     # mid-range points already covered by the single scatter call above;
     # nothing else to plot/label here.
 
-    idx_hi = AR >= 1.4
+    idx_hi = AR >= ar_beta_boundary_for_T(Tk)
     if np.any(idx_hi):
         P_hi = P[idx_hi]
         AR_hi = AR[idx_hi]
@@ -270,16 +306,15 @@ for Tk in TEMPERATURES_K:
         fit_hi = fit_hi[mask]
         high_rmse_list.append(rmse(AR_hi, fit_hi))
 
-        if Tk == 524:
-            Pmin = float(np.nanmax([np.min(P_hi) + 355, 1e-12]))
-        else:
-            Pmin = float(np.nanmax([np.min(P_hi), 1e-12]))
-        Pmax = float(np.max(P_hi))
+        ar_target_hi = ar_beta_boundary_for_T(Tk)  # matches this temperature's point on the L2 boundary
+        Pmin = solve_pressure_for_ar_upper(Tk, ar_target_hi)  # extend curve to the beta boundary, not just the first data point
+        Pmax = 2e5  # extend every beta curve to the same right-hand pressure limit
         Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
         fits = atom_ratio_eq_upper_func(Tk, Ps)
+        mask_ar = fits >= ar_target_hi  # start the curve exactly at this temperature's alpha+beta/beta boundary
         ax.plot(
-            fits,
-            Ps,
+            fits[mask_ar],
+            Ps[mask_ar],
             linestyle="-",
             marker="o",
             markevery=0.08,
@@ -322,6 +357,93 @@ for Tk in TEMPERATURES_K:
         lw=2,
         label=f"TMAP8 {int(Tk)}.15 K (err={mape:.2f}%)",
     )
+
+# ============================================================================ #
+# Shaded alpha / bi-phasic (alpha+beta) / beta regime regions
+# Each boundary is stored as an explicit (bottom, top) pair -- bottom = lower
+# pressure endpoint, top = higher pressure endpoint -- so the polygons below
+# are unambiguous whether a boundary line is vertical or slanted.
+P_SPAN_LO, P_SPAN_HI = 2e1, 3e5  # pressure range spanned by the (vertical) alpha boundary
+
+# Line L1: alpha -> alpha+beta boundary, vertical at a fixed atom ratio
+L1_bottom = (AR_ALPHA_BOUNDARY, P_SPAN_LO)
+L1_top = (AR_ALPHA_BOUNDARY, P_SPAN_HI)
+
+# Line L2: alpha+beta -> beta boundary, slanted since beta starts at a higher
+# atom ratio at lower temperature (AR=1.8 at 423.15 K vs AR=1.6 at 524.15 K)
+L2_bottom = (1.8, p0_lim_func(423))
+L2_top = (AR_BETA_BOUNDARY, p0_lim_func(524))
+
+X_MIN, X_MAX = ax.get_xlim()
+all_pressures_for_bounds = np.concatenate(
+    [data_by_temp[Tk][COL_PRESSURE_PA].values for Tk in TEMPERATURES_K]
+)
+Y_MIN = 0.8 * float(np.min(all_pressures_for_bounds))
+Y_MAX = 1.3 * float(np.max(all_pressures_for_bounds))
+
+# Alpha region: bounded on the right by L1, extends to the left plot edge
+ax.add_patch(
+    MplPolygon(
+        [(X_MIN, Y_MIN), (L1_bottom[0], Y_MIN),
+         L1_bottom,
+         L1_top,
+         (L1_top[0], Y_MAX), (X_MIN, Y_MAX)],
+        closed=True,
+        facecolor="steelblue",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Bi-phasic (alpha+beta) region: bounded on the left by the vertical L1 line
+# and on the right by the full straight-slanted-straight L2 boundary
+L2_bottom_ext = (L2_bottom[0], P_SPAN_LO)
+L2_top_ext = (L2_top[0], P_SPAN_HI)
+ax.add_patch(
+    MplPolygon(
+        [L1_bottom, L1_top, L2_top_ext, L2_top, L2_bottom, L2_bottom_ext],
+        closed=True,
+        facecolor="gray",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Beta region: bounded on the left by L2, extends to the right plot edge
+ax.add_patch(
+    MplPolygon(
+        [(L2_top[0], Y_MAX), (X_MAX, Y_MAX),
+         (X_MAX, Y_MIN), (L2_bottom[0], Y_MIN),
+         L2_bottom,
+         L2_top],
+        closed=True,
+        facecolor="firebrick",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Boundary lines themselves (match polygon edges exactly)
+ax.plot(*zip(L1_bottom, L1_top), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+
+# L2 is drawn as straight-slanted-straight: vertical from P_SPAN_LO up to the
+# 423.15 K anchor, the slanted transition, then vertical up to P_SPAN_HI
+ax.plot(*zip(L2_bottom_ext, L2_bottom, L2_top, L2_top_ext), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+
+# Region labels
+label_bbox = dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#333333", alpha=0.85)
+ax.text(0.12, 0.95, r"$\alpha$", transform=ax.transAxes, fontsize=13,
+        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
+ax.text(0.35, 0.95, r"$\alpha+\beta$", transform=ax.transAxes, fontsize=11,
+        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
+ax.text(0.68, 0.95, r"$\beta$", transform=ax.transAxes, fontsize=13,
+        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
+
+ax.set_xlim(X_MIN, X_MAX)
+ax.set_ylim(Y_MIN, Y_MAX)
 
 ax.set_yscale("log")
 ax.set_xlabel("Atom Ratio (-)")
@@ -374,7 +496,7 @@ ax.legend(
     handles,
     labels,
     loc="upper center",
-    bbox_to_anchor=(0.5, -0.01),
+    bbox_to_anchor=(0.5, -0.1),
     ncol=4,
     fontsize=8,
     handletextpad=0.6,
