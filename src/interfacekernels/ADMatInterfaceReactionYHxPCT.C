@@ -19,8 +19,10 @@ ADMatInterfaceReactionYHxPCT::validParams()
   InputParameters params = ADInterfaceKernel::validParams();
   params.addClassDescription(
       "Implements a reaction to establish ReactionRate=k_f*u-k_b*v to compute the surface H "
-      "concentration in YHx from the temperature and partial pressure based on the PCT curves with "
-      "u the concentration in the solid and v (neighbor) the concentration in the gas in mol/m^3.");
+      "concentration in YHx from the temperature and partial pressure based on the PCT curves "
+      "based "
+      "on smoothly-blended low-pressure, mid, and high-pressure branches, with u the concentration "
+      "in the solid and v (neighbor) the concentration in the gas in mol/m^3.");
   params.addRequiredCoupledVar(
       "neighbor_temperature",
       "The variable on the other side of the interface for temperature (K).");
@@ -49,34 +51,29 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
 {
 
   // Variables
-  ADReal r = 0;
+  ADReal r = 0.;
 
-  // tolerance for the pressure being closed to the plateau region
-  const Real tolerance = 1.15; // %
+  // Local conveniences
   using std::exp;
   using std::log;
   using std::max;
   using std::pow;
 
+  // -------------------------------
+  // Blending boundaries
+  // -------------------------------
+  // delta: ratio P/PLim below which the low-pressure branch dominates
+  // zeta:  ratio P/PLim above which the high-pressure branch dominates
+  // blend_width: width of the smooth transition between branches
+  const Real delta = 0.96;
+  const Real zeta = 1.13;
+  const Real blend_width = 0.02;
+
   // Gas pressure (Pa): R * T * c / 2 (two atoms per molecule)
-  auto neighbor_pressure =
+  const ADReal neighbor_pressure =
       PhysicalConstants::ideal_gas_constant * _neighbor_temperature[_qp] * _neighbor_value[_qp] / 2;
 
-  // Calculate the value of the pressures for the phase transition plateau (pressure in Pa)
-  auto Plim = exp(-26.1 + 3.88e-2 * _neighbor_temperature[_qp] -
-                  9.70e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
-
-  // define atomic fraction variable
-  ADReal atomic_fraction = 0.0;
-
-  // define atomic ratio maximum fit variable for the low and high pressure region, respectively
-  ADReal At_Max_LP_fit = 1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) -
-                         2.56e-3 * _neighbor_temperature[_qp] + 2.16;
-
-  ADReal At_Min_HP_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
-                         2.55e-3 * _neighbor_temperature[_qp] - 5.6e-01;
-
-  // return warning if the PCT curves is used out of bounds (pressure in Pa)
+  // Give a warning if the initial or computed neighbor pressure is out of the analytical model
   if (!_silence_warnings && ((neighbor_pressure < 1.e2) || (neighbor_pressure > 1.e6)))
     mooseDoOnce(mooseWarning("In YHxPCT: pressure ",
                              neighbor_pressure,
@@ -84,31 +81,102 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
                              _neighbor_temperature[_qp],
                              "K are outside the bounds of the atomic fraction correlation. See "
                              "documentation for YHxPCT material."));
-  // Calculate the atomic fraction based on the PCT curve
-  if (neighbor_pressure / Plim > 1.15)
+
+  // Plateau / limit pressure (Pa)
+  const ADReal PLim = exp(-26.1 + 3.88e-2 * _neighbor_temperature[_qp] -
+                          9.70e-6 * Utility::pow<2>(_neighbor_temperature[_qp]));
+
+  // Fitting constant used by the high-pressure branch below
+  const ADReal At_Min_HP_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
+                               2.55e-3 * _neighbor_temperature[_qp] - 5.6e-01;
+
+  // -------------------------------
+  // Ratio r = P / P_limit   (used for blending thresholds in log-space)
+  // -------------------------------
+  const ADReal ratio_r = neighbor_pressure / PLim;
+
+  // -------------------------------
+  // Low pressure (LP) branch: af(P) = e(T) * P^n(T)
+  // Written as a function of pressure so it can be evaluated both at the
+  // current pressure and at the delta blending boundary below.
+  // -------------------------------
+  auto f_LP = [&](const ADReal & P) -> ADReal
   {
-    atomic_fraction =
-        2. - 1.0015 * pow(At_Min_HP_fit + exp(24.89 - 2.53e-02 * _neighbor_temperature[_qp] +
-                                              (-3.98e-01 + 0.001 * _neighbor_temperature[_qp]) *
-                                                  log(max(neighbor_pressure - Plim, 1.e-10))),
-                          -1);
-  }
-  else if (neighbor_pressure / Plim < 1.05)
+    // Sig figs cannot be applied here. This has been tested. DO not change
+    const ADReal n_T = 11.01651 - 0.02676499 * _neighbor_temperature[_qp] +
+                       2.164250e-5 * Utility::pow<2>(_neighbor_temperature[_qp]) -
+                       5.666033e-9 * Utility::pow<3>(_neighbor_temperature[_qp]);
+    const ADReal e_T = -122.0936 + 0.2927460 * _neighbor_temperature[_qp] -
+                       2.318920e-4 * Utility::pow<2>(_neighbor_temperature[_qp]) +
+                       5.922527e-8 * Utility::pow<3>(_neighbor_temperature[_qp]);
+
+    return exp(e_T) * pow(max(P, 1.e-6), n_T);
+  };
+
+  // -------------------------------
+  // High pressure (HP) branch: distance above the plateau pressure
+  // Written as a function of pressure so it can be evaluated both at the
+  // current pressure and at the zeta blending boundary below.
+  // -------------------------------
+  auto f_HP = [&](const ADReal & P) -> ADReal
   {
-    // Low pressure region
-    atomic_fraction =
-        At_Max_LP_fit - 10 * pow(1.e-03 + exp(-50.0 + 5.73e-2 * _neighbor_temperature[_qp] +
-                                              (0.830 - 2.69e-3 * _neighbor_temperature[_qp]) *
-                                                  log(max(Plim - neighbor_pressure, 1.e-10))),
-                                 -1);
-  }
-  else
-  {
-    // Plateau Region
-    atomic_fraction = 1.33 - 2.18e-04 * _neighbor_temperature[_qp] +
-                      (1.06e01 - 4.35e-03 * _neighbor_temperature[_qp]) *
-                          log(neighbor_pressure / (tolerance * Plim));
-  }
+    return 2. - 1.0015 * pow(At_Min_HP_fit + exp(24.89 - 2.53e-02 * _neighbor_temperature[_qp] +
+                                                 (-3.98e-01 + 0.001 * _neighbor_temperature[_qp]) *
+                                                     log(max(P - PLim, 1.e-10))),
+                             -1);
+  };
+
+  // -------------------------------
+  // Mid branch (exact continuity at delta*PLim and zeta*PLim)
+  // -------------------------------
+  // Boundaries in absolute pressure
+  const ADReal delta_Plim = delta * PLim; // LP
+  const ADReal zeta_Plim = zeta * PLim;   // HP
+
+  // LP value at delta_Plim
+  const ADReal f_LP_delta_Plim = f_LP(delta_Plim);
+
+  // HP value at zeta_Plim
+  const ADReal f_HP_zeta_Plim = f_HP(zeta_Plim);
+
+  // Solve for af_mid(P) = m0 + m1 * log(P)
+  const ADReal L_a = log(max(delta_Plim, 1e-10));
+  const ADReal L_b = log(max(zeta_Plim, 1e-10));
+
+  // Determine af_mid(P) slopes
+  const ADReal m1 = (f_HP_zeta_Plim - f_LP_delta_Plim) / (L_b - L_a);
+  const ADReal m0 = f_LP_delta_Plim - m1 * L_a;
+
+  // Mid branch at current pressure using fitted slope
+  auto f_mid = [&](const ADReal & P) -> ADReal { return m0 + m1 * log(max(P, 1e-10)); };
+
+  // -------------------------------
+  // Smooth blending in log-space (LP ↔ mid ↔ HP)
+  // -------------------------------
+  const ADReal x = log(max(ratio_r, 1e-10)); // log(ratio)
+  const Real x_delta = log(delta);           // constant threshold (Real)
+  const Real x_zeta = log(zeta);             // constant threshold (Real)
+
+  // Sigmoid steps (AD-safe)
+  const ADReal s_LP_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / blend_width)); // LP→mid
+  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_zeta) / blend_width));  // mid→HP
+
+  // Weights
+  ADReal w_LP = 1.0 - s_LP_to_mid;                  // Low pressure weights
+  ADReal w_mid = s_LP_to_mid * (1.0 - s_mid_to_HP); // Mid pressure weights
+  ADReal w_HP = s_mid_to_HP;                        // High pressure weights
+
+  // Normalization
+  const ADReal w_sum = w_LP + w_mid + w_HP; // Sum of weights
+  w_LP /= w_sum;                            // Ratio of weight for low pressure
+  w_mid /= w_sum;                           // Ratio of weight for mid pressure
+  w_HP /= w_sum;                            // Ratio of weight for high pressure
+
+  // -------------------------------
+  // Final atomic fraction
+  // -------------------------------
+  ADReal atomic_fraction = w_LP * f_LP(neighbor_pressure) + w_mid * f_mid(neighbor_pressure) +
+                           w_HP * f_HP(neighbor_pressure);
 
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];

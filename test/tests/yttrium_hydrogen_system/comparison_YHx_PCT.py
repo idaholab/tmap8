@@ -1,9 +1,15 @@
+import matplotlib
+
+matplotlib.use(
+    "Agg"
+)  # non-interactive backend: avoids needing a display (fixes _tkinter.TclError on headless/SSH sessions)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
 import os
 from matplotlib.lines import Line2D
+from matplotlib.patches import Polygon as MplPolygon
 
 from yhx_pct_metrics import (
     TOLERANCE,
@@ -412,6 +418,117 @@ for point in low_predictions:
         f"(error: {error:.2f} %)"
     )
 
+# ============================================================================ #
+# Shaded alpha / bi-phasic / beta regime regions
+# Fixed boundary line segments (L1, L2), same placement convention as the
+# standalone region_transition_figure reference script.
+ax_main = plt.gca()
+X_MIN, X_MAX = ax_main.get_xlim()
+Y_MIN, Y_MAX = (190, 1.55e5)
+
+# Boundary line vertices (Atom Ratio, Pressure in Pa)
+L1 = [(0.5, 1.35 * mmHg_to_Pa), (0.69, 2e3 * mmHg_to_Pa)]
+L2 = [(0.9, 2e3 * mmHg_to_Pa), (1.25, 1.15 * mmHg_to_Pa)]
+
+# Alpha region: bounded on the right by L1, extends to the left plot edge
+ax_main.add_patch(
+    MplPolygon(
+        [
+            (X_MIN, Y_MIN),
+            (L1[0][0], Y_MIN),
+            (L1[0][0], L1[0][1]),
+            (L1[1][0], L1[1][1]),
+            (L1[1][0], Y_MAX),
+            (X_MIN, Y_MAX),
+        ],
+        closed=True,
+        facecolor="steelblue",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Bi-phasic region: exact quadrilateral traced by both boundary lines
+ax_main.add_patch(
+    MplPolygon(
+        [L1[0], L1[1], L2[0], L2[1]],
+        closed=True,
+        facecolor="gray",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Beta region: bounded on the left by L2, extends to the right plot edge
+ax_main.add_patch(
+    MplPolygon(
+        [
+            (L2[0][0], Y_MAX),
+            (X_MAX, Y_MAX),
+            (X_MAX, Y_MIN),
+            (L2[1][0], Y_MIN),
+            (L2[1][0], L2[1][1]),
+            (L2[0][0], L2[0][1]),
+        ],
+        closed=True,
+        facecolor="firebrick",
+        alpha=0.12,
+        edgecolor="none",
+        zorder=0,
+    )
+)
+
+# Boundary lines themselves (match polygon edges exactly)
+ax_main.plot(*zip(*L1), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+ax_main.plot(*zip(*L2), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+
+# Region labels
+label_bbox = dict(
+    boxstyle="round,pad=0.3", facecolor="white", edgecolor="#333333", alpha=0.85
+)
+ax_main.text(
+    0.12,
+    0.95,
+    r"$\alpha$",
+    transform=ax_main.transAxes,
+    fontsize=13,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
+ax_main.text(
+    0.3765,
+    0.95,
+    r"$\alpha+\beta$",
+    transform=ax_main.transAxes,
+    fontsize=11,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
+ax_main.text(
+    0.78,
+    0.98,
+    r"$\beta$",
+    transform=ax_main.transAxes,
+    fontsize=13,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
+
+
+ax_main.set_xlim(0, 2.01)
+ax_main.set_ylim(190, 1.55e5)
+
 plt.xlabel("Atom Ratio (-)")
 plt.ylabel("Partial Pressure (Pa)")
 plt.yscale("log")
@@ -439,7 +556,7 @@ col4_handles, col4_labels = pad_column(sweep_handles, sweep_labels, nrows)
 combined_handles = col1_handles + col2_handles + col3_handles + col4_handles
 combined_labels = col1_labels + col2_labels + col3_labels + col4_labels
 
-plt.subplots_adjust(bottom=0.32)
+plt.subplots_adjust(bottom=0.36)
 plt.legend(
     combined_handles,
     combined_labels,
@@ -498,12 +615,11 @@ plt.savefig("YHx_PCT_Data.png", dpi=300)
 plt.close(fig)
 
 # ============================================================================ #
-# Raw plot with Ar_Max_Low_P(T) and Ar_Min_High_P(T) dashed boundary lines
+# Raw plot with Ar_Min_High_P(T) dashed boundary line
 fig = plt.figure(figsize=(10, 6))
 ax = plt.gca()
 
-ar_max_x, ar_max_y, temperature_order = [], [], []
-ar_min_x, ar_min_y = [], []
+ar_min_x, ar_min_y, temperature_order = [], [], []
 temperature_handles, temperature_labels = [], []
 
 for i, expData in enumerate(list_expData):
@@ -518,33 +634,21 @@ for i, expData in enumerate(list_expData):
     temperature_labels.append(f"{int(T)} K")
 
     p0_T = float(p0_lim_func(T))
-    ar_max_x.append(ar_max_low_p(T))
-    ar_max_y.append(p0_T)
     ar_min_x.append(ar_min_high_p(T))
     ar_min_y.append(p0_T)
     temperature_order.append(T)
 
 order = np.argsort(np.array(temperature_order))
-ar_max_x = np.array(ar_max_x)[order]
-ar_max_y = np.array(ar_max_y)[order]
 ar_min_x = np.array(ar_min_x)[order]
 ar_min_y = np.array(ar_min_y)[order]
 
-(ar_max_handle,) = ax.plot(
-    ar_max_x,
-    ar_max_y,
-    linestyle="--",
-    color="k",
-    linewidth=1.6,
-    label="Fitted Maximum Atomic Ratio in the Low-Pressure Regime",
-)
 (ar_min_handle,) = ax.plot(
     ar_min_x,
     ar_min_y,
     linestyle="--",
     color="purple",
     linewidth=1.6,
-    label="Fitted Minimum Atomic Ratio in the High-Pressure Regime",
+    label="Fitted Minimum Atomic Ratio in the β Regime",
 )
 
 ax.set_yscale("log")
@@ -565,98 +669,20 @@ fig.legend(
 plt.tight_layout(rect=[0, 0, 1, 0.94])
 
 ax.legend(
-    handles=[ar_max_handle, ar_min_handle],
+    handles=[ar_min_handle],
     labels=[
-        "Fitted Maximum Atomic Ratio in the Low-Pressure Regime",
-        "Fitted Minimum Atomic Ratio in the High-Pressure Regime",
+        "Fitted Minimum Atomic Ratio in the β Regime",
     ],
     loc="best",
     fontsize=9,
     frameon=True,
 )
 
-eqn_max = r"Ar$_{\rm Max,LowP}$(T) = 1.01×10$^{-6}$·T$^2$ − 2.55×10$^{-3}$·T + 2.16"
-eqn_min = r"Ar$_{\rm Min,HighP}$(T) = −1.01×10$^{-6}$·T$^2$ + 2.55×10$^{-3}$·T − 0.56"
-ax.text(0.02, 0.97, eqn_max, transform=ax.transAxes, fontsize=9, va="top", color="k")
+eqn_min = r"f$_{\rm at,min,β}$(T) = −1.01×10$^{-6}$·T$^2$ + 2.55×10$^{-3}$·T − 0.56"
+
 ax.text(
     0.02, 0.90, eqn_min, transform=ax.transAxes, fontsize=9, va="top", color="purple"
 )
 
 plt.savefig("YHx_PCT_Plateau_EndPoints_comparison.png", dpi=300, bbox_inches="tight")
-plt.close(fig)
-
-# ============================================================================ #
-# Plateau-region fit vs PCT data
-all_T = [float(expData["Temperature (K)"].iloc[0]) for expData in list_expData]
-min_T = float(np.min(all_T))
-max_T = float(np.max(all_T))
-ar_lower = float(ar_max_low_p(min_T))
-ar_upper = float(ar_min_high_p(max_T))
-
-fig, ax = plt.subplots(figsize=(10, 8))
-full_color = (0.55, 0.55, 0.55, 0.30)
-fit_linewidth = 2.2
-
-for i, expData in enumerate(list_expData):
-    T = float(expData["Temperature (K)"].iloc[0])
-    color_T = color_for_Temperature(T, i)
-
-    AR = expData["Atom Ratio (-)"].values.astype(float)
-    P = expData["Partial Pressure (Pa)"].values.astype(float)
-    ax.scatter(
-        AR,
-        P,
-        s=10,
-        color=color_T,
-        label=f"Data {int(T)} K)",
-    )
-
-    p0_T = float(p0_lim_func(T))
-    P_line = np.logspace(
-        np.log10(max(p0_T / 2.5, 1e-12)), np.log10(max(p0_T * 2.5, 1e-12)), 400
-    )
-    AR_line = atom_ratio_plateau_region_fit(T, P_line)
-
-    mask_fit = np.isfinite(AR_line) & (AR_line >= ar_lower) & (AR_line <= ar_upper)
-    if np.any(mask_fit):
-        ax.plot(
-            AR_line[mask_fit],
-            P_line[mask_fit],
-            "-",
-            linewidth=fit_linewidth,
-            color=color_T,
-            label=f"AR(P,{int(T)} K)",
-        )
-
-ax.set_yscale("log")
-ax.set_ylabel("Partial Pressure (Pa)")
-ax.set_xlabel("Atom Ratio (\u2013)")
-ax.set_title(
-    "Plateau-Region AR(P,T): Fit Curves Clipped to Specified AR Range\n(Experimental Data Unchanged)"
-)
-ax.grid(True, which="both", ls="--", alpha=0.4)
-ax.legend(bbox_to_anchor=(1.04, 1.0), fontsize=9)
-plt.tight_layout()
-
-eqn_text = (
-    r"$\mathrm{AR}(P,T) = (1.33 - 2.18\times 10^{-4}\,T)"
-    r" + (1.06e01 - 4.35\times 10^{-3}\,T)\,\ln\!\left(\frac{P}{1.15\,p_0(T)}\right)$"
-    "\n"
-    rf"Fit shown only for $AR \in [{ar_lower:.3f},\,{ar_upper:.3f}]$ (lower bound at $T_{{\min}}={min_T:.0f}\,\mathrm{{K}}$)"
-)
-ax.text(
-    0.02,
-    0.98,
-    eqn_text,
-    transform=ax.transAxes,
-    fontsize=10,
-    va="top",
-    ha="left",
-    color="black",
-    bbox=dict(
-        boxstyle="round", facecolor="white", alpha=0.85, edgecolor="gray", pad=0.35
-    ),
-)
-
-plt.savefig("YHx_PCT_AR_plateau_fit.png", dpi=300, bbox_inches="tight")
 plt.close(fig)

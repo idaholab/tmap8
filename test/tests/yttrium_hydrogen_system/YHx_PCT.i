@@ -4,13 +4,13 @@ N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from TMAP8PhysicalConst
 boltzmann_constant = '${units 1.380649e-23 J/K}' # Boltzmann constant from TMAP8PhysicalConstants.h
 
 # Simulation conditions and material properties
-temperature = '${units 1573.15 K}'
+temperature = '${units 1423.15 K}'
 density_Y = '${units 48605 mol/m^3}'
 initial_pressure_H2_enclosure_1 = '${units 6e2 Pa}'
 initial_concentration_H_enclosure_1 = '${units ${fparse 2*initial_pressure_H2_enclosure_1 / (R*temperature)} mol/m^3}'
 
 
-initial_atomic_fraction = '${fparse (2.156 - 2.556e-03 * temperature + 1.01e-06 * temperature^2)  - 10*(1e-03 + exp(-50.0 + 5.73e-02 * temperature + (0.8296 - 2.69e-03 * temperature ) * log(max( exp(-26.1 + 3.88e-2 * temperature - 9.7e-6 * temperature^2)-initial_pressure_H2_enclosure_1, 1e-10))))^(-1)}'
+initial_atomic_fraction =  '${fparse exp(-122.0936 + 0.2927460 * temperature - 2.318920e-04 * temperature^2 + 5.922527e-08 * temperature^3) * (max(initial_pressure_H2_enclosure_1, 1e-06))^(11.01651 - 0.02676499 * temperature + 2.164250e-05 * temperature^2 - 5.666033e-09 * temperature^3)}'
 
 initial_concentration_H_enclosure_2 = '${units ${fparse initial_atomic_fraction*density_Y} mol/m^3}'
 
@@ -334,6 +334,7 @@ output_file_base = 'YHx_PCT_out'
   []
 []
 
+
 [Outputs]
   file_base = ${output_file_base}
   csv = true
@@ -341,5 +342,12 @@ output_file_base = 'YHx_PCT_out'
     type = Exodus
     # legacy value
     max_output_name_length = 32
+  [csv]
+    type = CSV
+  []
+  [exodus]
+    type = Exodus
+    execute_on = 'timestep_end'
   []
 []
+

@@ -68,22 +68,30 @@ def atom_ratio_eq_upper_func(temperature, pressure):
 
 
 def atom_ratio_eq_lower_func(temperature, pressure):
-    """Low-pressure branch fit."""
-    p0 = p0_lim_func(temperature)
-    arg = np.maximum(p0 - pressure, 1e-12)
+    """
+    Low-pressure (alpha-phase) branch fit, matching the ``alphaCorrelation``
+    used in ADMatInterfaceReactionYHxPCT: a generalized power-law fit in
+    which both the exponent and the prefactor vary smoothly (cubically)
+    with temperature.
+
+    AR(P, T) = exp(e_T) * P^n_T
+
+    with:
+        n_T = 11.01651 - 2.676499e-02*T + 2.164250e-05*T^2 - 5.666033e-09*T^3
+        e_T = -122.0936 + 2.927460e-01*T - 2.318920e-04*T^2 + 5.922527e-08*T^3
+    """
+    temperature = np.asarray(temperature, dtype=float)
+    pressure = np.asarray(pressure, dtype=float)
+
+    T2 = np.square(temperature)
+    T3 = T2 * temperature
+
+    n_T = 11.01651 - 2.676499e-02 * temperature + 2.164250e-05 * T2 - 5.666033e-09 * T3
+    e_T = -122.0936 + 2.927460e-01 * temperature - 2.318920e-04 * T2 + 5.922527e-08 * T3
+
+    P_safe = np.maximum(pressure, 1.0e-06)
     with np.errstate(divide="ignore", invalid="ignore"):
-        return (
-            1.01e-6 * np.square(temperature) - 2.56e-3 * temperature + 2.16
-        ) - 10 * (
-            0.001
-            + np.exp(
-                -50.0
-                + 5.73e-2 * temperature
-                + (0.83 - 2.69e-3 * temperature) * np.log(arg)
-            )
-        ) ** (
-            -1
-        )
+        return np.exp(e_T) * np.power(P_safe, n_T)
 
 
 def atom_ratio_plateau_region_fit(temperature, pressure, tolerance=TOLERANCE):
@@ -176,32 +184,6 @@ def load_high_prediction_points(csv_folder):
         )
 
     return points
-
-
-"""
-def load_low_prediction_points(csv_folder):
-    points = []
-    for filename in LOW_PREDICTION_FILES:
-        dataframe = pd.read_csv(os.path.join(csv_folder, filename))
-        T = dataframe["temperature"].iat[-1]
-        P = dataframe["pressure_H2_enclosure_1_at_interface"].iat[-1]
-        xH = dataframe["atomic_fraction_H_enclosure_2_at_interface"].iat[-1]
-        prediction = dataframe["atomic_fraction_H_enclosure_2_at_interface"].iat[-1]
-        reference = atom_ratio_eq_lower_func(temperature, pressure)
-        xH_model_low = atom_ratio_eq_lower_func(T, P)
-        points.append(
-            {
-                "file": filename,
-                "T": T,
-                "P": P,
-                "xH": xH,
-                "xH_model": xH_model_low,
-                "error_pct": abs(xH - xH_model_low) / xH_model_low * 100,
-            }
-        )
-
-    return points
-"""
 
 
 def load_low_prediction_points(csv_folder):
