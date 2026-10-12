@@ -23,7 +23,7 @@
                 temperature=423.15
                 initial_pressure_H2_enclosure_1=1e4
                 initial_atomic_fraction=2.5
-                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
+                Functions/function_BC_concentration_H_enclosure_1/expression='exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = ZrCoHx_PCT_T423_1E4P_out.csv
     requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature for P=1e4 Pa and T=423.15 K.'
   []

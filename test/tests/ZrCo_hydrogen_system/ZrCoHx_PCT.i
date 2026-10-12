@@ -1,6 +1,6 @@
 ###########################################
 # Testing PCT ZrCoHx modelling capability and performance
-# This input file works in two independent ways:
+# This input file works in two independent ways
 # (A) : Evaluate the equilibrium of hydrogen and ZrCo at a set Pressure boundary and Temperature
 # (B) : Evaluate the equilibrium of hydrogen and ZrCo at an increasing Pressure boundary and set Temperature
 ###########################################
