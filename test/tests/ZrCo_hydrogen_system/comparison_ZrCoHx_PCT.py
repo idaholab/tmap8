@@ -2,7 +2,10 @@
 import os
 from pathlib import Path
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend: avoids needing a display (fixes _tkinter.TclError on headless/SSH sessions)
+
+matplotlib.use(
+    "Agg"
+)  # non-interactive backend: avoids needing a display (fixes _tkinter.TclError on headless/SSH sessions)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -18,7 +21,9 @@ os.chdir(script_folder)
 TEMPERATURES_K = [423, 524, 544, 564, 584, 604, 624]  # K
 ATOM_RATIO_LOW = 0.7
 ATOM_RATIO_HIGH = 1.1
-AR_ALPHA_BOUNDARY = 0.5  # alpha -> alpha+beta boundary; low-pressure fit curve stops here
+AR_ALPHA_BOUNDARY = (
+    0.5  # alpha -> alpha+beta boundary; low-pressure fit curve stops here
+)
 AR_BETA_BOUNDARY = 1.6  # alpha+beta -> beta boundary (at 524.15 K); high-pressure fit curve starts here
 FIG_DPI = 300
 N_SMOOTH = 1000  # number of points for smoother analytical curves
@@ -86,7 +91,9 @@ def solve_pressure_for_ar_upper(T, target_ar, P_max_search=3e5, n=200_000):
     return float(np.interp(target_ar, AR_grid, P_grid))
 
 
-def ar_beta_boundary_for_T(T, T_anchor_lo=423, AR_anchor_lo=1.8, T_anchor_hi=524, AR_anchor_hi=AR_BETA_BOUNDARY):
+def ar_beta_boundary_for_T(
+    T, T_anchor_lo=423, AR_anchor_lo=1.8, T_anchor_hi=524, AR_anchor_hi=AR_BETA_BOUNDARY
+):
     """Target AR where the beta fit curve should meet the alpha+beta/beta boundary (L2).
 
     Matches the slanted L2 boundary: AR_anchor_lo at T_anchor_lo, AR_anchor_hi at
@@ -273,10 +280,14 @@ for Tk in TEMPERATURES_K:
         low_rmse_list.append(rmse(AR_lo, fit_lo))
 
         Pmin = float(np.nanmax([np.min(P_lo), 1e-12]))
-        Pmax = solve_pressure_for_ar_lower(Tk, AR_ALPHA_BOUNDARY)  # extend curve to the alpha boundary, not just the last data point
+        Pmax = solve_pressure_for_ar_lower(
+            Tk, AR_ALPHA_BOUNDARY
+        )  # extend curve to the alpha boundary, not just the last data point
         Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
         fits = atom_ratio_eq_lower_func(Tk, Ps)
-        mask_ar = fits <= AR_ALPHA_BOUNDARY  # safety net for any numerical overshoot at the boundary
+        mask_ar = (
+            fits <= AR_ALPHA_BOUNDARY
+        )  # safety net for any numerical overshoot at the boundary
         ax.plot(
             fits[mask_ar],
             Ps[mask_ar],
@@ -306,12 +317,18 @@ for Tk in TEMPERATURES_K:
         fit_hi = fit_hi[mask]
         high_rmse_list.append(rmse(AR_hi, fit_hi))
 
-        ar_target_hi = ar_beta_boundary_for_T(Tk)  # matches this temperature's point on the L2 boundary
-        Pmin = solve_pressure_for_ar_upper(Tk, ar_target_hi)  # extend curve to the beta boundary, not just the first data point
+        ar_target_hi = ar_beta_boundary_for_T(
+            Tk
+        )  # matches this temperature's point on the L2 boundary
+        Pmin = solve_pressure_for_ar_upper(
+            Tk, ar_target_hi
+        )  # extend curve to the beta boundary, not just the first data point
         Pmax = 2e5  # extend every beta curve to the same right-hand pressure limit
         Ps = np.geomspace(Pmin, Pmax, N_SMOOTH)
         fits = atom_ratio_eq_upper_func(Tk, Ps)
-        mask_ar = fits >= ar_target_hi  # start the curve exactly at this temperature's alpha+beta/beta boundary
+        mask_ar = (
+            fits >= ar_target_hi
+        )  # start the curve exactly at this temperature's alpha+beta/beta boundary
         ax.plot(
             fits[mask_ar],
             Ps[mask_ar],
@@ -363,7 +380,10 @@ for Tk in TEMPERATURES_K:
 # Each boundary is stored as an explicit (bottom, top) pair -- bottom = lower
 # pressure endpoint, top = higher pressure endpoint -- so the polygons below
 # are unambiguous whether a boundary line is vertical or slanted.
-P_SPAN_LO, P_SPAN_HI = 2e1, 3e5  # pressure range spanned by the (vertical) alpha boundary
+P_SPAN_LO, P_SPAN_HI = (
+    2e1,
+    3e5,
+)  # pressure range spanned by the (vertical) alpha boundary
 
 # Line L1: alpha -> alpha+beta boundary, vertical at a fixed atom ratio
 L1_bottom = (AR_ALPHA_BOUNDARY, P_SPAN_LO)
@@ -384,10 +404,14 @@ Y_MAX = 1.3 * float(np.max(all_pressures_for_bounds))
 # Alpha region: bounded on the right by L1, extends to the left plot edge
 ax.add_patch(
     MplPolygon(
-        [(X_MIN, Y_MIN), (L1_bottom[0], Y_MIN),
-         L1_bottom,
-         L1_top,
-         (L1_top[0], Y_MAX), (X_MIN, Y_MAX)],
+        [
+            (X_MIN, Y_MIN),
+            (L1_bottom[0], Y_MIN),
+            L1_bottom,
+            L1_top,
+            (L1_top[0], Y_MAX),
+            (X_MIN, Y_MAX),
+        ],
         closed=True,
         facecolor="steelblue",
         alpha=0.12,
@@ -414,10 +438,14 @@ ax.add_patch(
 # Beta region: bounded on the left by L2, extends to the right plot edge
 ax.add_patch(
     MplPolygon(
-        [(L2_top[0], Y_MAX), (X_MAX, Y_MAX),
-         (X_MAX, Y_MIN), (L2_bottom[0], Y_MIN),
-         L2_bottom,
-         L2_top],
+        [
+            (L2_top[0], Y_MAX),
+            (X_MAX, Y_MAX),
+            (X_MAX, Y_MIN),
+            (L2_bottom[0], Y_MIN),
+            L2_bottom,
+            L2_top,
+        ],
         closed=True,
         facecolor="firebrick",
         alpha=0.12,
@@ -427,20 +455,60 @@ ax.add_patch(
 )
 
 # Boundary lines themselves (match polygon edges exactly)
-ax.plot(*zip(L1_bottom, L1_top), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+ax.plot(
+    *zip(L1_bottom, L1_top), color="#333333", linestyle="--", linewidth=1.8, zorder=3
+)
 
 # L2 is drawn as straight-slanted-straight: vertical from P_SPAN_LO up to the
 # 423.15 K anchor, the slanted transition, then vertical up to P_SPAN_HI
-ax.plot(*zip(L2_bottom_ext, L2_bottom, L2_top, L2_top_ext), color="#333333", linestyle="--", linewidth=1.8, zorder=3)
+ax.plot(
+    *zip(L2_bottom_ext, L2_bottom, L2_top, L2_top_ext),
+    color="#333333",
+    linestyle="--",
+    linewidth=1.8,
+    zorder=3,
+)
 
 # Region labels
-label_bbox = dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#333333", alpha=0.85)
-ax.text(0.12, 0.95, r"$\alpha$", transform=ax.transAxes, fontsize=13,
-        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
-ax.text(0.35, 0.95, r"$\alpha+\beta$", transform=ax.transAxes, fontsize=11,
-        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
-ax.text(0.68, 0.95, r"$\beta$", transform=ax.transAxes, fontsize=13,
-        fontstyle="italic", fontweight="bold", color="black", va="top", bbox=label_bbox)
+label_bbox = dict(
+    boxstyle="round,pad=0.3", facecolor="white", edgecolor="#333333", alpha=0.85
+)
+ax.text(
+    0.12,
+    0.95,
+    r"$\alpha$",
+    transform=ax.transAxes,
+    fontsize=13,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
+ax.text(
+    0.35,
+    0.95,
+    r"$\alpha+\beta$",
+    transform=ax.transAxes,
+    fontsize=11,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
+ax.text(
+    0.68,
+    0.95,
+    r"$\beta$",
+    transform=ax.transAxes,
+    fontsize=13,
+    fontstyle="italic",
+    fontweight="bold",
+    color="black",
+    va="top",
+    bbox=label_bbox,
+)
 
 ax.set_xlim(X_MIN, X_MAX)
 ax.set_ylim(Y_MIN, Y_MAX)
