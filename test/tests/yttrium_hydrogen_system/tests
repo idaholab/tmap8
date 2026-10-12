@@ -1,7 +1,7 @@
 [Tests]
   design = 'InterfaceDiffusion.md ADMatInterfaceReactionYHxPCT.md MatDiffusion.md TimeDerivative.md'
   issues = '#261'
-  [YHx_PCT_csv] 
+  [YHx_PCT_csv]
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = "temperature=1273.15
@@ -50,7 +50,7 @@
                 initial_pressure_H2_enclosure_1=1e4
                 initial_atomic_fraction=1.65
                 Executioner/TimeStepper/growth_factor=1.8
-                Outputs/csv/sync_times='557829039.3'
+                Outputs/csv/sync_times='1e8'
                 Outputs/csv/sync_only=true
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1173_P1e4_out.csv
@@ -60,13 +60,13 @@
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = "output_file_base=YHx_PCT_T1173_P5e4_out
-                dt_init=2e-04
+                dt_init=2e-05
                 temperature=1173.15
                 initial_pressure_H2_enclosure_1=5e4
                 initial_atomic_fraction=1.85
                 Executioner/nl_rel_tol=5e-7
                 Executioner/TimeStepper/growth_factor=1.6
-                Outputs/csv/sync_times='919195678.76441'
+                Outputs/csv/sync_times='1e8'
                 Outputs/csv/sync_only=true
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1173_P5e4_out.csv
@@ -88,7 +88,7 @@
     csvdiff = YHx_PCT_T1273_P3e3_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=3e3 Pa and T=1273.15 K.'
   []
-  [YHx_PCT_T1273_P1e3_csv] 
+  [YHx_PCT_T1273_P1e3_csv]
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = "output_file_base=YHx_PCT_T1273_P1e3_out
@@ -111,7 +111,7 @@
     cli_args = "output_file_base=YHx_PCT_T1273_P3e2_out
                 dt_init=1e-01
                 temperature=1273.15
-                simulation_time=5e05 
+                simulation_time=5e05
                 initial_pressure_H2_enclosure_1=3e2
                 initial_atomic_fraction=0.25
                 Executioner/nl_abs_tol=1e-9
@@ -127,7 +127,7 @@
     cli_args = "output_file_base=YHx_PCT_T1473_P3e3_out
                 temperature=1473.15
                 dt_init=1e-03
-                simulation_time=495639 
+                simulation_time=495639
                 initial_pressure_H2_enclosure_1=3e3
                 initial_atomic_fraction=0.35
                 Executioner/nl_abs_tol=1e-9
@@ -141,19 +141,23 @@
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = "output_file_base=YHx_PCT_T1573_P5e3_out
-                dt_init=1e-05
+                dt_init=1e-04
                 temperature=1573.15
-                simulation_time=495639
+                simulation_time='495639'
                 tau_constant_BC=1e-1
-                simulation_time=5e05 
+                simulation_time=5e05
                 initial_pressure_H2_enclosure_1=5e3
                 initial_atomic_fraction=0.35
-                Executioner/nl_abs_tol=1e-9
+                Executioner/nl_abs_tol=1e-7
+                Executioner/nl_rel_tol=1e-7
+                Executioner/num_steps=500
+                Outputs/csv/sync_times='305636'
+                Outputs/csv/sync_only=true
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1573_P5e3_out.csv
     requirement = 'The system shall be able to model the PCT curves of YHx to determine the surface atomic fraction as a function of pressure and temperature for P=5e3 Pa and T=1573.15 K.'
   []
-   [YHx_PCT_T1573_P6e2_csv]  
+   [YHx_PCT_T1573_P6e2_csv]
     type = CSVDiff
     input = YHx_PCT.i
     cli_args = "output_file_base=YHx_PCT_T1573_P6e2_out
@@ -259,7 +263,7 @@
     csvdiff = YHx_PCT_Low_to_High_1473K.csv
     requirement = 'The system shall be able to model the entire PCT curves of YHx at T=1473.15 K with an initial pressure of starting at P=2e2 Pa.'
   []
-  [YHx_PCT_Low_to_High_1523K_csv] 
+  [YHx_PCT_Low_to_High_1523K_csv]
     type = CSVDiff
     input = "YHx_PCT.i -w"
     cli_args = "output_file_base=YHx_PCT_Low_to_High_1523K
