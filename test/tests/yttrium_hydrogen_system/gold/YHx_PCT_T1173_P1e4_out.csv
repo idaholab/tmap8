@@ -1,2 +1,2 @@
 time,atomic_fraction_H_enclosure_2_at_interface,concentration_H_encl_1_inventory,concentration_H_encl_2_inventory,concentration_H_enclosure_1_at_interface,concentration_H_enclosure_2_at_interface,concentration_ratio_H2,mass_conservation_sum_encl1_encl2,pressure_H2_enclosure_1,pressure_H2_enclosure_1_at_interface,temperature
-100000000,1.9083848372968,1.0109073395789,42283.807767026,1.9932120767236,92757.04501681,0.0065445540301864,42284.818674365,9860.5032304028,9721.006739153,1173.15
+100000,1.6858069474384,0.60104535685778,40162.207867253,0.35388640380231,81938.646680245,0.0012362875170206,40162.80891261,5862.663619975,1725.9237772188,1173.15

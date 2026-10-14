@@ -46,11 +46,12 @@
     cli_args = "output_file_base=YHx_PCT_T1173_P1e4_out
                 dt_init=1e-05
                 temperature=1173.15
+                simulation_time=5e05
                 tau_constant_BC=1e-1
                 initial_pressure_H2_enclosure_1=1e4
                 initial_atomic_fraction=1.65
                 Executioner/TimeStepper/growth_factor=1.8
-                Outputs/csv/sync_times='1e8'
+                Outputs/csv/sync_times='1e5'
                 Outputs/csv/sync_only=true
                 Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${tau_constant_BC}/t)* ${initial_concentration_H_enclosure_1}'"
     csvdiff = YHx_PCT_T1173_P1e4_out.csv
