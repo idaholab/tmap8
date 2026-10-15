@@ -9,6 +9,7 @@
 
 // MOOSE includes
 #include "Assembly.h"
+#include "FEProblemBase.h"
 #include "MooseVariableScalar.h"
 #include "FunctorInterface.h"
 #include "TMAP8PhysicalConstants.h"
@@ -121,6 +122,37 @@ FuelCycleSystemScalarKernelTempl<is_ad>::FuelCycleSystemScalarKernelTempl(
   {
     _other_sinks[i] = &(this->template getFunctor<GenericReal<is_ad>>(other_sink_names[i]));
   }
+
+  for (const auto & param : {"decay_constant", "residence_time", "leakage_rate", "TBR", "burn_rate"})
+    registerFunctor(param,
+                    this->template getParam<MooseFunctorName>(param),
+                    this->template getFunctor<GenericReal<is_ad>>(param));
+  for (size_t i = 0; i < _n_inputs; ++i)
+    registerFunctor("input_fractions", input_functor_names[i], *_input_fractions[i]);
+  for (size_t i = 0; i < _n_other_sources; ++i)
+    registerFunctor("other_sources", other_source_names[i], *_other_sources[i]);
+  for (size_t i = 0; i < _n_other_sinks; ++i)
+    registerFunctor("other_sinks", other_sink_names[i], *_other_sinks[i]);
+}
+
+template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::registerFunctor(
+    const std::string & param_name,
+    const MooseFunctorName & functor_name,
+    const Moose::Functor<GenericReal<is_ad>> & functor)
+{
+  _registered_functors.emplace_back(param_name, functor_name, &functor);
+}
+
+template <bool is_ad>
+bool
+FuelCycleSystemScalarKernelTempl<is_ad>::isElementIndependent(
+    const MooseFunctorName & functor_name, const Moose::Functor<GenericReal<is_ad>> & functor) const
+{
+  auto & problem = Base::_fe_problem;
+  return functor.isConstant() || problem.hasPostprocessorValueByName(functor_name) ||
+         problem.hasFunction(functor_name) || problem.hasScalarVariable(functor_name);
 }
 
 template <bool is_ad>
@@ -133,6 +165,37 @@ FuelCycleSystemScalarKernelTempl<is_ad>::initialSetup()
   auto point_locator = Base::_mesh.getPointLocator();
   point_locator->enable_out_of_mesh_mode();
   _functor_arg.elem = (*point_locator)(_functor_arg.point);
+
+  // Element-dependent functors (field variables, functor materials) must be defined at the
+  // evaluation point, otherwise they would dereference a null element or silently return a value
+  // from outside their block restriction
+  for (const auto & [param_name, functor_name, functor] : _registered_functors)
+  {
+    if (isElementIndependent(functor_name, *functor))
+      continue;
+    if (!_functor_arg.elem)
+      this->paramError("evaluation_point",
+                       "The evaluation point (",
+                       _functor_arg.point,
+                       ") is outside the mesh, but functor '",
+                       functor_name,
+                       "' supplied to '",
+                       param_name,
+                       "' requires an element to be evaluated. Move the evaluation point inside "
+                       "the mesh or use a Function, Postprocessor, or scalar variable instead.");
+    const auto sub_id = _functor_arg.elem->subdomain_id();
+    if (!functor->hasBlocks(sub_id))
+      this->paramError("evaluation_point",
+                       "Functor '",
+                       functor_name,
+                       "' supplied to '",
+                       param_name,
+                       "' is not defined on subdomain ",
+                       sub_id,
+                       ", which contains the evaluation point (",
+                       _functor_arg.point,
+                       ").");
+  }
 }
 
 template <bool is_ad>

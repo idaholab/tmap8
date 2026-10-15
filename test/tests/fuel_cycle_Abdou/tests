@@ -128,6 +128,47 @@
       detail = 'and a functor material property computed from postprocessors.'
     []
   []
+  [fuel_cycle_kernel_functor_errors]
+    issues = '#475'
+    design = 'FuelCycleSystemScalarKernel.md'
+    requirement = 'The fuel cycle system kernel shall report an error when an element-dependent functor is evaluated'
+    [outside_mesh_field]
+      type = RunException
+      input = 'ss_kernel_functors.i'
+      cli_args = "ScalarKernels/I1/other_sinks=sink_field ScalarKernels/I1/evaluation_point='5 0 0'"
+      expect_err = "functor 'sink_field' supplied to 'other_sinks' requires an element to be evaluated"
+      detail = 'at a point outside the mesh for a field variable,'
+    []
+    [outside_mesh_material]
+      type = RunException
+      input = 'ss_kernel_functors.i'
+      cli_args = "ScalarKernels/I1/other_sinks=sink_material ScalarKernels/I1/evaluation_point='5 0 0'"
+      expect_err = "functor 'sink_material' supplied to 'other_sinks' requires an element to be evaluated"
+      detail = 'at a point outside the mesh for a functor material property,'
+    []
+    [outside_block_field]
+      type = RunException
+      input = 'ss_kernel_functors_block.i'
+      expect_err = "Functor 'sink_field' supplied to 'other_sinks' is not defined on subdomain 1"
+      detail = 'outside the block restriction of a field variable,'
+    []
+    [outside_block_material]
+      type = RunException
+      input = 'ss_kernel_functors_block.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_material'
+      expect_err = "Functor 'sink_material' supplied to 'other_sinks' is not defined on subdomain 1"
+      detail = 'and outside the block restriction of a functor material property.'
+    []
+  []
+  [fuel_cycle_kernel_function_outside_mesh]
+    type = CSVDiff
+    input = 'ss_kernel_functors.i'
+    issues = '#475'
+    design = 'FuelCycleSystemScalarKernel.md'
+    cli_args = "ScalarKernels/I1/other_sinks=sink_function ScalarKernels/I1/evaluation_point='5 0 0' Outputs/file_base=ss_kernel_functors_function_outside_mesh_out"
+    csvdiff = 'ss_kernel_functors_function_outside_mesh_out.csv'
+    requirement = 'The fuel cycle system kernel shall evaluate element-independent functors at an evaluation point outside the mesh.'
+  []
   [fuel_cycle_Abdou_comparison]
     type = RunCommand
     command = 'python3 plot_comparison.py'

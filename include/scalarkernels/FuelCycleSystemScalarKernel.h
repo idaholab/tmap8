@@ -13,6 +13,8 @@
 #include "FunctorInterface.h"
 #include "MooseTypes.h"
 
+#include <tuple>
+
 template <bool is_ad>
 class FuelCycleSystemScalarKernelTempl
   : public std::conditional<is_ad, ADScalarTimeDerivative, ODETimeDerivative>::type,
@@ -67,6 +69,18 @@ protected:
   /// is used so that spatially-dependent functors such as Functions receive a valid location
   /// and so that evaluations bypass the element-keyed functor cache
   Moose::ElemPointArg _functor_arg;
+
+private:
+  /// Records a functor so that its compatibility with the evaluation point can be checked
+  void registerFunctor(const std::string & param_name,
+                       const MooseFunctorName & functor_name,
+                       const Moose::Functor<GenericReal<is_ad>> & functor);
+  /// Whether a functor can be evaluated without an element (e.g. Functions, Postprocessors)
+  bool isElementIndependent(const MooseFunctorName & functor_name,
+                            const Moose::Functor<GenericReal<is_ad>> & functor) const;
+  /// Parameter name, functor name, and functor for every functor used by this kernel
+  std::vector<std::tuple<std::string, MooseFunctorName, const Moose::Functor<GenericReal<is_ad>> *>>
+      _registered_functors;
 };
 
 typedef FuelCycleSystemScalarKernelTempl<false> FuelCycleSystemScalarKernel;
