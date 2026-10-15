@@ -32,3 +32,7 @@ This example highlights the effect of pore interconnectivity on tritium transpor
 ## [Hydrogen Transport in Aluminum-Clad Used Nuclear Fuel (AUNF) Mini-Canister Storage](examples/mini_canister/index.md)
 
 TMAP8 is used to model hydrogen transport and permeation through AUNF storage. The storage device considered is a 304 stainless steel mini-canister from Savannah River National Laboratory (SRNL). This example highlights the use of TMAP8-specific features, such as interface kernels and boundary conditions, applied to industry-relevant technologies.
+
+## [Lead-Lithium Eutectic Natural Circulation Test Loop](examples/PbLi_Natural_Circulation/index.md)
+
+TMAP8 is used to model natural circulation of an experimental lead-lithium eutectic loop. The test loop is based on an experiment conducted at Oak Ridge National Laboratory (ORNL) with a code-to-code comparison with a RELAP5 model developed at University of Tennessee-Knoxville (UTK). This example highlights the use of MOOSE THM's Path-Integrated Incompressible Flow Model to simulate a fusion-relevant technology, lead-lithium eutectic flow, in a numerically challenging, conceptually simple test case.
