@@ -62,6 +62,11 @@ FuelCycleSystemScalarKernelTempl<is_ad>::validParams()
   params.addParam<bool>("disable_residence_time",
                         false,
                         "Assume an infinite residence time. (no leakage from this system).");
+  params.addParam<Point>("evaluation_point",
+                         Point(),
+                         "Spatial point at which the functor parameters (e.g. Functions) are "
+                         "evaluated. Field functors additionally require this point to lie within "
+                         "the mesh.");
   return params;
 }
 
@@ -88,7 +93,8 @@ FuelCycleSystemScalarKernelTempl<is_ad>::FuelCycleSystemScalarKernelTempl(
     _TBR(this->template getFunctor<GenericReal<is_ad>>("TBR")),
     _other_sources(this->template getParam<std::vector<MooseFunctorName>>("other_sources").size()),
     _other_sinks(this->template getParam<std::vector<MooseFunctorName>>("other_sinks").size()),
-    _burn_rate(this->template getFunctor<GenericReal<is_ad>>("burn_rate"))
+    _burn_rate(this->template getFunctor<GenericReal<is_ad>>("burn_rate")),
+    _functor_arg({nullptr, this->template getParam<Point>("evaluation_point"), false})
 {
   if (_n_inputs != _input_fractions.size())
   {
@@ -118,12 +124,24 @@ FuelCycleSystemScalarKernelTempl<is_ad>::FuelCycleSystemScalarKernelTempl(
 }
 
 template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::initialSetup()
+{
+  Base::initialSetup();
+  // Locate the element containing the evaluation point, if any, so that field functors can also
+  // be evaluated. Functions, Postprocessors, constants, and scalar variables do not require it.
+  auto point_locator = Base::_mesh.getPointLocator();
+  point_locator->enable_out_of_mesh_mode();
+  _functor_arg.elem = (*point_locator)(_functor_arg.point);
+}
+
+template <bool is_ad>
 GenericReal<is_ad>
 FuelCycleSystemScalarKernelTempl<is_ad>::computeQpResidual()
 {
   GenericReal<is_ad> partial_residual = 0;
-  const Moose::ElemArg _qp = Moose::ElemArg();
-  const int _i = 0;
+  const auto & _qp = _functor_arg;
+  const auto _i = Base::_i;
   const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
   for (unsigned int i = 0; i < _n_inputs; ++i)
     partial_residual += -(*(_input_vals[i]))[_i] * (*(_input_fractions[i]))(_qp, _state);
@@ -153,8 +171,8 @@ FuelCycleSystemScalarKernelTempl<is_ad>::computeQpJacobian()
   if constexpr (!is_ad)
   {
     Real partial_residual = 0;
-    const Moose::ElemArg _qp = Moose::ElemArg();
-    const int _i = 0;
+    const auto & _qp = _functor_arg;
+    const auto _i = Base::_i;
     const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
     if (!_disable_residence_time)
     {

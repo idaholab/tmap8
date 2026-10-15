@@ -25,6 +25,8 @@ public:
   virtual bool isADObject() const override { return is_ad; };
   static InputParameters validParams();
 
+  virtual void initialSetup() override;
+
 protected:
   virtual GenericReal<is_ad> computeQpResidual() override;
   virtual Real computeQpJacobian();
@@ -61,6 +63,10 @@ protected:
   std::vector<const Moose::Functor<GenericReal<is_ad>> *> _other_sinks;
   /// Rate of tritium consumption in the system, used with TBR to determine tritium production rate
   const Moose::Functor<GenericReal<is_ad>> & _burn_rate;
+  /// Spatial argument used to evaluate all functors. A point (rather than an element) argument
+  /// is used so that spatially-dependent functors such as Functions receive a valid location
+  /// and so that evaluations bypass the element-keyed functor cache
+  Moose::ElemPointArg _functor_arg;
 };
 
 typedef FuelCycleSystemScalarKernelTempl<false> FuelCycleSystemScalarKernel;
