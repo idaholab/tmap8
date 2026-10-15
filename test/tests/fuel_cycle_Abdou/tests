@@ -71,6 +71,63 @@
     rel_err = 1.6e-6
     requirement = 'The system shall reproduce a consistent solution to an ODE system of equations modeling the tritium fuel cycle with a built-in AD kernel.'
   []
+  [fuel_cycle_kernel_function_functor]
+    type = CSVDiff
+    input = 'scalarkernel_function_functor.i'
+    issues = '#475'
+    design = 'FuelCycleSystemScalarKernel.md'
+    csvdiff = 'scalarkernel_function_functor_csv.csv'
+    cli_args = 'Outputs/csv/append_restart=true'
+    rel_err = 1.6e-6
+    requirement = 'The system shall reproduce a consistent solution to an ODE system of equations modeling the tritium fuel cycle with a built-in kernel when a source term is supplied as a function.'
+  []
+  [fuel_cycle_kernel_functor_types]
+    issues = '#475'
+    design = 'FuelCycleSystemScalarKernel.md'
+    requirement = 'The fuel cycle system kernel shall accept sink terms supplied as'
+    [function]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_function Outputs/file_base=ss_kernel_functors_function_out'
+      csvdiff = 'ss_kernel_functors_function_out.csv'
+      detail = 'a function,'
+    []
+    [scalar]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_scalar Outputs/file_base=ss_kernel_functors_scalar_out'
+      csvdiff = 'ss_kernel_functors_scalar_out.csv'
+      detail = 'a scalar variable,'
+    []
+    [field]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_field Outputs/file_base=ss_kernel_functors_field_out'
+      csvdiff = 'ss_kernel_functors_field_out.csv'
+      detail = 'a finite element field variable,'
+    []
+    [fv_field]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_fv_field Outputs/file_base=ss_kernel_functors_fv_field_out'
+      csvdiff = 'ss_kernel_functors_fv_field_out.csv'
+      detail = 'a finite volume field variable,'
+    []
+    [material]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_material Outputs/file_base=ss_kernel_functors_material_out'
+      csvdiff = 'ss_kernel_functors_material_out.csv'
+      detail = 'a functor material property,'
+    []
+    [parsed_material]
+      type = CSVDiff
+      input = 'ss_kernel_functors.i'
+      cli_args = 'ScalarKernels/I1/other_sinks=sink_parsed_material Outputs/file_base=ss_kernel_functors_parsed_material_out'
+      csvdiff = 'ss_kernel_functors_parsed_material_out.csv'
+      detail = 'and a functor material property computed from postprocessors.'
+    []
+  []
   [fuel_cycle_Abdou_comparison]
     type = RunCommand
     command = 'python3 plot_comparison.py'
