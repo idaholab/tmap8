@@ -70,7 +70,7 @@ $D_i$ is the diffusivity of hydrogen isotope $i$.
 The flow of gas into Enclosures 2 and 3 can be given by
 
 \begin{equation} \label{eq:dt_P2}
-\frac{P_{Ij}}{dt} = \frac{Q (P_{I,j-1}-P_{Ij})}{V_j},
+\frac{dP_{Ij}}{dt} = \frac{Q (P_{I,j-1}-P_{Ij})}{V_j},
 \end{equation}
 
 where $Q$ is the volumetric flow rate of always 0.1 m$^3$/s,
@@ -187,8 +187,8 @@ The pressure history of D$_2$ in Enclosure 5 for the next two simulations (val-2
 | $P_{D_2,4}$ | D$_2$ pressure in Enclosure 4        | 1 $\times 10^{-10}$                                      | Pa                    |
 | $P_{H_2,4}$ | H$_2$ pressure in Enclosure 4        | 1 $\times 10^{-10}$                                      | Pa                    |
 | $P_{HD,4}$  | HD pressure in Enclosure 4           | 1 $\times 10^{-10}$                                      | Pa                    |
-| $P_{H_2,5}$ | H$_2$ pressure in Enclosure 4        | 6.3 $\times 10^{-2}$                                     | Pa                    |
-| $P_{HD,5}$  | HD pressure in Enclosure 4           | 1 $\times 10^{-10}$                                      | Pa                    |
+| $P_{H_2,5}$ | H$_2$ pressure in Enclosure 5        | 6.3 $\times 10^{-2}$                                     | Pa                    |
+| $P_{HD,5}$  | HD pressure in Enclosure 5           | 1 $\times 10^{-10}$                                      | Pa                    |
 
 
 !alert note title=Updates of times and initial pressures in val-2ee to be consistent with val-2ed.

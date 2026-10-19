@@ -90,7 +90,7 @@ where $t$ is the time, $S$ is the surface area, and $V$ is the volume in the enc
 C_A C_B = \frac{\hat{K_b} \hat{K_d}}{2 D_s \lambda \hat{K_r}} P_{AB}^{eq}.
 \end{equation}
 
-This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $E_x$, $E_c$, and $E_b$ are specified to be 0.05, -0.01, and 0.0 eV, respectively, $\nu_0$ is $8.4 \times 10^{12}$ m/s, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
+This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $E_x$, $E_c$, and $E_b$ are specified to be 0.05, -0.01, and 0.0 eV, respectively, $\nu_0$ is $8.4 \times 10^{12}$ 1/s, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
 
 
 ## Analytical solution

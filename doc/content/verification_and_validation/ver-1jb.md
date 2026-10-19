@@ -19,7 +19,7 @@ $C_M$, $C_T$, and $C_{He}$, respectively, is governed by
 
 \begin{equation}
     \label{eqn:diffusion_mobile}
-    \frac{dC_M}{dt} = - \nabla \cdot D_T \nabla C_M - f_{T/M} \left(\frac{dC_T}{dt} + k C_T \right) - k C_M,
+    \frac{dC_M}{dt} = \nabla \cdot D_T \nabla C_M - f_{T/M} \left(\frac{dC_T}{dt} + k C_T \right) - k C_M,
 \end{equation}
 \begin{equation}
     \label{eqn:trapped_rate}
