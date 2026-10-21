@@ -10,6 +10,9 @@
 // MOOSE includes
 #include "Assembly.h"
 #include "FEProblemBase.h"
+#include "libmesh/point_locator_base.h"
+#include "metaphysicl/parallel_dualnumber.h"
+#include "metaphysicl/parallel_semidynamicsparsenumberarray.h"
 #include "MooseVariableScalar.h"
 #include "FunctorInterface.h"
 #include "TMAP8PhysicalConstants.h"
@@ -161,20 +164,72 @@ void
 FuelCycleSystemScalarKernelTempl<is_ad>::initialSetup()
 {
   Base::initialSetup();
-  // Locate the element containing the evaluation point, if any, so that field functors can also
-  // be evaluated. Functions, Postprocessors, constants, and scalar variables do not require it.
+  locateEvaluationPoint();
+}
+
+template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::meshChanged()
+{
+  Base::meshChanged();
+  locateEvaluationPoint();
+}
+
+template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::residualSetup()
+{
+  Base::residualSetup();
+  cacheElementDependentFunctors();
+}
+
+template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::jacobianSetup()
+{
+  Base::jacobianSetup();
+  cacheElementDependentFunctors();
+}
+
+template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::locateEvaluationPoint()
+{
+  const auto & comm = this->comm();
+  _element_dependent_values.clear();
+  for (const auto & [param_name, functor_name, functor] : _registered_functors)
+    if (!isElementIndependent(functor_name, *functor))
+      _element_dependent_values.emplace(functor, 0);
+
+  // Find a locally owned element containing the evaluation point. The point may lie on an element
+  // boundary, or on a partition boundary of a distributed mesh, so the process with the lowest id
+  // owning a containing element is selected to evaluate element-dependent functors
   auto point_locator = Base::_mesh.getPointLocator();
   point_locator->enable_out_of_mesh_mode();
-  _functor_arg.elem = (*point_locator)(_functor_arg.point);
+  std::set<const Elem *> candidates;
+  (*point_locator)(_functor_arg.point, candidates);
+  _functor_arg.elem = nullptr;
+  for (const auto * const elem : candidates)
+    if (elem->processor_id() == comm.rank() &&
+        (!_functor_arg.elem || elem->id() < _functor_arg.elem->id()))
+      _functor_arg.elem = elem;
+
+  _evaluation_pid = _functor_arg.elem ? comm.rank() : DofObject::invalid_processor_id;
+  comm.min(_evaluation_pid);
+  if (_evaluation_pid != comm.rank())
+    _functor_arg.elem = nullptr;
+  subdomain_id_type sub_id = _functor_arg.elem ? _functor_arg.elem->subdomain_id() : 0;
+  if (_evaluation_pid != DofObject::invalid_processor_id)
+    comm.broadcast(sub_id, _evaluation_pid);
 
   // Element-dependent functors (field variables, functor materials) must be defined at the
   // evaluation point, otherwise they would dereference a null element or silently return a value
   // from outside their block restriction
   for (const auto & [param_name, functor_name, functor] : _registered_functors)
   {
-    if (isElementIndependent(functor_name, *functor))
+    if (!_element_dependent_values.count(functor))
       continue;
-    if (!_functor_arg.elem)
+    if (_evaluation_pid == DofObject::invalid_processor_id)
       this->paramError("evaluation_point",
                        "The evaluation point (",
                        _functor_arg.point,
@@ -184,7 +239,6 @@ FuelCycleSystemScalarKernelTempl<is_ad>::initialSetup()
                        param_name,
                        "' requires an element to be evaluated. Move the evaluation point inside "
                        "the mesh or use a Function, Postprocessor, or scalar variable instead.");
-    const auto sub_id = _functor_arg.elem->subdomain_id();
     if (!functor->hasBlocks(sub_id))
       this->paramError("evaluation_point",
                        "Functor '",
@@ -200,29 +254,62 @@ FuelCycleSystemScalarKernelTempl<is_ad>::initialSetup()
 }
 
 template <bool is_ad>
+void
+FuelCycleSystemScalarKernelTempl<is_ad>::cacheElementDependentFunctors()
+{
+  if (_element_dependent_values.empty())
+    return;
+  // The scalar residual is computed only on the process owning the scalar degrees of freedom, but
+  // element-dependent functors can only be evaluated where the element's solution is available
+  const auto state = functorState();
+  for (auto & [functor, value] : _element_dependent_values)
+  {
+    if (_evaluation_pid == this->comm().rank())
+      value = (*functor)(_functor_arg, state);
+    this->comm().broadcast(value, _evaluation_pid);
+  }
+}
+
+template <bool is_ad>
+Moose::StateArg
+FuelCycleSystemScalarKernelTempl<is_ad>::functorState() const
+{
+  return _is_implicit ? Moose::currentState() : Moose::oldState();
+}
+
+template <bool is_ad>
+GenericReal<is_ad>
+FuelCycleSystemScalarKernelTempl<is_ad>::functorValue(
+    const Moose::Functor<GenericReal<is_ad>> & functor) const
+{
+  const auto it = _element_dependent_values.find(&functor);
+  if (it != _element_dependent_values.end())
+    return it->second;
+  return functor(_functor_arg, functorState());
+}
+
+template <bool is_ad>
 GenericReal<is_ad>
 FuelCycleSystemScalarKernelTempl<is_ad>::computeQpResidual()
 {
   GenericReal<is_ad> partial_residual = 0;
-  const auto & _qp = _functor_arg;
   const auto _i = Base::_i;
-  const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
   for (unsigned int i = 0; i < _n_inputs; ++i)
-    partial_residual += -(*(_input_vals[i]))[_i] * (*(_input_fractions[i]))(_qp, _state);
+    partial_residual += -(*(_input_vals[i]))[_i] * functorValue(*_input_fractions[i]);
 
   for (unsigned int i = 0; i < _n_other_sources; ++i)
-    partial_residual += -(*(_other_sources[i]))(_qp, _state);
+    partial_residual += -functorValue(*_other_sources[i]);
 
   for (unsigned int i = 0; i < _n_other_sinks; ++i)
-    partial_residual += (*(_other_sinks[i]))(_qp, _state);
+    partial_residual += functorValue(*_other_sinks[i]);
 
-  partial_residual += -_TBR(_qp, _state) * _burn_rate(_qp, _state);
+  partial_residual += -functorValue(_TBR) * functorValue(_burn_rate);
   if (!_disable_residence_time)
   {
-    partial_residual += _leakage_rate(_qp, _state) / _residence_time(_qp, _state) * Base::_u[_i];
-    partial_residual += Base::_u[_i] / _residence_time(_qp, _state);
+    partial_residual += functorValue(_leakage_rate) / functorValue(_residence_time) * Base::_u[_i];
+    partial_residual += Base::_u[_i] / functorValue(_residence_time);
   }
-  partial_residual += _decay_constant(_qp, _state) * Base::_u[_i];
+  partial_residual += functorValue(_decay_constant) * Base::_u[_i];
   if (!_pseudo_steady_state)
     partial_residual += Base::_u_dot[_i];
   return partial_residual;
@@ -235,15 +322,13 @@ FuelCycleSystemScalarKernelTempl<is_ad>::computeQpJacobian()
   if constexpr (!is_ad)
   {
     Real partial_residual = 0;
-    const auto & _qp = _functor_arg;
     const auto _i = Base::_i;
-    const auto _state = _is_implicit ? Moose::currentState() : Moose::oldState();
     if (!_disable_residence_time)
     {
-      partial_residual += _leakage_rate(_qp, _state) / _residence_time(_qp, _state);
-      partial_residual += 1 / _residence_time(_qp, _state);
+      partial_residual += functorValue(_leakage_rate) / functorValue(_residence_time);
+      partial_residual += 1 / functorValue(_residence_time);
     }
-    partial_residual += _decay_constant(_qp, _state);
+    partial_residual += functorValue(_decay_constant);
     if (!_pseudo_steady_state)
       partial_residual += Base::_du_dot_du[_i];
     return partial_residual;

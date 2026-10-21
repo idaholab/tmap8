@@ -34,6 +34,8 @@ Because the system is zero-dimensional, all functor parameters are evaluated at 
 
 The kernel checks these requirements at initial setup. If [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point) lies outside the mesh, or in a subdomain outside the block restriction of an element-dependent functor, the simulation stops with an error that names the functor and the parameter it was supplied to.
 
+In parallel, element-dependent functors are evaluated once per residual and Jacobian evaluation on the process that owns the element containing [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point), and the values are broadcast to all processes. Simulations with replicated or distributed meshes therefore give the same result as serial runs.
+
 The following input shows each of these functor types defined so that it reproduces the same sink term. Each one is selected in turn through `other_sinks` in the test suite.
 
 !listing test/tests/fuel_cycle_Abdou/ss_kernel_functors.i link=false

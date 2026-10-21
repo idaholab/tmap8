@@ -14,6 +14,7 @@
 #include "MooseTypes.h"
 
 #include <tuple>
+#include <unordered_map>
 
 template <bool is_ad>
 class FuelCycleSystemScalarKernelTempl
@@ -28,6 +29,9 @@ public:
   static InputParameters validParams();
 
   virtual void initialSetup() override;
+  virtual void residualSetup() override;
+  virtual void jacobianSetup() override;
+  virtual void meshChanged() override;
 
 protected:
   virtual GenericReal<is_ad> computeQpResidual() override;
@@ -70,7 +74,18 @@ protected:
   /// and so that evaluations bypass the element-keyed functor cache
   Moose::ElemPointArg _functor_arg;
 
+  /// Value of a functor at the evaluation point, read from the cache for element-dependent functors
+  GenericReal<is_ad> functorValue(const Moose::Functor<GenericReal<is_ad>> & functor) const;
+
 private:
+  /// Locates the element containing the evaluation point and the process that owns it, and checks
+  /// that every element-dependent functor can be evaluated there
+  void locateEvaluationPoint();
+  /// Evaluates element-dependent functors on the process owning the evaluation element and
+  /// broadcasts the values to all processes
+  void cacheElementDependentFunctors();
+  /// State (current or old) at which functors are evaluated
+  Moose::StateArg functorState() const;
   /// Records a functor so that its compatibility with the evaluation point can be checked
   void registerFunctor(const std::string & param_name,
                        const MooseFunctorName & functor_name,
@@ -81,6 +96,13 @@ private:
   /// Parameter name, functor name, and functor for every functor used by this kernel
   std::vector<std::tuple<std::string, MooseFunctorName, const Moose::Functor<GenericReal<is_ad>> *>>
       _registered_functors;
+  /// Process owning the element containing the evaluation point
+  processor_id_type _evaluation_pid;
+  /// Values of element-dependent functors (field variables, functor materials) at the evaluation
+  /// point. These are only computable on the process owning the evaluation element, which is
+  /// generally not the process owning the scalar variable's degrees of freedom
+  std::unordered_map<const Moose::Functor<GenericReal<is_ad>> *, GenericReal<is_ad>>
+      _element_dependent_values;
 };
 
 typedef FuelCycleSystemScalarKernelTempl<false> FuelCycleSystemScalarKernel;
