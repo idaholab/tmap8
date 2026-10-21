@@ -1,16 +1,14 @@
-# This input file models the steady-state natural circulation of a lead-lithium
-# eutectic (PbLi) loop based on an experiment conducted at Oak Ridge National
-# Laboratory (ORNL), with a code-to-code comparison against a RELAP5 model
-# developed at the University of Tennessee-Knoxville (UTK). The loop is a
-# rectangular pipe circuit discretized into 40 segments (20 in the cold leg,
-# 20 in the hot leg), using MOOSE THM's Path-Integrated Incompressible Flow
-# Model scalar kernels to solve for mass flow rate, fluid temperature, and
-# pipe inner/outer wall temperature. Buoyancy-driven flow is established by
-# heating the two vertical legs and horizontal top/bottom runs with imposed
-# wall heat fluxes, while the chains/fittings connecting segments impose a
-# fixed form loss. Steady-state results for the hot/cold leg temperatures and
-# flow velocity are compared against both the RELAP5 model and the ORNL
-# experimental measurements via postprocessors.
+# This input file models the transient natural circulation startup of a
+# lead-lithium eutectic (PbLi) loop based on an experiment conducted at Oak
+# Ridge National Laboratory (ORNL), with a code-to-code comparison against a
+# RELAP5 model developed at the University of Tennessee-Knoxville (UTK). It
+# is identical to PbLi_Loop_steady.i except that time derivatives are enabled
+# on all scalar variables and the loop is run from a uniform initial
+# temperature to a 21600 s end time, allowing the flow and temperature
+# distribution to develop from rest as the imposed wall heat fluxes drive
+# buoyant circulation. Loop geometry, boundary heat fluxes, and comparison
+# postprocessors against the RELAP5 model and the ORNL experimental
+# measurements are the same as in the steady-state case.
 # Unit system: SI (length in meters, temperature in Kelvin, pressure in Pascals)
 
 Lx = 0.495
@@ -28,9 +26,9 @@ inner_wall_area = '${fparse pi / 4 * midthickness_diameter^2 - pi / 4 * inner_di
 outer_wall_area = '${fparse pi / 4 * outer_diameter^2 - pi / 4 * midthickness_diameter^2}'
 midthickness_perimeter = '${fparse pi * midthickness_diameter}'
 outer_perimeter = '${fparse pi * outer_diameter}'
-Q_horiz = 129.9
-Q_vert = 558.9
-chains_loss = 58.0
+Q_horiz = 148.3
+Q_vert = 638.7
+chains_loss = 62.5
 
 [Functions]
     [kw]
@@ -79,7 +77,7 @@ chains_loss = 58.0
 [Variables]
   [m1]
     family = SCALAR
-    initial_condition = 1.0
+    initial_condition = 0.1
   []
   [dPc]
     family = SCALAR
@@ -609,10 +607,6 @@ chains_loss = 58.0
     roughnesses = '0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
                    0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0'
   []
-  # [cold_leg_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'm1'
-  # []
   [hot_leg]
     type = ADCoupledPressureIncompressibleMomentumSPScalarKernel
     variable = 'dPc'
@@ -654,11 +648,6 @@ chains_loss = 58.0
     roughnesses = '0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
                    0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0'
   []
-  # [hot_leg_DT]
-  #   type = CoupledODETimeDerivative
-  #   variable = 'dPc'
-  #   v = 'm1'
-  # []
   [temp1]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -672,10 +661,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T01
   []
-  # [temp1_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T01'
-  # []
   [temp2]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -689,10 +674,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T02
   []
-  # [temp2_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T02'
-  # []
   [temp3]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -706,10 +687,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T03
   []
-  # [temp3_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T03'
-  # []
   [temp4]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -723,10 +700,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T04
   []
-  # [temp4_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T04'
-  # []
   [temp5]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -740,10 +713,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T05
   []
-  # [temp5_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T05'
-  # []
   [temp6]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -757,10 +726,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T06
   []
-  # [temp6_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T06'
-  # []
   [temp7]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -774,10 +739,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T07
   []
-  # [temp7_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T07'
-  # []
   [temp8]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -791,10 +752,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T08
   []
-  # [temp8_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T08'
-  # []
   [temp9]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -808,10 +765,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T09
   []
-  # [temp9_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T09'
-  # []
   [temp10]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -825,10 +778,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T10
   []
-  # [temp10_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T10'
-  # []
   [temp11]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -842,10 +791,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T11
   []
-  # [temp11_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T11'
-  # []
   [temp12]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -859,10 +804,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T12
   []
-  # [temp12_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T12'
-  # []
   [temp13]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -876,10 +817,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T13
   []
-  # [temp13_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T13'
-  # []
   [temp14]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -893,10 +830,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T14
   []
-  # [temp14_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T14'
-  # []
   [temp15]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -910,10 +843,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T15
   []
-  # [temp15_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T15'
-  # []
   [temp16]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -927,10 +856,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T16
   []
-  # [temp16_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T16'
-  # []
   [temp17]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -944,10 +869,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T17
   []
-  # [temp17_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T17'
-  # []
   [temp18]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -961,10 +882,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T18
   []
-  # [temp18_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T18'
-  # []
   [temp19]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -978,10 +895,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T19
   []
-  # [temp19_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T19'
-  # []
   [temp20]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -995,10 +908,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T20
   []
-  # [temp20_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T20'
-  # []
   [temp21]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1012,10 +921,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T21
   []
-  # [temp21_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T21'
-  # []
   [temp22]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1029,10 +934,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T22
   []
-  # [temp22_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T22'
-  # []
   [temp23]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1046,10 +947,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T23
   []
-  # [temp23_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T23'
-  # []
   [temp24]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1063,10 +960,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T24
   []
-  # [temp24_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T24'
-  # []
   [temp25]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1080,10 +973,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T25
   []
-  # [temp25_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T25'
-  # []
   [temp26]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1097,10 +986,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T26
   []
-  # [temp26_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T26'
-  # []
   [temp27]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1114,10 +999,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T27
   []
-  # [temp27_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T27'
-  # []
   [temp28]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1131,10 +1012,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T28
   []
-  # [temp28_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T28'
-  # []
   [temp29]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1148,10 +1025,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T29
   []
-  # [temp29_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T29'
-  # []
   [temp30]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1165,10 +1038,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T30
   []
-  # [temp30_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T30'
-  # []
   [temp31]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1182,10 +1051,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T31
   []
-  # [temp31_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T31'
-  # []
   [temp32]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1199,10 +1064,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T32
   []
-  # [temp32_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T32'
-  # []
   [temp33]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1216,10 +1077,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T33
   []
-  # [temp33_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T33'
-  # []
   [temp34]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1233,10 +1090,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T34
   []
-  # [temp34_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T34'
-  # []
   [temp35]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1250,10 +1103,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T35
   []
-  # [temp35_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T35'
-  # []
   [temp36]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1267,10 +1116,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T36
   []
-  # [temp36_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T36'
-  # []
   [temp37]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1284,10 +1129,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T37
   []
-  # [temp37_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T37'
-  # []
   [temp38]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1301,10 +1142,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T38
   []
-  # [temp38_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T38'
-  # []
   [temp39]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1318,10 +1155,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T39
   []
-  # [temp39_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T39'
-  # []
   [temp40]
     type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'm1'
@@ -1335,10 +1168,6 @@ chains_loss = 58.0
     reference_pressure = ${reference_pressure}
     variable = T40
   []
-  # [temp40_DT]
-  #   type = ADScalarTimeDerivative
-  #   variable = 'T40'
-  # []
   [innerwalltemp1]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi01
@@ -1350,9 +1179,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T40
     downstream_fluid_temperature = T02
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area}
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1362,11 +1188,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h1
   []
-  # [innerwalltemp1_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi01
-  # []
   [innerwalltemp2]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi02
@@ -1378,9 +1201,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T01
     downstream_fluid_temperature = T03
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1390,11 +1210,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h2
   []
-  # [innerwalltemp2_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi02
-  # []
   [innerwalltemp3]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi03
@@ -1406,9 +1223,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T02
     downstream_fluid_temperature = T04
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1418,11 +1232,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h3
   []
-  # [innerwalltemp3_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi03
-  # []
   [innerwalltemp4]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi04
@@ -1434,9 +1245,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T03
     downstream_fluid_temperature = T05
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1446,11 +1254,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h4
   []
-  # [innerwalltemp4_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi04
-  # []
   [innerwalltemp5]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi05
@@ -1462,9 +1267,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T04
     downstream_fluid_temperature = T06
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1474,11 +1276,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h5
   []
-  # [innerwalltemp5_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi05
-  # []
   [innerwalltemp6]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi06
@@ -1490,9 +1289,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T05
     downstream_fluid_temperature = T07
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1502,11 +1298,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h6
   []
-  # [innerwalltemp6_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi06
-  # []
   [innerwalltemp7]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi07
@@ -1518,9 +1311,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T06
     downstream_fluid_temperature = T08
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1530,11 +1320,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h7
   []
-  # [innerwalltemp7_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi07
-  # []
   [innerwalltemp8]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi08
@@ -1546,9 +1333,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T07
     downstream_fluid_temperature = T09
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1558,11 +1342,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h8
   []
-  # [innerwalltemp8_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi08
-  # []
   [innerwalltemp9]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi09
@@ -1574,9 +1355,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T08
     downstream_fluid_temperature = T10
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1586,11 +1364,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h9
   []
-  # [innerwalltemp9_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi09
-  # []
   [innerwalltemp10]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi10
@@ -1602,9 +1377,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T09
     downstream_fluid_temperature = T11
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1614,11 +1386,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h10
   []
-  # [innerwalltemp10_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi10
-  # []
   [innerwalltemp11]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi11
@@ -1630,9 +1399,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T10
     downstream_fluid_temperature = T12
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1642,11 +1408,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h11
   []
-  # [innerwalltemp11_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi11
-  # []
   [innerwalltemp12]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi12
@@ -1658,9 +1421,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T11
     downstream_fluid_temperature = T13
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1670,11 +1430,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h12
   []
-  # [innerwalltemp12_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi12
-  # []
   [innerwalltemp13]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi13
@@ -1686,9 +1443,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T12
     downstream_fluid_temperature = T14
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1698,11 +1452,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h13
   []
-  # [innerwalltemp13_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi13
-  # []
   [innerwalltemp14]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi14
@@ -1714,9 +1465,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T13
     downstream_fluid_temperature = T15
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1726,11 +1474,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h14
   []
-  # [innerwalltemp14_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi14
-  # []
   [innerwalltemp15]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi15
@@ -1742,9 +1487,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T14
     downstream_fluid_temperature = T16
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1754,11 +1496,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h15
   []
-  # [innerwalltemp15_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi15
-  # []
   [innerwalltemp16]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi16
@@ -1770,9 +1509,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T15
     downstream_fluid_temperature = T17
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1782,11 +1518,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h16
   []
-  # [innerwalltemp16_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi16
-  # []
   [innerwalltemp17]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi17
@@ -1798,9 +1531,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T16
     downstream_fluid_temperature = T18
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1810,11 +1540,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h17
   []
-  # [innerwalltemp17_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi17
-  # []
   [innerwalltemp18]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi18
@@ -1826,9 +1553,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T17
     downstream_fluid_temperature = T19
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1838,11 +1562,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h18
   []
-  # [innerwalltemp18_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi18
-  # []
   [innerwalltemp19]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi19
@@ -1854,9 +1575,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T18
     downstream_fluid_temperature = T20
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1866,11 +1584,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h19
   []
-  # [innerwalltemp19_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi19
-  # []
   [innerwalltemp20]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi20
@@ -1882,9 +1597,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T19
     downstream_fluid_temperature = T21
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1894,11 +1606,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h20
   []
-  # [innerwalltemp20_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi20
-  # []
   [innerwalltemp21]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi21
@@ -1910,9 +1619,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T20
     downstream_fluid_temperature = T22
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1922,11 +1628,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h21
   []
-  # [innerwalltemp21_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi21
-  # []
   [innerwalltemp22]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi22
@@ -1938,9 +1641,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T21
     downstream_fluid_temperature = T23
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1950,11 +1650,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h22
   []
-  # [innerwalltemp22_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi22
-  # []
   [innerwalltemp23]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi23
@@ -1966,9 +1663,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T22
     downstream_fluid_temperature = T24
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -1978,11 +1672,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h23
   []
-  # [innerwalltemp23_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi23
-  # []
   [innerwalltemp24]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi24
@@ -1994,9 +1685,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T23
     downstream_fluid_temperature = T25
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2006,11 +1694,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h24
   []
-  # [innerwalltemp24_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi24
-  # []
   [innerwalltemp25]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi25
@@ -2022,9 +1707,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T24
     downstream_fluid_temperature = T26
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2034,11 +1716,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h25
   []
-  # [innerwalltemp25_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi25
-  # []
   [innerwalltemp26]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi26
@@ -2050,9 +1729,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T25
     downstream_fluid_temperature = T27
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2062,11 +1738,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h26
   []
-  # [innerwalltemp26_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi26
-  # []
   [innerwalltemp27]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi27
@@ -2078,9 +1751,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T26
     downstream_fluid_temperature = T28
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2090,11 +1760,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h27
   []
-  # [innerwalltemp27_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi27
-  # []
   [innerwalltemp28]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi28
@@ -2106,9 +1773,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T27
     downstream_fluid_temperature = T29
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2118,11 +1782,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h28
   []
-  # [innerwalltemp28_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi28
-  # []
   [innerwalltemp29]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi29
@@ -2134,9 +1795,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T28
     downstream_fluid_temperature = T30
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2146,11 +1804,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h29
   []
-  # [innerwalltemp29_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi29
-  # []
   [innerwalltemp30]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi30
@@ -2162,9 +1817,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T29
     downstream_fluid_temperature = T31
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2174,11 +1826,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h30
   []
-  # [innerwalltemp30_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi30
-  # []
   [innerwalltemp31]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi31
@@ -2190,9 +1839,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T30
     downstream_fluid_temperature = T32
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2202,11 +1848,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h31
   []
-  # [innerwalltemp31_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi31
-  # []
   [innerwalltemp32]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi32
@@ -2218,9 +1861,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T31
     downstream_fluid_temperature = T33
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2230,11 +1870,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h32
   []
-  # [innerwalltemp32_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi32
-  # []
   [innerwalltemp33]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi33
@@ -2246,9 +1883,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T32
     downstream_fluid_temperature = T34
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2258,11 +1892,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h33
   []
-  # [innerwalltemp33_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi33
-  # []
   [innerwalltemp34]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi34
@@ -2274,9 +1905,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T33
     downstream_fluid_temperature = T35
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2286,11 +1914,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h34
   []
-  # [innerwalltemp34_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi34
-  # []
   [innerwalltemp35]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi35
@@ -2302,9 +1927,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T34
     downstream_fluid_temperature = T36
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2314,11 +1936,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h35
   []
-  # [innerwalltemp35_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi35
-  # []
   [innerwalltemp36]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi36
@@ -2330,9 +1949,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T35
     downstream_fluid_temperature = T37
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2342,11 +1958,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h36
   []
-  # [innerwalltemp36_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi36
-  # []
   [innerwalltemp37]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi37
@@ -2358,9 +1971,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T36
     downstream_fluid_temperature = T38
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2370,11 +1980,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h37
   []
-  # [innerwalltemp37_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi37
-  # []
   [innerwalltemp38]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi38
@@ -2386,9 +1993,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T37
     downstream_fluid_temperature = T39
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2398,11 +2002,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h38
   []
-  # [innerwalltemp38_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi38
-  # []
   [innerwalltemp39]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi39
@@ -2414,9 +2015,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T38
     downstream_fluid_temperature = T40
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2426,11 +2024,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse Ly/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h39
   []
-  # [innerwalltemp39_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi39
-  # []
   [innerwalltemp40]
     type = ADPipeInnerWallTemperatureScalarKernel
     variable = Twi40
@@ -2442,9 +2037,6 @@ chains_loss = 58.0
     upstream_fluid_temperature = T39
     downstream_fluid_temperature = T01
     solid_properties = APMT
-    reference_pressure = ${reference_pressure}
-    fluid_properties = PbLi
-    flow_area = ${flow_area} 
     wetted_perimeter = ${wetted_perimeter}
     area = ${inner_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2454,11 +2046,8 @@ chains_loss = 58.0
     downstream_spacing = ${fparse sqrt(Lx^2+(m_horiz*Lx)^2)/10}
     upstream_area = ${inner_wall_area}
     downstream_area = ${inner_wall_area}
+    heat_transfer_coefficient = h40
   []
-  # [innerwalltemp40_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Twi40
-  # []
   [outerwalltemp1]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two01
@@ -2467,7 +2056,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two02
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2478,10 +2067,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp1_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two01
-  # []
   [outerwalltemp2]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two02
@@ -2490,7 +2075,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two03
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2501,10 +2086,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp2_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two02
-  # []
   [outerwalltemp3]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two03
@@ -2513,7 +2094,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two04
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2524,10 +2105,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp3_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two03
-  # []
   [outerwalltemp4]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two04
@@ -2536,7 +2113,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two05
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2547,10 +2124,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp4_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two04
-  # []
   [outerwalltemp5]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two05
@@ -2559,7 +2132,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two06
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2570,10 +2143,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp5_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two05
-  # []
   [outerwalltemp6]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two06
@@ -2582,7 +2151,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two07
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2593,10 +2162,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp6_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two06
-  # []
   [outerwalltemp7]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two07
@@ -2605,7 +2170,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two08
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2616,10 +2181,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp7_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two07
-  # []
   [outerwalltemp8]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two08
@@ -2628,7 +2189,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two09
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2639,10 +2200,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp8_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two08
-  # []
   [outerwalltemp9]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two09
@@ -2651,7 +2208,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two10
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2662,10 +2219,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp9_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two09
-  # []
   [outerwalltemp10]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two10
@@ -2674,7 +2227,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two11
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2685,10 +2238,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp10_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two10
-  # []
   [outerwalltemp11]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two11
@@ -2697,7 +2246,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two12
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2708,10 +2257,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp11_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two11
-  # []
   [outerwalltemp12]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two12
@@ -2720,7 +2265,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two13
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2731,10 +2276,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp12_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two12
-  # []
   [outerwalltemp13]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two13
@@ -2743,7 +2284,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two14
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2754,10 +2295,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp13_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two13
-  # []
   [outerwalltemp14]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two14
@@ -2766,7 +2303,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two15
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2777,10 +2314,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp14_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two14
-  # []
   [outerwalltemp15]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two15
@@ -2789,7 +2322,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two16
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2800,10 +2333,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp15_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two15
-  # []
   [outerwalltemp16]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two16
@@ -2812,7 +2341,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two17
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2823,10 +2352,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp16_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two16
-  # []
   [outerwalltemp17]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two17
@@ -2835,7 +2360,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two18
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2846,10 +2371,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp17_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two17
-  # []
   [outerwalltemp18]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two18
@@ -2858,7 +2379,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two19
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2869,10 +2390,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp18_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two18
-  # []
   [outerwalltemp19]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two19
@@ -2881,7 +2398,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two20
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2892,10 +2409,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp19_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two19
-  # []
   [outerwalltemp20]
     type = ADPipeOuterWallAmbientTemperatureScalarKernel
     variable = Two20
@@ -2904,7 +2417,7 @@ chains_loss = 58.0
     downstream_wall_temperature = Two21
     solid_properties = APMT
     T_ambient = 293.15
-    htc_ambient = 12.0
+    htc_ambient = 13.5
     ambient_perimeter = ${outer_perimeter}
     area = ${outer_wall_area}
     interface_perimeter = ${midthickness_perimeter}
@@ -2915,10 +2428,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp20_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two20
-  # []
   [outerwalltemp21]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two21
@@ -2937,10 +2446,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp21_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two21
-  # []
   [outerwalltemp22]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two22
@@ -2959,10 +2464,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp22_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two22
-  # []
   [outerwalltemp23]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two23
@@ -2981,10 +2482,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp23_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two23
-  # []
   [outerwalltemp24]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two24
@@ -3003,10 +2500,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp24_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two24
-  # []
   [outerwalltemp25]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two25
@@ -3025,10 +2518,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp25_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two25
-  # []
   [outerwalltemp26]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two26
@@ -3047,10 +2536,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp26_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two26
-  # []
   [outerwalltemp27]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two27
@@ -3069,10 +2554,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp27_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two27
-  # []
   [outerwalltemp28]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two28
@@ -3091,10 +2572,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp28_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two28
-  # []
   [outerwalltemp29]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two29
@@ -3113,10 +2590,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp29_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two29
-  # []
   [outerwalltemp30]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two30
@@ -3135,10 +2608,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp30_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two30
-  # []
   [outerwalltemp31]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two31
@@ -3157,10 +2626,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp31_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two31
-  # []
   [outerwalltemp32]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two32
@@ -3179,10 +2644,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp32_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two32
-  # []
   [outerwalltemp33]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two33
@@ -3201,10 +2662,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp33_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two33
-  # []
   [outerwalltemp34]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two34
@@ -3223,10 +2680,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp34_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two34
-  # []
   [outerwalltemp35]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two35
@@ -3245,10 +2698,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp35_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two35
-  # []
   [outerwalltemp36]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two36
@@ -3267,10 +2716,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp36_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two36
-  # []
   [outerwalltemp37]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two37
@@ -3289,10 +2734,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp37_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two37
-  # []
   [outerwalltemp38]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two38
@@ -3311,10 +2752,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp38_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two38
-  # []
   [outerwalltemp39]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two39
@@ -3333,10 +2770,6 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp39_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two39
-  # []
   [outerwalltemp40]
     type = ADPipeOuterWallHeatFluxScalarKernel
     variable = Two40
@@ -3355,81 +2788,520 @@ chains_loss = 58.0
     upstream_area = ${outer_wall_area}
     downstream_area = ${outer_wall_area}
   []
-  # [outerwalltemp40_dt]
-  #   type = ADScalarTimeDerivative
-  #   variable = Two40
-  # []
+[]
+
+[FunctorMaterials]
+  [h1]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T01
+    T_fluid_inlet = T40
+    T_fluid_outlet = T02
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h2]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T02
+    T_fluid_inlet = T01
+    T_fluid_outlet = T03
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h3]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T03
+    T_fluid_inlet = T02
+    T_fluid_outlet = T04
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h4]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T04
+    T_fluid_inlet = T03
+    T_fluid_outlet = T05
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h5]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T05
+    T_fluid_inlet = T04
+    T_fluid_outlet = T06
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h6]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T06
+    T_fluid_inlet = T05
+    T_fluid_outlet = T07
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h7]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T07
+    T_fluid_inlet = T06
+    T_fluid_outlet = T08
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h8]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T08
+    T_fluid_inlet = T07
+    T_fluid_outlet = T09
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h9]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T09
+    T_fluid_inlet = T08
+    T_fluid_outlet = T10
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h10]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T10
+    T_fluid_inlet = T09
+    T_fluid_outlet = T11
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h11]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T11
+    T_fluid_inlet = T10
+    T_fluid_outlet = T12
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h12]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T12
+    T_fluid_inlet = T11
+    T_fluid_outlet = T13
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h13]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T13
+    T_fluid_inlet = T12
+    T_fluid_outlet = T14
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h14]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T14
+    T_fluid_inlet = T13
+    T_fluid_outlet = T15
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h15]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T15
+    T_fluid_inlet = T14
+    T_fluid_outlet = T16
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h16]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T16
+    T_fluid_inlet = T15
+    T_fluid_outlet = T17
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h17]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T17
+    T_fluid_inlet = T16
+    T_fluid_outlet = T18
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h18]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T18
+    T_fluid_inlet = T17
+    T_fluid_outlet = T19
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h19]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T19
+    T_fluid_inlet = T18
+    T_fluid_outlet = T20
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h20]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T20
+    T_fluid_inlet = T19
+    T_fluid_outlet = T21
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h21]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T21
+    T_fluid_inlet = T20
+    T_fluid_outlet = T22
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h22]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T22
+    T_fluid_inlet = T21
+    T_fluid_outlet = T23
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h23]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T23
+    T_fluid_inlet = T22
+    T_fluid_outlet = T24
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h24]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T24
+    T_fluid_inlet = T23
+    T_fluid_outlet = T25
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h25]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T25
+    T_fluid_inlet = T24
+    T_fluid_outlet = T26
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h26]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T26
+    T_fluid_inlet = T25
+    T_fluid_outlet = T27
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h27]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T27
+    T_fluid_inlet = T26
+    T_fluid_outlet = T28
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h28]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T28
+    T_fluid_inlet = T27
+    T_fluid_outlet = T29
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h29]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T29
+    T_fluid_inlet = T28
+    T_fluid_outlet = T30
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h30]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T30
+    T_fluid_inlet = T29
+    T_fluid_outlet = T31
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h31]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T31
+    T_fluid_inlet = T30
+    T_fluid_outlet = T32
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h32]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T32
+    T_fluid_inlet = T31
+    T_fluid_outlet = T33
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h33]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T33
+    T_fluid_inlet = T32
+    T_fluid_outlet = T34
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h34]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T34
+    T_fluid_inlet = T33
+    T_fluid_outlet = T35
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h35]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T35
+    T_fluid_inlet = T34
+    T_fluid_outlet = T36
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h36]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T36
+    T_fluid_inlet = T35
+    T_fluid_outlet = T37
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h37]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T37
+    T_fluid_inlet = T36
+    T_fluid_outlet = T38
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h38]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T38
+    T_fluid_inlet = T37
+    T_fluid_outlet = T39
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h39]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T39
+    T_fluid_inlet = T38
+    T_fluid_outlet = T40
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
+  [h40]
+    type = ADDittusBoelterHTCFunctorMaterial
+    mass_flow_rate = m1
+    fluid_properties = PbLi
+    T_fluid = T40
+    T_fluid_inlet = T39
+    T_fluid_outlet = T01
+    reference_pressure = ${reference_pressure}
+    flow_area = ${flow_area}
+    wetted_perimeter = ${wetted_perimeter}
+  []
 []
 
 [Postprocessors]
   [mdot]
     type = ScalarVariable
     variable = m1
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [Temp20]
     type = ScalarVariable
     variable = T20
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [Temp40]
     type = ScalarVariable
     variable = T40
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL LINEAR TIMESTEP_END FINAL'
   []
   [AveTemp]
     type = ParsedPostprocessor
     expression = '(Temp20 + Temp40)/2'
     pp_names = 'Temp20 Temp40'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [rhoave]
     type = FunctionValuePostprocessor
     function = rhof
     time = AveTemp
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [flow_velocity]
     type = ParsedPostprocessor
     expression = 'abs(mdot)/rhoave/${flow_area}'
     pp_names = 'mdot rhoave'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [RELAP_comp_Tlow]
     type = ParsedPostprocessor
     expression = '(Temp20 - 708.1)/708.1'
     pp_names = 'Temp20'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [RELAP_comp_Thigh]
     type = ParsedPostprocessor
     expression = '(Temp40 - 827.7)/827.7'
     pp_names = 'Temp40'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [RELAP_comp_velocity]
     type = ParsedPostprocessor
     expression = '(flow_velocity - 0.0065)/0.0065'
     pp_names = 'flow_velocity'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [experiment_comp_Tlow]
     type = ParsedPostprocessor
     expression = '(Temp20 - 707.5)/707.5'
     pp_names = 'Temp20'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [experiment_comp_Thigh]
     type = ParsedPostprocessor
     expression = '(Temp40 - 823.2)/823.2'
     pp_names = 'Temp40'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
   [experiment_comp_velocity]
     type = ParsedPostprocessor
     expression = '(flow_velocity - 0.0067)/0.0067'
     pp_names = 'flow_velocity'
-    execute_on = 'TIMESTEP_END FINAL'
+    execute_on = 'INITIAL TIMESTEP_END FINAL'
   []
 []
 
@@ -3447,6 +3319,6 @@ chains_loss = 58.0
   perf_graph = true
   [out]
     type = CSV
-    execute_on = 'FINAL'
+    execute_on = 'TIMESTEP_END'
   []
 []
