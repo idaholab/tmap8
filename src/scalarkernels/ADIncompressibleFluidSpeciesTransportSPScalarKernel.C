@@ -7,20 +7,17 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "IncompressibleFluidSpeciesTransportSPScalarKernel.h"
+#include "ADIncompressibleFluidSpeciesTransportSPScalarKernel.h"
 
 // MOOSE includes
 #include "ScalarCoupleable.h"
 
-registerMooseObject("TMAP8App", IncompressibleFluidSpeciesTransportSPScalarKernel);
 registerMooseObject("TMAP8App", ADIncompressibleFluidSpeciesTransportSPScalarKernel);
 
-template <bool is_ad>
 InputParameters
-IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
+ADIncompressibleFluidSpeciesTransportSPScalarKernel::validParams()
 {
-  InputParameters params = is_ad ? ADIncompressibleEnergySPScalarKernel::validParams()
-                                 : IncompressibleEnergySPScalarKernel::validParams();
+  InputParameters params = ADIncompressibleEnergySPScalarKernel::validParams();
   params.addClassDescription(
       "Implements a generic mass transport solve over a 1D flow path segment.");
   params.addCoupledVar("temperature",
@@ -89,28 +86,27 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::validParams()
   return params;
 }
 
-template <bool is_ad>
-IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
-    IncompressibleFluidSpeciesTransportSPScalarKernelTempl(const InputParameters & parameters)
+ADIncompressibleFluidSpeciesTransportSPScalarKernel::
+    ADIncompressibleFluidSpeciesTransportSPScalarKernel(const InputParameters & parameters)
   : Base(parameters),
-    _T(ScalarCoupleable::coupledScalarValue("temperature")),
-    _Cup(ScalarCoupleable::coupledScalarValue("upstream_concentration")),
-    _Cdown(ScalarCoupleable::coupledScalarValue("downstream_concentration")),
+    _T(ScalarCoupleable::adCoupledScalarValue("temperature")),
+    _Cup(ScalarCoupleable::adCoupledScalarValue("upstream_concentration")),
+    _Cdown(ScalarCoupleable::adCoupledScalarValue("downstream_concentration")),
     _n_precursors(ScalarCoupleable::coupledScalarComponents("precursors")),
     _precursors(_n_precursors),
     _n_diss(ScalarCoupleable::coupledScalarComponents("wall_dissociated_atoms")),
     _diss(_n_diss),
     _precursorHLs(
         this->template getParam<std::vector<MooseFunctorName>>("precursor_half_lives").size()),
-    _primaryHL(this->template getFunctor<GenericReal<is_ad>>("half_life")),
+    _primaryHL(this->template getFunctor<ADReal>("half_life")),
     _fluid_type(this->template getParam<std::string>("fluid_type")),
-    _diffus(this->template getFunctor<GenericReal<is_ad>>("species_diffusivity")),
-    _fluid_sol(this->template getFunctor<GenericReal<is_ad>>("fluid_solubility")),
-    _dissoc(this->template getFunctor<GenericReal<is_ad>>("dissociation_coeff")),
-    _recomb(this->template getFunctor<GenericReal<is_ad>>("recombination_coeff")),
+    _diffus(this->template getFunctor<ADReal>("species_diffusivity")),
+    _fluid_sol(this->template getFunctor<ADReal>("fluid_solubility")),
+    _dissoc(this->template getFunctor<ADReal>("dissociation_coeff")),
+    _recomb(this->template getFunctor<ADReal>("recombination_coeff")),
     _wall_sol(_n_diss),
     _is_homonuc(this->template getParam<bool>("is_homonuclear")),
-    _equib(this->template getFunctor<GenericReal<is_ad>>("equilibrium_constant"))
+    _equib(this->template getFunctor<ADReal>("equilibrium_constant"))
 {
   auto & PHL_names = MooseBase::getParam<std::vector<MooseFunctorName>>("precursor_half_lives");
   auto & wallsol_names = MooseBase::getParam<std::vector<MooseFunctorName>>("wall_solubility");
@@ -120,8 +116,8 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
   }
   for (const auto j : make_range(_n_precursors))
   {
-    _precursors[j] = &(ScalarCoupleable::coupledScalarValue("precursors", j));
-    _precursorHLs[j] = &(this->template getFunctor<GenericReal<is_ad>>(PHL_names[j]));
+    _precursors[j] = &(ScalarCoupleable::adCoupledScalarValue("precursors", j));
+    _precursorHLs[j] = &(this->template getFunctor<ADReal>(PHL_names[j]));
   }
   if (_n_diss != wallsol_names.size())
   {
@@ -129,17 +125,16 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::
   }
   for (const auto j : make_range(_n_diss))
   {
-    _diss[j] = &(ScalarCoupleable::coupledScalarValue("wall_dissociated_atoms", j));
-    _wall_sol[j] = &(this->template getFunctor<GenericReal<is_ad>>(wallsol_names[j]));
+    _diss[j] = &(ScalarCoupleable::adCoupledScalarValue("wall_dissociated_atoms", j));
+    _wall_sol[j] = &(this->template getFunctor<ADReal>(wallsol_names[j]));
   }
 }
 
-template <bool is_ad>
-GenericReal<is_ad>
-IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual()
+ADReal
+ADIncompressibleFluidSpeciesTransportSPScalarKernel::computeQpResidual()
 {
-  GenericReal<is_ad> mass_residual = 0;
-  const Moose::ElemArg qp = Moose::ElemArg();
+  ADReal mass_residual = 0;
+  const auto qp = functorArg();
   const int i = 0;
   const auto state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
   // start by getting fluid properties
@@ -155,7 +150,7 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   const auto Sc = mu / rho / _diffus(qp, state);
   // Mass transfer to fluid (Linton-Sherwood)
   const auto KT = 0.023 * pow(Re, 0.8) * pow(Sc, 1.0 / 3.0) * _diffus(qp, state) / Dh;
-  GenericReal<is_ad> Jm = 0.0;
+  ADReal Jm = 0.0;
   if (_fluid_type == "gas")
   {
     if (_recomb(qp, state) != 0.0 & _dissoc(qp, state) != 0.0)
@@ -223,79 +218,9 @@ IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpResidual
   return mass_residual;
 }
 
-template <bool is_ad>
 Real
-IncompressibleFluidSpeciesTransportSPScalarKernelTempl<is_ad>::computeQpJacobian()
-{
-  if constexpr (!is_ad)
-  {
-    GenericReal<is_ad> mass_jacob = 0;
-    const Moose::ElemArg qp = Moose::ElemArg();
-    const int i = 0;
-    const auto state = Base::_is_implicit ? Moose::currentState() : Moose::oldState();
-    // start by getting fluid properties
-    const auto Tin = 1.0 / 2.0 * (1 - abs(Base::_m[i]) / Base::_m[i]) * Base::_Tdown[i] +
-                     1.0 / 2.0 * (1 + abs(Base::_m[i]) / Base::_m[i]) * Base::_Tup[i];
-    const auto mu = Base::_fp.mu_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
-    const auto rho = Base::_fp.rho_from_p_T(Base::_Pref(qp, state), (_T[i] + Tin) / 2);
-
-    // Decide flow regime for MTC
-    const auto Dh = 4.0 * Base::_area(qp, state) / Base::_perimeter(qp, state);
-    const auto G = abs(Base::_m[i]) / Base::_area(qp, state);
-    const auto Re = G * Dh / mu;
-    const auto Sc = mu / rho / _diffus(qp, state);
-    // Mass transfer to fluid (Linton-Sherwood)
-    const auto KT = 0.023 * pow(Re, 0.8) * pow(Sc, 1.0 / 3.0) * _diffus(qp, state) / Dh;
-    auto Jm = 0.0;
-    if (_fluid_type == "gas")
-    {
-      if (_recomb(qp, state) != 0.0 & _dissoc(qp, state) != 0.0)
-      {
-        Jm = -_dissoc(qp, state) / _fluid_sol(qp, state);
-      }
-      else
-      {
-        mooseError("Can't handle equilibrium case for gas yet.");
-      }
-    }
-    else if (_fluid_type == "metal")
-    {
-      Jm = -KT;
-    }
-    else if (_fluid_type == "solvent")
-    {
-      if (_is_homonuc)
-      {
-        Jm = -2 * KT;
-      }
-      else
-      {
-        Jm = -KT / 1.380649E-23 / 6.022E+23 / _T[i];
-      }
-    }
-    // Advection component
-    mass_jacob += (abs(Base::_m[i])) / Base::_length(qp, state) / Base::_area(qp, state) / rho;
-    // Primary species decay
-    mass_jacob += log(2) / _primaryHL(qp, state) * exp(-log(2) / _primaryHL(qp, state) * Base::_dt);
-    // Wall mass transfer
-    mass_jacob -= Jm * Base::_perimeter(qp, state) / Base::_area(qp, state);
-
-    return mass_jacob;
-  }
-  else
-  {
-    mooseError("computeQpJacobian() should not be called in AD mode");
-    return 0;
-  }
-}
-
-template <>
-Real
-IncompressibleFluidSpeciesTransportSPScalarKernelTempl<true>::computeQpJacobian()
+ADIncompressibleFluidSpeciesTransportSPScalarKernel::computeQpJacobian()
 {
   mooseError("Internal error, calling computeQpJacobian in AD class.");
   return 0.0;
 }
-
-template class IncompressibleFluidSpeciesTransportSPScalarKernelTempl<false>;
-template class IncompressibleFluidSpeciesTransportSPScalarKernelTempl<true>;
