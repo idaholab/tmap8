@@ -123,7 +123,8 @@ FuelCycleSystemScalarKernelTempl<is_ad>::FuelCycleSystemScalarKernelTempl(
     _other_sinks[i] = &(this->template getFunctor<GenericReal<is_ad>>(other_sink_names[i]));
   }
 
-  for (const auto & param : {"decay_constant", "residence_time", "leakage_rate", "TBR", "burn_rate"})
+  for (const auto & param :
+       {"decay_constant", "residence_time", "leakage_rate", "TBR", "burn_rate"})
     registerFunctor(param,
                     this->template getParam<MooseFunctorName>(param),
                     this->template getFunctor<GenericReal<is_ad>>(param));
