@@ -137,7 +137,7 @@ We use the ScalarKernels in MOOSE to calculate the ODEs from 11 systems. All the
 | $\eta_2$  | Tritium extraction efficiency        | 0.7                                                         | -                     |
 | $f_{\text{DIR}}$ | Direct internal recycling fraction   | 0.5                                                         | -                     |
 | $I_i$     | Tritium inventory in the $i$th component | -                                                       | kg                    |
-| $\dot{N}_{T,\text{burn}}$ | Tritium burn rate           | 8.99$\times 10^{-7}$                                        | -                     |
+| $\dot{N}_{T,\text{burn}}$ | Tritium burn rate           | 8.99$\times 10^{-7}$                                        | kg $\cdot$ s$^{-1}$ |
 | $\lambda$ | Tritium decay rate                   | 1.73$\times 10^{-9}$                                        | s$^{-1}$              |
 | $t$       | time                                 | -                                                           | s                     |
 | $\tau_i$  | Tritium residence time in the $i$th component |  $\tau_1=4500$, $\tau_2=86400$, $\tau_3=\tau_4=\tau_5=1000$, $\tau_6=3600$, $\tau_7=600$, $\tau_8=585$, $\tau_9=22815$, $\tau_11=100$ | s                     |

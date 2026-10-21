@@ -45,7 +45,7 @@ where $K_s$ is Sieverts’ solubility. Because A$_2$ and B$_2$ are isotopic vari
 K_d = {K_s}^2 K_r.
 \end{equation}
 
-This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $K_d$ is specified to be $1.858 \times 10^{24}/\sqrt{T}$ atom/m$^2$/s/pa. $K_s$ is specified to be $1 \times 10^{24}$ atom/m$^3$/Pa$^{0.5}$, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
+This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $K_d$ is specified to be $1.858 \times 10^{24}/\sqrt{T}$ atom/m$^2$/s/Pa. $K_s$ is specified to be $1 \times 10^{24}$ atom/m$^3$/Pa$^{0.5}$, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
 
 
 ## Analytical solution

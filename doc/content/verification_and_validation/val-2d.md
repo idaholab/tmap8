@@ -144,7 +144,7 @@ All the model parameters are listed in [val-2d_set_up_values]:
 | $\chi^3$  | Maximum atom fraction in Trap 3      | 0.00200                                                     | -                     | [!cite](ambrosek2008verification) |
 | $\alpha_{t0}$ | Pre-factor of trapping rate coefficient | 9.1316 $\times 10^{12}$                              | 1/s                   | [!cite](ambrosek2008verification) |
 | $\alpha_{r0}$ | Pre-factor of release rate coefficient  | 8.4 $\times 10^{12}$                                 | 1/s                   | [!cite](ambrosek2008verification) |
-| $A$       | * Area of tungsten sample              | 0.0025                                                      | m                     | [!cite](hino1998hydrogen) |
+| $A$       | * Area of tungsten sample            | 0.0025                                                      | m$^2$                 | [!cite](hino1998hydrogen) |
 | $l$       | Thickness of tungsten sample         | 1 $\times 10^{-4}$                                          | m                     | [!cite](hino1998hydrogen) |
 | $T_l$     | Lowest temperature                   | 300                                                         | K                     | [!cite](hino1998hydrogen) |
 | $T_h$     | Highest temperature                  | 1273                                                        | K                     | [!cite](hino1998hydrogen) |
