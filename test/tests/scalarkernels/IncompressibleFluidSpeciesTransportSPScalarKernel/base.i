@@ -14,7 +14,7 @@ concentration_outlet = ${units 0.02 mol/m^3}
 precursor_concentration_inlet = ${units 0.0 mol/m^3}
 density = ${units 998.2 kg/m^3}
 viscosity = ${units 0.001002 Pa*s}
-pipe_angle = 0.0
+dH = 0.0
 pipe_roughness = ${units 0.0001 m}
 forms_loss_coefficients = 0.0
 pump_pressure_gain = ${units 0.0 Pa}
@@ -88,7 +88,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
 
 [ScalarKernels]
   [momentum_RHS]
-    type = IncompressibleMomentumSPScalarKernel
+    type = ADIncompressibleMomentumSPScalarKernel
     variable = 'mass_flow_rate_var'
     reference_pressure_drop = 'characteristic_pressure_drop_var'
     temperatures = 'temperature_var'
@@ -97,7 +97,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
     areas = '${pipe_area}'
     perimeters = '${fparse 2*3.14159* ${pipe_radius}}'
     lengths = '${pipe_length}'
-    alphas = '${pipe_angle}'
+    height_changes = '${dH}'
     forms_losses = '${forms_loss_coefficients}'
     pump_pressures = '${pump_pressure_gain}'
     roughnesses = '${pipe_roughness}'
@@ -105,7 +105,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
     is_implicit = True
   []
   [momentum_LHS]
-    type = ODETimeDerivative
+    type = ADScalarTimeDerivative
     variable = 'mass_flow_rate_var'
   []
   [inlet_temperature_RHS]
@@ -114,7 +114,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
     variable = inlet_temperature_var
   []
   [temperature_RHS]
-    type = IncompressibleEnergySPScalarKernel
+    type = ADIncompressibleEnergySPScalarKernel
     mass_flow_rate = 'mass_flow_rate_var'
     inlet_temperature = 'inlet_temperature_var'
     outlet_temperature = 'outlet_temperature_var'
@@ -128,7 +128,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
     is_implicit = True
   []
   [temperature_LHS]
-    type = ODETimeDerivative
+    type = ADScalarTimeDerivative
     variable = 'temperature_var'
   []
   [outlet_temperature_RHS]
@@ -147,7 +147,7 @@ primary_recombination_coefficient = ${units 1.0e-13 m^4/s}
     variable = inlet_concentration_var
   []
   [concentration_LHS]
-    type = ODETimeDerivative
+    type = ADScalarTimeDerivative
     variable = 'concentration_var'
   []
   [outlet_concentration_RHS]

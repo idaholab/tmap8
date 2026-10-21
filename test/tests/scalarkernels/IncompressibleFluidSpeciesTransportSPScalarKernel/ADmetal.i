@@ -13,7 +13,7 @@ fluid_type = "metal"
 
 [ScalarKernels]
   [concentration_RHS]
-    type = IncompressibleFluidSpeciesTransportSPScalarKernel
+    type = ADIncompressibleFluidSpeciesTransportSPScalarKernel
     mass_flow_rate = 'mass_flow_rate_var'
     inlet_temperature = 'inlet_temperature_var'
     outlet_temperature = 'outlet_temperature_var'
