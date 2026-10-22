@@ -27,7 +27,7 @@ public:
 
 protected:
   virtual GenericReal<is_ad> computeQpResidual() override;
-  virtual Real computeQpJacobian();
+  virtual Real computeQpJacobian() override;
   // Helper values for bookkeeping
   size_t _n_inputs;
   size_t _n_other_sources;
