@@ -14,9 +14,7 @@
 
 /**
  * Computes the tritium diffusivity in Li$_2$O from literature Arrhenius correlations.
- * The diffusivity is provided as both a regular and an AD material property. The model
- * coefficients are looked up once at construction, so evaluating a quadrature point involves
- * no model-dependent branching.
+ * The diffusivity is provided as both a regular and an AD material property.
  */
 class TritiumDiffusivityLi2O : public Material
 {

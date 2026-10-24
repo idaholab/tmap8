@@ -21,10 +21,7 @@
  * (TritiumDiffusivityLi2O and TritiumSolubilityLi2O).
  *
  * Each literature model is described by a plain data struct holding its correlation coefficients
- * and documented validity range. The data are looked up once, when a material is constructed,
- * so evaluating a property at a quadrature point involves no string comparison or branching on
- * the model. The model enums are declared with CreateMooseEnumClass so that the C++ enum and the
- * MooseEnum option strings cannot get out of sync.
+ * and documented validity range.
  *
  * The code is unit-agnostic. The literature coefficients are stored in the units of the
  * source (SI: m$^2$/s, J/mol, K, atm$^{1/2}$).

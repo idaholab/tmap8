@@ -75,7 +75,7 @@ SOLUBILITY_MODELS = {
         "a": 1271.0,
         "b": 2.33,
         "temp_range_k": (476.0, 963.0),
-        "label": "Ohira1989Hydrogen, Hydrogen in unirradiated single crystal",
+        "label": "Ohira1989Hydrogen, hydrogen in unirradiated single crystal",
     },
 }
 
