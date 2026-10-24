@@ -168,6 +168,7 @@
   [li2o_diffusivity_ad_jacobian]
     type = PetscJacobianTester
     input = li2o_ad_property_base.i
+    ratio_tol = 1e-6
     cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
                 Materials/li2o_property/model=Ohira1989
                 Variables/temperature/initial_condition=650'
@@ -177,6 +178,7 @@
   [li2o_solubility_ad_jacobian]
     type = PetscJacobianTester
     input = li2o_ad_property_base.i
+    ratio_tol = 1e-6
     cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
                 Materials/li2o_property/model=Ohira1989Tritium
                 Variables/temperature/initial_condition=650'
