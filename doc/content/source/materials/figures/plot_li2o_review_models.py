@@ -11,15 +11,21 @@ TritiumDiffusivityLi2O.md and TritiumSolubilityLi2O.md. Run it from any director
 
 Outputs (written next to this script):
     li2o_diffusivity_models.png  -- D (m^2/s) versus 1000/T, one curve per model
-    li2o_solubility_models.png   -- K_s (atm^1/2) versus 1000/T, one curve per model
+    li2o_solubility_models.png   -- K_s (atoms m^-3 Pa^-1/2) versus 1000/T, one curve per model
 
 Each curve is drawn only over the documented temperature range of its model. The coefficients and
 temperature ranges are read from include/materials/Li2OPropertyHelper.h (the switch statements in
-diffusivityModelData and solubilityModelData), and the ideal gas constant from MOOSE's
-PhysicalConstants.h, so the figures cannot drift from the C++. Only the
-plot labels and the functional forms, D = D0 exp(-Ea / (R T)) and log10(K_s) = a / T + b, are defined
-here; if the header's structs or switch layout change, update parse_helper_header accordingly.
-Temperatures are in K, activation energies in J/mol and the diffusivity in m^2/s.
+diffusivityModelData and publishedSolubilityFit), the Li2O lattice constants from the same header,
+the standard atmosphere from include/utils/TMAP8PhysicalConstants.h and the ideal gas constant from
+MOOSE's PhysicalConstants.h, so the figures cannot drift from the C++. Only the plot labels and the
+functional forms are defined here; if the header's structs or switch layout change, update
+parse_helper_header accordingly.
+
+The diffusivity is D = D0 exp(-Ea / (R T)), with temperatures in K, activation energies in J/mol and
+D in m^2/s. The solubility is computed from the published O'Hira et al. (1989) fit,
+log10(K) = a / T + b with K = sqrt(P_atm) / X (X the atom fraction), converted as in
+Li2OPropertyHelper::convertSolubilityFit to K_s = N_at 10^-(a / T + b) / sqrt(atm_to_Pa), such that
+C = K_s sqrt(P) with C in atoms/m^3 and P in Pa. N_at = 12 / a_0^3 is the atom density of Li2O.
 """
 
 import ast
@@ -38,6 +44,8 @@ HELPER_HEADER = REPO_DIR / "include" / "materials" / "Li2OPropertyHelper.h"
 # Header defining PhysicalConstants::ideal_gas_constant, which Li2OPropertyHelper.h uses through
 # TMAP8PhysicalConstants.h
 CONSTANTS_HEADER = REPO_DIR / "moose" / "modules" / "misc" / "include" / "utils" / "PhysicalConstants.h"
+# Header defining PhysicalConstants::atm_to_Pa
+TMAP8_CONSTANTS_HEADER = REPO_DIR / "include" / "utils" / "TMAP8PhysicalConstants.h"
 
 # Plot labels, keyed by the model names used in Li2OPropertyHelper.h
 DIFFUSIVITY_LABELS = {
@@ -82,11 +90,11 @@ _OPERATORS = {
 }
 
 
-def parse_ideal_gas_constant(header: Path) -> float:
-    """Read PhysicalConstants::ideal_gas_constant (J/mol/K) from the MOOSE constants header."""
-    match = re.search(r"ideal_gas_constant\s*=\s*([^;]+);", header.read_text())
+def parse_constant(header: Path, name: str) -> float:
+    """Read the numeric value of `const ... <name> = <number>;` from a C++ header."""
+    match = re.search(rf"\b{name}\s*=\s*([^;]+);", header.read_text())
     if match is None:
-        raise ValueError(f"Could not find ideal_gas_constant in {header}")
+        raise ValueError(f"Could not find {name} in {header}")
     return evaluate_number(match.group(1))
 
 
@@ -95,7 +103,7 @@ def parse_helper_header(header: Path):
     Read the model coefficients and temperature ranges from Li2OPropertyHelper.h.
 
     Each model is a `case <Enum>::<Name>: return {{citation, min_T, max_T, note}, c1, c2};` entry
-    in diffusivityModelData / solubilityModelData. The string literals are dropped and the
+    in diffusivityModelData / publishedSolubilityFit. The string literals are dropped and the
     remaining numbers are, in order: min_T, max_T, then the two model coefficients.
     """
     text = header.read_text()
@@ -147,7 +155,12 @@ def build_models():
     return diffusivity_models, solubility_models
 
 
-R = parse_ideal_gas_constant(CONSTANTS_HEADER)  # J/mol/K
+R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
+ATM_TO_PA = parse_constant(TMAP8_CONSTANTS_HEADER, "atm_to_Pa")  # Pa/atm
+# Atom density of Li2O (atoms/m^3): 12 atoms per anti-fluorite unit cell of lattice parameter a_0
+LI2O_ATOM_DENSITY = parse_constant(HELPER_HEADER, "li2o_atoms_per_unit_cell") / (
+    parse_constant(HELPER_HEADER, "li2o_lattice_parameter") ** 3
+)  # atoms/m^3
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
 
@@ -169,8 +182,12 @@ def diffusivity_m2_s(
     return prefactor_m2_s * np.exp(-activation_j_mol / (R * temperature_k))
 
 
-def solubility_atm_0_5(a: float, b: float, temperature_k: np.ndarray):
-    return 10.0 ** (a / temperature_k + b)
+def solubility_atoms_m3_pa0_5(a: float, b: float, temperature_k: np.ndarray):
+    """
+    Sieverts solubility K_s (atoms m^-3 Pa^-1/2) from the published fit log10(K) = a / T + b, where
+    K = sqrt(P_atm) / X is the inverse of the atom-fraction solubility: C = N_at X = K_s sqrt(P).
+    """
+    return LI2O_ATOM_DENSITY / np.sqrt(ATM_TO_PA) * 10.0 ** (-(a / temperature_k + b))
 
 
 def inverse_temperature_axis(temperature_k: np.ndarray):
@@ -279,7 +296,7 @@ def plot_solubility():
         t_min, t_max = model["temp_range_k"]
         temperature = np.linspace(t_min, t_max, 250)
         inverse_temperature = inverse_temperature_axis(temperature)
-        solubility = solubility_atm_0_5(model["a"], model["b"], temperature)
+        solubility = solubility_atoms_m3_pa0_5(model["a"], model["b"], temperature)
         (line,) = ax.plot(
             inverse_temperature, solubility, linewidth=2.0, label=model["label"]
         )
@@ -296,7 +313,7 @@ def plot_solubility():
     apply_axes_style(
         ax,
         r"1000 / Temperature (K$^{-1}$)",
-        r"$K_s$ (atm$^{1/2}$)",
+        r"$K_s$ (atoms m$^{-3}$ Pa$^{-1/2}$)",
     )
     add_temperature_top_axis(
         ax, [400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0]
