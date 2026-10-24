@@ -140,20 +140,68 @@ TEST(Li2OPropertyHelperTest, diffusivityValues)
   check(DiffusivityModel::Terai1988GrainBoundary, 753.15, 4.086053385035498e-09);
 }
 
-/// Solubilities against independently calculated values 10^(a / T + b)
-TEST(Li2OPropertyHelperTest, solubilityValues)
+/// The converted pre-exponential factor and activation energy, verified against hand calculations
+TEST(Li2OPropertyHelperTest, convertedSolubilityConstants)
 {
-  const auto check = [](const SolubilityModel model, const Real temperature, const Real expected)
-  {
-    const auto value = computeSolubility(solubilityModelData(model), temperature);
-    EXPECT_LT(relativeError(value, expected), 1e-9) << "T = " << temperature;
-  };
-  check(SolubilityModel::Ohira1989Tritium, 650.0, 1332.34097550204);
-  check(SolubilityModel::Ohira1989Hydrogen, 650.0, 19292.3270396327);
+  // N_at = 12 / a_0^3 for anti-fluorite Li2O with a_0 = 4.619e-10 m
+  EXPECT_LT(relativeError(li2o_atom_density, 1.2177e29), 1e-4);
+
+  const auto hydrogen = solubilityModelData(SolubilityModel::Ohira1989Hydrogen);
+  EXPECT_LT(relativeError(hydrogen.prefactor, 1.79e24), 5e-3);
+  EXPECT_LT(relativeError(hydrogen.activation_energy, 24.33e3), 5e-4);
+
+  const auto tritium = solubilityModelData(SolubilityModel::Ohira1989Tritium);
+  EXPECT_LT(relativeError(tritium.prefactor, 2.77e25), 5e-3);
+  EXPECT_LT(relativeError(tritium.activation_energy, 24.70e3), 5e-4);
+
+  // The published coefficients are kept alongside the converted ones
+  EXPECT_DOUBLE_EQ(hydrogen.a, 1271.0);
+  EXPECT_DOUBLE_EQ(hydrogen.b, 2.33);
+  EXPECT_DOUBLE_EQ(tritium.a, 1290.0);
+  EXPECT_DOUBLE_EQ(tritium.b, 1.14);
 }
 
-/// Diffusivity increases and solubility decreases with temperature for every model, and the value
-/// is positive and finite across and beyond the documented range
+/// The implemented K_0 exp(-E_a / (R T)) sqrt(P) must equal the concentration obtained directly
+/// from the paper's definition, K = sqrt(P_atm) / X with log10(K) = a / T + b and C = N_at X. The
+/// reference is written out below from the published numbers, independently of the helper's
+/// converted constants.
+TEST(Li2OPropertyHelperTest, solubilityMatchesPaperForm)
+{
+  // Published O'Hira et al. (1989) fits, T in K and K in atm^1/2 (hydrogen: eq. 3, tritium: eq. 4)
+  struct Published
+  {
+    SolubilityModel model;
+    Real a, b, t_min, t_max;
+  };
+  const std::vector<Published> published = {
+      {SolubilityModel::Ohira1989Hydrogen, 1271.0, 2.33, 476.0, 963.0},
+      {SolubilityModel::Ohira1989Tritium, 1290.0, 1.14, 583.0, 963.0}};
+
+  const Real n_atoms = 12.0 / std::pow(4.619e-10, 3); // atoms/m^3
+  const Real pa_per_atm = 101325.0;
+
+  for (const auto & fit : published)
+  {
+    const auto data = solubilityModelData(fit.model);
+    for (int i = 0; i <= 10; ++i)
+    {
+      const Real temperature = fit.t_min + (fit.t_max - fit.t_min) * i / 10.0;
+      for (const Real pressure : {0.01, 1.0, 100.0, 1.0e4, 1.0e5}) // Pa
+      {
+        const Real paper_concentration =
+            n_atoms * std::sqrt(pressure / pa_per_atm) / std::pow(10.0, fit.a / temperature + fit.b);
+        const Real implemented_concentration =
+            computeSolubility(data, temperature) * std::sqrt(pressure);
+        EXPECT_LT(relativeError(implemented_concentration, paper_concentration), 1e-8)
+            << "a = " << fit.a << ", T = " << temperature << " K, P = " << pressure << " Pa";
+      }
+    }
+  }
+}
+
+/// Diffusivity and solubility both increase with temperature for every model (the solubility
+/// because it is the inverse of the published Sieverts' constant), and the value is positive and
+/// finite across and beyond the documented range
 TEST(Li2OPropertyHelperTest, monotonicAndFiniteOverTemperatureSweep)
 {
   for (const auto model : all_diffusivity_models)
@@ -173,14 +221,14 @@ TEST(Li2OPropertyHelperTest, monotonicAndFiniteOverTemperatureSweep)
   for (const auto model : all_solubility_models)
   {
     const auto data = solubilityModelData(model);
-    Real previous = std::numeric_limits<Real>::max();
+    EXPECT_GT(data.activation_energy, 0.0);
+    Real previous = 0.0;
     for (Real t = 0.5 * data.metadata.min_temperature; t <= 1.5 * data.metadata.max_temperature;
          t += 10.0)
     {
       const auto s = computeSolubility(data, t);
       EXPECT_TRUE(std::isfinite(s));
-      EXPECT_GT(s, 0.0);
-      EXPECT_LT(s, previous);
+      EXPECT_GT(s, previous);
       previous = s;
     }
   }
@@ -213,9 +261,9 @@ TEST(Li2OPropertyHelperTest, adDerivativeMatchesAnalytic)
     Moose::derivInsert(t.derivatives(), 0, 1.0);
 
     const auto s = computeSolubility(data, t);
-    // dK/dT = -K * ln(10) * a / T^2
-    const Real expected =
-        -MetaPhysicL::raw_value(s) * std::log(10.0) * data.a / (temperature * temperature);
+    // dK/dT = K * Ea / (R T^2)
+    const Real expected = MetaPhysicL::raw_value(s) * data.activation_energy /
+                          (ideal_gas_constant * temperature * temperature);
     EXPECT_LT(relativeError(s.derivatives()[0], expected), 1e-12);
   }
 }

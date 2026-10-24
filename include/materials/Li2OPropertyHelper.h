@@ -23,12 +23,25 @@
  * and documented validity range.
  *
  * The code is unit-agnostic. The literature coefficients are stored in the units of the
- * source (SI: m$^2$/s, J/mol, K, atm$^{1/2}$).
+ * source or, where stated, converted to SI (m$^2$/s, J/mol, K, atoms m$^{-3}$ Pa$^{-1/2}$).
  */
 namespace Li2OPropertyHelper
 {
 /// Ideal gas constant, from TMAP8PhysicalConstants
 const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
+
+/// Lattice parameter a_0 of anti-fluorite Li$_2$O (m)
+const Real li2o_lattice_parameter = 4.619e-10;
+
+/// Atoms per Li$_2$O unit cell: 4 formula units (Li$_2$O) of 3 atoms each (-)
+const Real li2o_atoms_per_unit_cell = 12.0;
+
+/**
+ * Number density of all lattice atoms (Li and O) in Li$_2$O, N_at = 12 / a_0^3 (atoms/m^3). This
+ * is the density relative to which O'Hira et al. (1989) define the atom fraction X. It is
+ * equivalent to a density of 2.013 g/cm^3 with a molar mass of 29.88 g/mol (agreement to 0.05%).
+ */
+const Real li2o_atom_density = li2o_atoms_per_unit_cell / std::pow(li2o_lattice_parameter, 3);
 
 /// Tritium diffusivity models available for Li$_2$O
 CreateMooseEnumClass(DiffusivityModel,
@@ -55,15 +68,38 @@ struct DiffusivityModelData
   Real activation_energy;
 };
 
-/// Sieverts-law solubility model: log10(K_s) = a / T + b
+/**
+ * Solubility fit as published by O'Hira et al. (1989): log10(K) = a / T + b, with T in K and
+ * K = sqrt(P) / X the Sieverts' constant, where P is the gas pressure in atm and X the atom
+ * fraction of hydrogen isotope in the solid, X = n_H / (n_Li + n_O + n_H).
+ */
+struct SolubilityFit
+{
+  /// Citation, validity range and notes
+  ModelMetadata metadata;
+  /// Coefficient of the inverse temperature in the published fit (K)
+  Real a;
+  /// Constant term of the published fit (-)
+  Real b;
+};
+
+/**
+ * Sieverts solubility in the form used by TMAP8, C = K_s sqrt(P) with K_s = K_0 exp(-E_a / (R T)),
+ * C in atoms/m^3, P in Pa and K_s in atoms m^-3 Pa^-1/2, derived from a published fit by
+ * convertSolubilityFit().
+ */
 struct SolubilityModelData
 {
   /// Citation, validity range and notes
   ModelMetadata metadata;
-  /// Coefficient of the inverse temperature (K)
+  /// Coefficient a of the published fit, log10(K) = a / T + b (K)
   Real a;
-  /// Constant term (-)
+  /// Constant b of the published fit, log10(K) = a / T + b (-)
   Real b;
+  /// Pre-exponential factor K_0 (atoms m^-3 Pa^-1/2)
+  Real prefactor;
+  /// Activation energy E_a (J/mol)
+  Real activation_energy;
 };
 
 /**
@@ -123,12 +159,12 @@ diffusivityModelData(const DiffusivityModel model)
 }
 
 /**
- * Look up the coefficients and validity range of a solubility model.
+ * Look up the published fit and validity range of a solubility model.
  * @param model the solubility model
- * @return the model data
+ * @return the fit exactly as published (log10 of Sieverts' constant, in atm^1/2)
  */
-inline SolubilityModelData
-solubilityModelData(const SolubilityModel model)
+inline SolubilityFit
+publishedSolubilityFit(const SolubilityModel model)
 {
   switch (model)
   {
@@ -152,6 +188,39 @@ solubilityModelData(const SolubilityModel model)
 }
 
 /**
+ * Convert a published solubility fit to the Sieverts solubility used by TMAP8.
+ *
+ * The published constant is K = sqrt(P_atm) / X, i.e. the inverse of the solubility, with the
+ * gas pressure in atm and X the atom fraction. Inverting and changing units gives
+ *   X = 10^(-b) 10^(-a / T) sqrt(P_atm),   C = N_at X,   P_atm = P / atm_to_Pa,
+ * so that C = K_s sqrt(P) with K_s = K_0 exp(-E_a / (R T)) and
+ *   K_0 = N_at 10^(-b) / sqrt(atm_to_Pa)   (atoms m^-3 Pa^-1/2),
+ *   E_a = a R ln(10)                        (J/mol).
+ * @param fit the published fit
+ * @return the data in the form used by TMAP8
+ */
+inline SolubilityModelData
+convertSolubilityFit(const SolubilityFit & fit)
+{
+  return {fit.metadata,
+          fit.a,
+          fit.b,
+          li2o_atom_density * std::pow(10.0, -fit.b) / std::sqrt(PhysicalConstants::atm_to_Pa),
+          fit.a * ideal_gas_constant * std::log(10.0)};
+}
+
+/**
+ * Look up the Sieverts solubility data of a model, converted from the published fit.
+ * @param model the solubility model
+ * @return the model data
+ */
+inline SolubilityModelData
+solubilityModelData(const SolubilityModel model)
+{
+  return convertSolubilityFit(publishedSolubilityFit(model));
+}
+
+/**
  * Compute the diffusivity D = D_0 exp(-E_a / (R T)).
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
@@ -165,8 +234,8 @@ computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 }
 
 /**
- * Compute the Sieverts-law solubility K_s = 10^(a / T + b), i.e. log10(K_s) = a / T + b. This is
- * equivalent to K_s = K_0 exp(Q / (R T)) with Q = a R ln(10).
+ * Compute the Sieverts solubility K_s = K_0 exp(-E_a / (R T)), such that C = K_s sqrt(P) with C in
+ * atoms/m^3 and P in Pa. See convertSolubilityFit() for the relation to the published fit.
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
  */
@@ -175,6 +244,6 @@ inline T
 computeSolubility(const SolubilityModelData & data, const T & temperature)
 {
   using std::exp;
-  return exp(std::log(10.0) * (data.a / temperature + data.b));
+  return data.prefactor * exp(-data.activation_energy / (ideal_gas_constant * temperature));
 }
 }
