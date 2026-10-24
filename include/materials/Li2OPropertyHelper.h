@@ -13,178 +13,220 @@
 #include "TMAP8PhysicalConstants.h"
 
 #include <cmath>
-#include <limits>
 #include <sstream>
 #include <string>
-#include <vector>
 
+/**
+ * Shared data and helper functions for the Li$_2$O transport property materials
+ * (TritiumDiffusivityLi2O and TritiumSolubilityLi2O).
+ *
+ * Each literature model is described by a plain data struct holding its correlation coefficients
+ * and documented validity range. The data are looked up once, when a material is constructed,
+ * so evaluating a property at a quadrature point involves no string comparison or branching on
+ * the model. The model enums are declared with CreateMooseEnumClass so that the C++ enum and the
+ * MooseEnum option strings cannot get out of sync.
+ *
+ * The code is unit-agnostic. The literature coefficients are stored in the units of the
+ * source (SI: m$^2$/s, J/mol, K, atm$^{1/2}$).
+ */
 namespace Li2OPropertyHelper
 {
+/// Ideal gas constant, from TMAP8PhysicalConstants
 const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
 
+/// Tritium diffusivity models available for Li$_2$O
+CreateMooseEnumClass(DiffusivityModel,
+                     Ohira1989,
+                     Tanifuji1987,
+                     Kurasawa1991,
+                     Terai1988Grain,
+                     Terai1988GrainBoundary);
+
+/// Hydrogen isotope solubility models available for Li$_2$O
+CreateMooseEnumClass(SolubilityModel, Ohira1989Tritium, Ohira1989Hydrogen);
+
+/// Behavior when a model is evaluated outside its documented validity range
+CreateMooseEnumClass(ValidityAction, ignore, warning, error);
+
+/// Documented validity range and provenance shared by all models
 struct ModelMetadata
 {
+  /// Short literature citation of the source
   std::string citation;
+  /// Lower bound of the documented temperature range (K)
   Real min_temperature;
+  /// Upper bound of the documented temperature range (K)
   Real max_temperature;
+  /// Description of the conditions the correlation was derived under
   std::string validity_note;
 };
 
-inline ModelMetadata
-diffusivityMetadata(const MooseEnum & model)
+/// Arrhenius diffusivity model: D = prefactor * exp(-activation_energy / (R T))
+struct DiffusivityModelData
 {
-  if (model == "Ohira1989")
-    return {"O'Hira et al. (1989)",
-            600.0,
-            711.0,
-            "Unirradiated single-crystal Li2O equilibrated with reduced tritium gas."};
+  /// Citation, validity range and notes
+  ModelMetadata metadata;
+  /// Pre-exponential factor D_0 (m$^2$/s)
+  Real prefactor;
+  /// Activation energy E_a (J/mol)
+  Real activation_energy;
+};
 
-  if (model == "Tanifuji1987")
-    return {"Tanifuji et al. (1987)",
-            573.0,
-            950.0,
-            "Neutron-irradiated single-crystal Li2O particles analyzed with a spherical diffusion "
-            "model."};
+/// Sieverts-law solubility model: K_s = exp(a / T + b)
+struct SolubilityModelData
+{
+  /// Citation, validity range and notes
+  ModelMetadata metadata;
+  /// Coefficient of the inverse temperature (K)
+  Real a;
+  /// Constant term (-)
+  Real b;
+};
 
-  if (model == "Kurasawa1991")
-    return {"Kurasawa and Watanabe (1991)",
-            450.0 + 273.15,
-            820.0 + 273.15,
-            "In-situ release interpretation for single-crystal Li2O under sweep-gas chemistry "
-            "effects."};
+/**
+ * Look up the coefficients and validity range of a diffusivity model.
+ * @param model the diffusivity model
+ * @return the model data
+ */
+inline DiffusivityModelData
+diffusivityModelData(const DiffusivityModel model)
+{
+  // No default case: the compiler warns if a model is added to the enum without data
+  switch (model)
+  {
+    case DiffusivityModel::Ohira1989:
+      return {{"O'Hira et al. (1989)",
+               600.0,
+               711.0,
+               "Unirradiated single-crystal Li$_2$O equilibrated with reduced tritium gas."},
+              1.2e-11,
+              45.1e3};
 
-  if (model == "Terai1988Grain")
-    return {"Terai et al. (1988/1989)",
-            360.0 + 273.15,
-            600.0 + 273.15,
-            "Polycrystalline Li2O grain diffusivity from TTTEx analysis."};
+    case DiffusivityModel::Tanifuji1987:
+      return {{"Tanifuji et al. (1987)",
+               573.0,
+               950.0,
+               "Neutron-irradiated single-crystal Li$_2$O particles analyzed with a spherical "
+               "diffusion model."},
+              1.16e-5,
+              101.0e3};
 
-  if (model == "Terai1988GrainBoundary")
-    return {"Terai et al. (1988/1989)",
-            360.0 + 273.15,
-            600.0 + 273.15,
-            "Polycrystalline Li2O grain-boundary diffusivity from TTTEx analysis."};
+    case DiffusivityModel::Kurasawa1991:
+      return {{"Kurasawa and Watanabe (1991)",
+               450.0 + 273.15,
+               820.0 + 273.15,
+               "In-situ release interpretation for single-crystal Li$_2$O under sweep-gas "
+               "chemistry effects."},
+              2.0e-7,
+              81.7e3};
 
-  mooseError("Unsupported Li2O diffusivity model: ", model);
+    case DiffusivityModel::Terai1988Grain:
+      return {{"Terai et al. (1988/1989)",
+               360.0 + 273.15,
+               600.0 + 273.15,
+               "Polycrystalline Li$_2$O grain diffusivity from TTTEx analysis."},
+              1.27e-9,
+              54.9e3};
+
+    case DiffusivityModel::Terai1988GrainBoundary:
+      return {{"Terai et al. (1988/1989)",
+               360.0 + 273.15,
+               600.0 + 273.15,
+               "Polycrystalline Li$_2$O grain-boundary diffusivity from TTTEx analysis."},
+              1.61e-2,
+              95.1e3};
+  }
+  mooseError("Unsupported Li2O diffusivity model.");
 }
 
-inline ModelMetadata
-solubilityMetadata(const MooseEnum & model)
+/**
+ * Look up the coefficients and validity range of a solubility model.
+ * @param model the solubility model
+ * @return the model data
+ */
+inline SolubilityModelData
+solubilityModelData(const SolubilityModel model)
 {
-  if (model == "Ohira1989Tritium")
-    return {"O'Hira et al. (1989)",
-            583,
-            963.0,
-            "Reduced-species tritium dissolution in single-crystal Li2O."};
+  switch (model)
+  {
+    case SolubilityModel::Ohira1989Tritium:
+      return {{"O'Hira et al. (1989)",
+               583.0,
+               963.0,
+               "Reduced-species tritium dissolution in single-crystal Li$_2$O."},
+              1290.0,
+              1.14};
 
-  if (model == "Ohira1989Hydrogen")
-    return {"O'Hira et al. (1989)",
-            476,
-            963.0,
-            "Reduced-species hydrogen dissolution in single-crystal Li2O."};
-
-  mooseError("Unsupported Li2O solubility model: ", model);
+    case SolubilityModel::Ohira1989Hydrogen:
+      return {{"O'Hira et al. (1989)",
+               476.0,
+               963.0,
+               "Reduced-species hydrogen dissolution in single-crystal Li$_2$O."},
+              1271.0,
+              2.33};
+  }
+  mooseError("Unsupported Li2O solubility model.");
 }
 
+/**
+ * Check whether a temperature lies within the documented validity range (bounds included).
+ * @param metadata the model metadata
+ * @param temperature the temperature (K)
+ */
+inline bool
+isInRange(const ModelMetadata & metadata, const Real temperature)
+{
+  return temperature >= metadata.min_temperature && temperature <= metadata.max_temperature;
+}
+
+/**
+ * Build the message describing a temperature outside the documented validity range.
+ * @param object_name name of the material object
+ * @param model_name name of the selected model
+ * @param temperature the offending temperature (K)
+ * @param metadata the model metadata
+ * @return the message, or an empty string if the temperature is within range
+ */
 inline std::string
 validityMessage(const std::string & object_name,
-                const MooseEnum & model,
+                const std::string & model_name,
                 const Real temperature,
                 const ModelMetadata & metadata)
 {
-  std::vector<std::string> violations;
-
-  if (temperature < metadata.min_temperature || temperature > metadata.max_temperature)
-  {
-    std::ostringstream oss;
-    oss << "temperature " << temperature << " K is outside [" << metadata.min_temperature << ", "
-        << metadata.max_temperature << "] K";
-    violations.push_back(oss.str());
-  }
-
-  if (violations.empty())
+  if (isInRange(metadata, temperature))
     return "";
 
   std::ostringstream oss;
-  oss << "In " << object_name << ": model '" << model
-      << "' is being used outside its documented validity range because ";
-  for (std::size_t i = 0; i < violations.size(); ++i)
-  {
-    oss << violations[i];
-    if (i + 1 < violations.size())
-      oss << " and ";
-  }
-  oss << ". " << metadata.validity_note;
+  oss << "In " << object_name << ": model '" << model_name
+      << "' is being used outside its documented validity range because temperature "
+      << temperature << " K is outside [" << metadata.min_temperature << ", "
+      << metadata.max_temperature << "] K. " << metadata.validity_note;
   return oss.str();
 }
 
-inline void
-handleValidity(const std::string & object_name,
-               const MooseEnum & model,
-               const Real temperature,
-               const ModelMetadata & metadata,
-               const MooseEnum & validity_action,
-               bool & issued_warning)
-{
-  const auto message = validityMessage(object_name, model, temperature, metadata);
-  if (message.empty())
-    return;
-
-  if (validity_action == "ignore")
-    return;
-
-  if (validity_action == "warning")
-  {
-    if (!issued_warning)
-    {
-      mooseWarning(message);
-      issued_warning = true;
-    }
-    return;
-  }
-
-  if (validity_action == "error")
-    mooseError(message);
-
-  mooseError("Unsupported Li2O validity_action: ", validity_action);
-}
-
+/**
+ * Compute the diffusivity D = D_0 exp(-E_a / (R T)).
+ * @param data the model data
+ * @param temperature the temperature (K); may be a regular or AD type
+ */
 template <typename T>
 inline T
-computeDiffusivity(const MooseEnum & model, const T & temperature)
+computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 {
   using std::exp;
-
-  if (model == "Ohira1989")
-    return 1.2e-11 * exp(-45.1e3 / (ideal_gas_constant * temperature));
-
-  if (model == "Tanifuji1987")
-    return 1.16e-5 * exp(-101.0e3 / (ideal_gas_constant * temperature));
-
-  if (model == "Kurasawa1991")
-    return 2.0e-7 * exp(-81.7e3 / (ideal_gas_constant * temperature));
-
-  if (model == "Terai1988Grain")
-    return 1.27e-9 * exp(-54.9e3 / (ideal_gas_constant * temperature));
-
-  if (model == "Terai1988GrainBoundary")
-    return 1.61e-2 * exp(-95.1e3 / (ideal_gas_constant * temperature));
-
-  mooseError("Unsupported Li2O diffusivity model: ", model);
+  return data.prefactor * exp(-data.activation_energy / (ideal_gas_constant * temperature));
 }
 
+/**
+ * Compute the Sieverts-law solubility K_s = exp(a / T + b).
+ * @param data the model data
+ * @param temperature the temperature (K); may be a regular or AD type
+ */
 template <typename T>
 inline T
-computeSolubility(const MooseEnum & model, const T & temperature)
+computeSolubility(const SolubilityModelData & data, const T & temperature)
 {
   using std::exp;
-
-  if (model == "Ohira1989Tritium")
-    return exp(1290.0 / temperature + 1.14);
-
-  if (model == "Ohira1989Hydrogen")
-    return exp(1271.0 / temperature + 2.33);
-
-  mooseError("Unsupported Li2O solubility model: ", model);
+  return exp(data.a / temperature + data.b);
 }
 }
