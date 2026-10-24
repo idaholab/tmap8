@@ -14,9 +14,7 @@
 
 /**
  * Computes the hydrogen isotope solubility in Li$_2$O from reduced-species literature
- * correlations. The solubility is provided as both a regular and an AD material property. The
- * model coefficients are looked up once at construction, so evaluating a quadrature point
- * involves no model-dependent branching.
+ * correlations. The solubility is provided as both a regular and an AD material property.
  */
 class TritiumSolubilityLi2O : public Material
 {
