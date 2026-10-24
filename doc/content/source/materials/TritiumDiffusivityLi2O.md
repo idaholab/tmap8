@@ -29,8 +29,20 @@ plotted in [li2o_diffusivity_models_figure].
 Note that the models are not interchangeable descriptions of the same specimen.
 They reflect different combinations of material microstructures and irradiation damage.
 
-The [!param](/Materials/TritiumDiffusivityLi2O/validity_action) parameter controls how TMAP8
-responds when a model is evaluated outside its documented temperature range.
+The [!param](/Materials/TritiumDiffusivityLi2O/validity_action) parameter sets what TMAP8 does when a model is evaluated
+at a temperature outside its documented validity range (the ranges are listed in
+[li2o_diffusivity_models_table]):
+
+- `ignore`: nothing happens and the model is silently extrapolated.
+- `warning` (default): the simulation continues. Each out-of-range evaluation is recorded in MOOSE's
+  solution-invalidity system and summarized in the "Warnings History" table printed at the end of
+  the run, with the number of occurrences per time step. Set
+  [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.
+- `error`: the run stops immediately with a message giving the model, the offending temperature
+  and the documented range.
+
+Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
+`warning` or `error` is recommended unless the extrapolation is intentional.
 
 !media plot_li2o_review_models.py
        image_name=li2o_diffusivity_models.png
