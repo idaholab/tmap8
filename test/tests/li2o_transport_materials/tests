@@ -1,6 +1,6 @@
 [Tests]
   design = 'TritiumDiffusivityLi2O.md TritiumSolubilityLi2O.md'
-  issues = '#419'
+  issues = '#419 #455'
 
   [li2o_diffusivity_ohira1989_csv]
     type = CSVDiff
@@ -215,5 +215,21 @@
     cli_args = 'Materials/li2o_property/model=Ohira1989 Materials/li2o_property/validity_action=ignore AuxKernels/set_temperature/value=599'
     absent_out = "outside its documented validity range"
     requirement = 'The system shall not report any message when the Ohira1989 Li$_2$O tritium diffusivity model is used outside its documented temperature range with the ignore validity action.'
+  []
+
+  [li2o_solubility_out_of_range_warning]
+    type = RunApp
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O Materials/li2o_property/model=Ohira1989Tritium Materials/li2o_property/validity_action=warning AuxKernels/set_temperature/value=500'
+    expect_out = "TritiumSolubilityLi2O : In li2o_property: model 'Ohira1989Tritium' is being used outside its documented validity range"
+    requirement = 'The system shall continue the run and report a solution warning when the Ohira1989Tritium Li$_2$O tritium solubility model is used outside its documented temperature range with the warning validity action.'
+  []
+
+  [li2o_solubility_out_of_range_ignore]
+    type = RunApp
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O Materials/li2o_property/model=Ohira1989Tritium Materials/li2o_property/validity_action=ignore AuxKernels/set_temperature/value=500'
+    absent_out = "outside its documented validity range"
+    requirement = 'The system shall not report any message when the Ohira1989Tritium Li$_2$O tritium solubility model is used outside its documented temperature range with the ignore validity action.'
   []
 []

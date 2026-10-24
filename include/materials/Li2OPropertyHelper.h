@@ -10,11 +10,10 @@
 
 #include "MooseEnum.h"
 #include "MooseError.h"
+#include "ModelValidity.h"
 #include "TMAP8PhysicalConstants.h"
 
 #include <cmath>
-#include <sstream>
-#include <string>
 
 /**
  * Shared data and helper functions for the Li$_2$O transport property materials
@@ -42,21 +41,8 @@ CreateMooseEnumClass(DiffusivityModel,
 /// Hydrogen isotope solubility models available for Li$_2$O
 CreateMooseEnumClass(SolubilityModel, Ohira1989Tritium, Ohira1989Hydrogen);
 
-/// Behavior when a model is evaluated outside its documented validity range
-CreateMooseEnumClass(ValidityAction, ignore, warning, error);
-
 /// Documented validity range and provenance shared by all models
-struct ModelMetadata
-{
-  /// Short literature citation of the source
-  std::string citation;
-  /// Lower bound of the documented temperature range (K)
-  Real min_temperature;
-  /// Upper bound of the documented temperature range (K)
-  Real max_temperature;
-  /// Description of the conditions the correlation was derived under
-  std::string validity_note;
-};
+using ModelValidity::ModelMetadata;
 
 /// Arrhenius diffusivity model: D = prefactor * exp(-activation_energy / (R T))
 struct DiffusivityModelData
@@ -163,42 +149,6 @@ solubilityModelData(const SolubilityModel model)
               2.33};
   }
   mooseError("Unsupported Li2O solubility model.");
-}
-
-/**
- * Check whether a temperature lies within the documented validity range (bounds included).
- * @param metadata the model metadata
- * @param temperature the temperature (K)
- */
-inline bool
-isInRange(const ModelMetadata & metadata, const Real temperature)
-{
-  return temperature >= metadata.min_temperature && temperature <= metadata.max_temperature;
-}
-
-/**
- * Build the message describing a temperature outside the documented validity range.
- * @param object_name name of the material object
- * @param model_name name of the selected model
- * @param temperature the offending temperature (K)
- * @param metadata the model metadata
- * @return the message, or an empty string if the temperature is within range
- */
-inline std::string
-validityMessage(const std::string & object_name,
-                const std::string & model_name,
-                const Real temperature,
-                const ModelMetadata & metadata)
-{
-  if (isInRange(metadata, temperature))
-    return "";
-
-  std::ostringstream oss;
-  oss << "In " << object_name << ": model '" << model_name
-      << "' is being used outside its documented validity range because temperature "
-      << temperature << " K is outside [" << metadata.min_temperature << ", "
-      << metadata.max_temperature << "] K. " << metadata.validity_note;
-  return oss.str();
 }
 
 /**
