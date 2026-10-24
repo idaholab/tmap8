@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 
 #include "Li2OPropertyHelper.h"
+#include "ModelValidity.h"
 #include "MooseTypes.h"
 #include "ADReal.h"
 
@@ -16,6 +17,7 @@
 #include <vector>
 
 using namespace Li2OPropertyHelper;
+using namespace ModelValidity;
 
 namespace
 {
@@ -45,7 +47,7 @@ TEST(Li2OPropertyHelperTest, optionStrings)
   EXPECT_EQ(getDiffusivityModelOptions(),
             "Ohira1989 Tanifuji1987 Kurasawa1991 Terai1988Grain Terai1988GrainBoundary");
   EXPECT_EQ(getSolubilityModelOptions(), "Ohira1989Tritium Ohira1989Hydrogen");
-  EXPECT_EQ(getValidityActionOptions(), "ignore warning error");
+  EXPECT_EQ(ModelValidity::getValidityActionOptions(), "ignore warning error");
 }
 
 /// The documented validity ranges (K) of the diffusivity models
@@ -102,14 +104,25 @@ TEST(Li2OPropertyHelperTest, validityMessage)
 
   EXPECT_EQ(validityMessage("mat", "Ohira1989", 650.0, metadata), "");
 
-  const auto low = validityMessage("mat", "Ohira1989", 599.0, metadata);
+  // Temperatures are reported with two digits after the decimal point, and no more
+  const auto low = validityMessage("mat", "Ohira1989", 599.123456, metadata);
   EXPECT_NE(low.find("In mat: model 'Ohira1989' is being used outside its documented validity "
-                     "range because temperature 599"),
-            std::string::npos);
-  EXPECT_NE(low.find("[600, 711]"), std::string::npos);
+                     "range because temperature 599.12 K is outside [600.00, 711.00] K"),
+            std::string::npos)
+      << low;
+  EXPECT_NE(low.find("Source: O'Hira et al. (1989)"), std::string::npos) << low;
 
   const auto high = validityMessage("mat", "Ohira1989", 712.0, metadata);
-  EXPECT_NE(high.find("temperature 712"), std::string::npos);
+  EXPECT_NE(high.find("temperature 712.00 K"), std::string::npos) << high;
+}
+
+/// The once-per-object warning names the object, model, range (two decimals) and source
+TEST(Li2OPropertyHelperTest, warningMessage)
+{
+  const auto metadata = diffusivityModelData(DiffusivityModel::Kurasawa1991).metadata;
+  EXPECT_EQ(warningMessage("mat", "Kurasawa1991", metadata),
+            "In mat: model 'Kurasawa1991' is being used outside its documented validity range "
+            "[723.15, 1093.15] K. Source: Kurasawa and Watanabe (1991).");
 }
 
 /// Diffusivities against independently calculated values D0 * exp(-Ea / (R T))
