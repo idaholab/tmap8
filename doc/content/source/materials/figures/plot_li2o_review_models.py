@@ -15,7 +15,8 @@ Outputs (written next to this script):
 
 Each curve is drawn only over the documented temperature range of its model. The coefficients and
 temperature ranges are read from include/materials/Li2OPropertyHelper.h (the switch statements in
-diffusivityModelData and solubilityModelData), so the figures cannot drift from the C++. Only the
+diffusivityModelData and solubilityModelData), and the ideal gas constant from MOOSE's
+PhysicalConstants.h, so the figures cannot drift from the C++. Only the
 plot labels and the functional forms, D = D0 exp(-Ea / (R T)) and K_s = exp(a / T + b), are defined
 here; if the header's structs or switch layout change, update parse_helper_header accordingly.
 Temperatures are in K, activation energies in J/mol and the diffusivity in m^2/s.
@@ -30,11 +31,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import gridspec
 
-R = 8.31446261815324  # J/mol/K
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 FIG_DIR = SCRIPT_DIR
-HELPER_HEADER = SCRIPT_DIR.parents[4] / "include" / "materials" / "Li2OPropertyHelper.h"
+REPO_DIR = SCRIPT_DIR.parents[4]
+HELPER_HEADER = REPO_DIR / "include" / "materials" / "Li2OPropertyHelper.h"
+# Header defining PhysicalConstants::ideal_gas_constant, which Li2OPropertyHelper.h uses through
+# TMAP8PhysicalConstants.h
+CONSTANTS_HEADER = REPO_DIR / "moose" / "modules" / "misc" / "include" / "utils" / "PhysicalConstants.h"
 
 # Plot labels, keyed by the model names used in Li2OPropertyHelper.h
 DIFFUSIVITY_LABELS = {
@@ -77,6 +80,14 @@ _OPERATORS = {
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
 }
+
+
+def parse_ideal_gas_constant(header: Path) -> float:
+    """Read PhysicalConstants::ideal_gas_constant (J/mol/K) from the MOOSE constants header."""
+    match = re.search(r"ideal_gas_constant\s*=\s*([^;]+);", header.read_text())
+    if match is None:
+        raise ValueError(f"Could not find ideal_gas_constant in {header}")
+    return evaluate_number(match.group(1))
 
 
 def parse_helper_header(header: Path):
@@ -136,6 +147,7 @@ def build_models():
     return diffusivity_models, solubility_models
 
 
+R = parse_ideal_gas_constant(CONSTANTS_HEADER)  # J/mol/K
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
 
