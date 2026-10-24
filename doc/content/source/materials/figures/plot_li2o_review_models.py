@@ -17,7 +17,7 @@ Each curve is drawn only over the documented temperature range of its model. The
 temperature ranges are read from include/materials/Li2OPropertyHelper.h (the switch statements in
 diffusivityModelData and solubilityModelData), and the ideal gas constant from MOOSE's
 PhysicalConstants.h, so the figures cannot drift from the C++. Only the
-plot labels and the functional forms, D = D0 exp(-Ea / (R T)) and K_s = exp(a / T + b), are defined
+plot labels and the functional forms, D = D0 exp(-Ea / (R T)) and log10(K_s) = a / T + b, are defined
 here; if the header's structs or switch layout change, update parse_helper_header accordingly.
 Temperatures are in K, activation energies in J/mol and the diffusivity in m^2/s.
 """
@@ -170,7 +170,7 @@ def diffusivity_m2_s(
 
 
 def solubility_atm_0_5(a: float, b: float, temperature_k: np.ndarray):
-    return np.exp(a / temperature_k + b)
+    return 10.0 ** (a / temperature_k + b)
 
 
 def inverse_temperature_axis(temperature_k: np.ndarray):

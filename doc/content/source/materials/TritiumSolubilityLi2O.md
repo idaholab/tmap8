@@ -36,8 +36,15 @@ The implemented solubility model is summarized in [li2o_solubility_models_table]
 !table id=li2o_solubility_models_table caption=Implemented Li$_2$O reduced-species hydrogen isotope solubility model. The implemented model uses the ideal gas constant provided by [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md).
 | Enum | Expression used in TMAP8 | Property units | Validity range (K) | Reference | Notes |
 | :- | :- | :- | :- | :- | :- |
-| `Ohira1989Tritium` | $K_{s,T} = \exp(1290/T + 1.14)$ | atm$^{1/2}$ | 583-963 K | [!cite](Ohira1989Li2O) | Reduced-species tritium dissolution in single-crystal Li$_2$O |
-| `Ohira1989Hydrogen` | $K_{s,H} = \exp(1271/T + 2.33)$ | atm$^{1/2}$ | 476-963 K | [!cite](Ohira1989Li2O) | Reduced-species hydrogen dissolution in single-crystal Li$_2$O |
+| `Ohira1989Tritium` | $K_{s,T} = 10^{1290/T + 1.14}$ | atm$^{1/2}$ | 583-963 K | [!cite](Ohira1989Li2O) | Reduced-species tritium dissolution in single-crystal Li$_2$O |
+| `Ohira1989Hydrogen` | $K_{s,H} = 10^{1271/T + 2.33}$ | atm$^{1/2}$ | 476-963 K | [!cite](Ohira1989Li2O) | Reduced-species hydrogen dissolution in single-crystal Li$_2$O |
+
+The correlations of [!cite](Ohira1989Li2O) are fits of $\log_{10} K_s$ versus $1/T$, so the
+implemented expressions are powers of ten. They are equivalent to the Arrhenius form
+$K_s = K_0 \exp(Q/RT)$ with a heat of dissolution $Q = a R \ln(10)$, where $a$ is the coefficient
+of $1/T$. This gives $Q = 24.3$ kJ/mol for hydrogen and $Q = 24.7$ kJ/mol for tritium,
+consistent with the values measured in [!cite](Ohira1989Li2O) of $24.3 \pm 0.9$ kJ/mol and
+$25.3 \pm 1.2$ kJ/mol, respectively.
 
 !alert warning title=Inconsistency in temperature range for `Ohira1989Hydrogen` in [!cite](Ohira1989Li2O). 
 In [!cite](Ohira1989Li2O), the text above Eq. (3) states that the upper temperature of the range of validity of the hydrogen solubility is 596 K, but Fig. (3) of the same paper shows values up to approximately 963 K (as for tritium). In this implementation, we therefore use the value from the figure (i.e., 963 K) and assume that the upper limit in the text is a typo. 
