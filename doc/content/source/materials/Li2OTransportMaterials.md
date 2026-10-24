@@ -1,18 +1,17 @@
-# Li2O Transport Materials
+# Li$_2$O Transport Materials
 
-This page groups the current Li2O transport-property material documentation.
+This page groups the current Li$_2$O transport-property material documentation.
 
 The current set includes:
 
-- [TritiumDiffusivityLi2O.md]
-- [TritiumSolubilityLi2O.md]
+- [TritiumDiffusivityLi2O.md] covers the shortlisted, source-backed tritium diffusivity models for Li$_2$O.
+- [TritiumSolubilityLi2O.md] currently targets reduced-species hydrogen isotope solubility only.
 
-## Current Scope
+## Planned Extensions
 
-- `TritiumDiffusivityLi2O` covers the shortlisted source-backed tritium diffusivity models for Li2O.
-- `TritiumSolubilityLi2O` currently targets reduced-species solubility only.
+The next additions to this set, in the order we expect to tackle them:
 
-## Still Deferred
+- Li$_2$O solubility and H/D diffusivity models from [!cite](Katsuta1983Li2O). These will be added once the coefficients have been checked against the primary source.
+- Oxidized LiOH/LiOT solution chemistry, which matters for tritium inventory and release at higher hydrogen isotope content. This regime cannot be represented by a single scalar solubility, so it will need its own model alongside the reduced-species one.
 
-- Katsuta et al. (1983) Li2O solubility and H/D diffusivity models until the exact primary-source coefficients are verified.
-- Oxidized LiOH/LiOT solution chemistry as a direct scalar `solubility` law.
+!bibtex bibliography
