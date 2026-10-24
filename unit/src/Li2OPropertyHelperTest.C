@@ -140,7 +140,7 @@ TEST(Li2OPropertyHelperTest, diffusivityValues)
   check(DiffusivityModel::Terai1988GrainBoundary, 753.15, 4.086053385035498e-09);
 }
 
-/// Solubilities against independently calculated values exp(a / T + b)
+/// Solubilities against independently calculated values 10^(a / T + b)
 TEST(Li2OPropertyHelperTest, solubilityValues)
 {
   const auto check = [](const SolubilityModel model, const Real temperature, const Real expected)
@@ -148,8 +148,8 @@ TEST(Li2OPropertyHelperTest, solubilityValues)
     const auto value = computeSolubility(solubilityModelData(model), temperature);
     EXPECT_LT(relativeError(value, expected), 1e-9) << "T = " << temperature;
   };
-  check(SolubilityModel::Ohira1989Tritium, 650.0, 22.75114297092991);
-  check(SolubilityModel::Ohira1989Hydrogen, 650.0, 72.63047614688442);
+  check(SolubilityModel::Ohira1989Tritium, 650.0, 1332.34097550204);
+  check(SolubilityModel::Ohira1989Hydrogen, 650.0, 19292.3270396327);
 }
 
 /// Diffusivity increases and solubility decreases with temperature for every model, and the value
@@ -213,8 +213,9 @@ TEST(Li2OPropertyHelperTest, adDerivativeMatchesAnalytic)
     Moose::derivInsert(t.derivatives(), 0, 1.0);
 
     const auto s = computeSolubility(data, t);
-    // dK/dT = -K * a / T^2
-    const Real expected = -MetaPhysicL::raw_value(s) * data.a / (temperature * temperature);
+    // dK/dT = -K * ln(10) * a / T^2
+    const Real expected =
+        -MetaPhysicL::raw_value(s) * std::log(10.0) * data.a / (temperature * temperature);
     EXPECT_LT(relativeError(s.derivatives()[0], expected), 1e-12);
   }
 }

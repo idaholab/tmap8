@@ -55,7 +55,7 @@ struct DiffusivityModelData
   Real activation_energy;
 };
 
-/// Sieverts-law solubility model: K_s = exp(a / T + b)
+/// Sieverts-law solubility model: log10(K_s) = a / T + b
 struct SolubilityModelData
 {
   /// Citation, validity range and notes
@@ -165,7 +165,8 @@ computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 }
 
 /**
- * Compute the Sieverts-law solubility K_s = exp(a / T + b).
+ * Compute the Sieverts-law solubility K_s = 10^(a / T + b), i.e. log10(K_s) = a / T + b. This is
+ * equivalent to K_s = K_0 exp(Q / (R T)) with Q = a R ln(10).
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
  */
@@ -174,6 +175,6 @@ inline T
 computeSolubility(const SolubilityModelData & data, const T & temperature)
 {
   using std::exp;
-  return exp(data.a / temperature + data.b);
+  return exp(std::log(10.0) * (data.a / temperature + data.b));
 }
 }
