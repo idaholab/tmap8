@@ -9,7 +9,7 @@ diffusivity is presented as both a regular Real- and AD-Real-valued material pro
 for use in a variety of simulation configurations. The property fits are implemented as 
 published in the literature and stored in the implementation directly in units of m$^2$/s. 
 To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityLi2O/model) 
-parameter **must** be provided, as the available Li$_2$O correlations correspond to 
+parameter +must+ be provided, as the available Li$_2$O correlations correspond to 
 different irradiation states and microstructures.
 
 ## Implemented Models
