@@ -23,8 +23,8 @@ plotted in [li2o_diffusivity_models_figure].
 | `Ohira1989` | $D = 1.2 \times 10^{-11}\exp(-45.1\times10^3/RT)$ | m$^2$/s | 600-711 | [!cite](Ohira1989Li2O) | Tritium in unirradiated single-crystal Li$_2$O |
 | `Tanifuji1987` | $D = 1.16 \times 10^{-5}\exp(-101\times10^3/RT)$ | m$^2$/s | 573-950 | [!cite](Tanifuji1987Li2O) | Tritium release from neutron-irradiated Li$_2$O single-crystal particles |
 | `Kurasawa1991` | $D = 2.0 \times 10^{-7}\exp(-81.7\times10^3/RT)$ | m$^2$/s | 723.15-1093.15 | [!cite](Kurasawa1991Li2O) | In-situ tritium release interpretation for single-crystal Li$_2$O |
-| `Terai1988Grain` | $D_g = 1.27 \times 10^{-9}\exp(-54.9\times10^3/RT)$ | m$^2$/s | 633.15-873.15 | [!cite](Terai1988TTTExLi2O) | Grain diffusivity from TTTEx polycrystalline Li$_2$O analysis under $\Phi = 10^{8} n/cm$^2$/s irradiation |
-| `Terai1988GrainBoundary` | $D_{int} = 1.61 \times 10^{-2}\exp(-95.1\times10^3/RT)$ | m$^2$/s | 633.15-873.15 | [!cite](Terai1988TTTExLi2O) | Grain-boundary diffusivity from TTTEx polycrystalline Li$_2$O analysis under $\Phi = 10^{8} n/cm$^2$/s irradiation |
+| `Terai1988Grain` | $D_g = 1.27 \times 10^{-9}\exp(-54.9\times10^3/RT)$ | m$^2$/s | 633.15-873.15 | [!cite](Terai1988TTTExLi2O) | Grain diffusivity from TTTEx polycrystalline Li$_2$O analysis under $\Phi = 10^{8}$ n/cm$^2$/s irradiation |
+| `Terai1988GrainBoundary` | $D_{int} = 1.61 \times 10^{-2}\exp(-95.1\times10^3/RT)$ | m$^2$/s | 633.15-873.15 | [!cite](Terai1988TTTExLi2O) | Grain-boundary diffusivity from TTTEx polycrystalline Li$_2$O analysis under $\Phi = 10^{8}$ n/cm$^2$/s irradiation |
 
 Note that the models are not interchangeable descriptions of the same specimen.
 They reflect different combinations of material microstructures and irradiation damage.
