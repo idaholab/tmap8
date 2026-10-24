@@ -13,11 +13,17 @@ Outputs (written next to this script):
     li2o_diffusivity_models.png  -- D (m^2/s) versus 1000/T, one curve per model
     li2o_solubility_models.png   -- K_s (atm^1/2) versus 1000/T, one curve per model
 
-Each curve is drawn only over the documented temperature range of its model. The coefficients
-below are copied from include/materials/Li2OPropertyHelper.h and must be kept in sync with it.
+Each curve is drawn only over the documented temperature range of its model. The coefficients and
+temperature ranges are read from include/materials/Li2OPropertyHelper.h (the switch statements in
+diffusivityModelData and solubilityModelData), so the figures cannot drift from the C++. Only the
+plot labels and the functional forms, D = D0 exp(-Ea / (R T)) and K_s = exp(a / T + b), are defined
+here; if the header's structs or switch layout change, update parse_helper_header accordingly.
 Temperatures are in K, activation energies in J/mol and the diffusivity in m^2/s.
 """
 
+import ast
+import operator
+import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -28,56 +34,109 @@ R = 8.31446261815324  # J/mol/K
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 FIG_DIR = SCRIPT_DIR
+HELPER_HEADER = SCRIPT_DIR.parents[4] / "include" / "materials" / "Li2OPropertyHelper.h"
 
+# Plot labels, keyed by the model names used in Li2OPropertyHelper.h
+DIFFUSIVITY_LABELS = {
+    "Ohira1989": "Ohira1989, unirradiated single crystal",
+    "Tanifuji1987": "Tanifuji1987, neutron-irradiated single crystal",
+    "Kurasawa1991": "Kurasawa1991, in-situ single crystal",
+    "Terai1988Grain": "Terai1988Grain, neutron-irradiated polycrystal grain",
+    "Terai1988GrainBoundary": (
+        "Terai1988GrainBoundary, neutron-irradiated polycrystal grain boundary"
+    ),
+}
 
-DIFFUSIVITY_MODELS = {
-    "Ohira1989": {
-        "prefactor_m2_s": 1.2e-11,
-        "activation_j_mol": 45.1e3,
-        "temp_range_k": (600.0, 711.0),
-        "label": "Ohira1989, unirradiated single crystal",
-    },
-    "Tanifuji1987": {
-        "prefactor_m2_s": 1.16e-5,
-        "activation_j_mol": 101.0e3,
-        "temp_range_k": (573.0, 950.0),
-        "label": "Tanifuji1987, neutron-irradiated single crystal",
-    },
-    "Kurasawa1991": {
-        "prefactor_m2_s": 2.0e-7,
-        "activation_j_mol": 81.7e3,
-        "temp_range_k": (450.0 + 273.15, 820.0 + 273.15),
-        "label": "Kurasawa1991, in-situ single crystal",
-    },
-    "Terai1988Grain": {
-        "prefactor_m2_s": 1.27e-9,
-        "activation_j_mol": 54.9e3,
-        "temp_range_k": (360.0 + 273.15, 600.0 + 273.15),
-        "label": "Terai1988Grain, neutron-irradiated polycrystal grain",
-    },
-    "Terai1988GrainBoundary": {
-        "prefactor_m2_s": 1.61e-2,
-        "activation_j_mol": 95.1e3,
-        "temp_range_k": (360.0 + 273.15, 600.0 + 273.15),
-        "label": "Terai1988GrainBoundary, neutron-irradiated polycrystal grain boundary",
-    },
+SOLUBILITY_LABELS = {
+    "Ohira1989Tritium": "Ohira1989Tritium, tritium in unirradiated single crystal",
+    "Ohira1989Hydrogen": "Ohira1989Hydrogen, hydrogen in unirradiated single crystal",
 }
 
 
-SOLUBILITY_MODELS = {
-    "Ohira1989Tritium": {
-        "a": 1290.0,
-        "b": 1.14,
-        "temp_range_k": (583.0, 963.0),
-        "label": "Ohira1989Tritium, tritium in unirradiated single crystal",
-    },
-    "Ohira1989Hydrogen": {
-        "a": 1271.0,
-        "b": 2.33,
-        "temp_range_k": (476.0, 963.0),
-        "label": "Ohira1989Hydrogen, hydrogen in unirradiated single crystal",
-    },
+def evaluate_number(expression: str) -> float:
+    """Evaluate a C++ numeric literal or simple arithmetic such as `450.0 + 273.15`."""
+
+    def visit(node):
+        if isinstance(node, ast.Expression):
+            return visit(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return float(node.value)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+            value = visit(node.operand)
+            return -value if isinstance(node.op, ast.USub) else value
+        if isinstance(node, ast.BinOp) and type(node.op) in _OPERATORS:
+            return _OPERATORS[type(node.op)](visit(node.left), visit(node.right))
+        raise ValueError(f"Unsupported expression in {HELPER_HEADER.name}: {expression!r}")
+
+    return visit(ast.parse(expression.strip(), mode="eval"))
+
+
+_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
 }
+
+
+def parse_helper_header(header: Path):
+    """
+    Read the model coefficients and temperature ranges from Li2OPropertyHelper.h.
+
+    Each model is a `case <Enum>::<Name>: return {{citation, min_T, max_T, note}, c1, c2};` entry
+    in diffusivityModelData / solubilityModelData. The string literals are dropped and the
+    remaining numbers are, in order: min_T, max_T, then the two model coefficients.
+    """
+    text = header.read_text()
+    models = {"Diffusivity": {}, "Solubility": {}}
+    pattern = re.compile(
+        r"case\s+(Diffusivity|Solubility)Model::(\w+)\s*:\s*return\s*\{(.*?)\};", re.DOTALL
+    )
+    for kind, name, body in pattern.findall(text):
+        body = re.sub(r'"(?:[^"\\]|\\.)*"', "", body)  # drop (concatenated) string literals
+        numbers = [
+            evaluate_number(item)
+            for item in body.replace("{", "").replace("}", "").split(",")
+            if item.strip()
+        ]
+        if len(numbers) != 4:
+            raise ValueError(
+                f"Expected 4 numbers for {kind}Model::{name} in {header.name}, got {numbers}"
+            )
+        models[kind][name] = numbers
+    return models["Diffusivity"], models["Solubility"]
+
+
+def build_models():
+    """Combine the numbers parsed from the C++ header with the plot labels defined here."""
+    diffusivity, solubility = parse_helper_header(HELPER_HEADER)
+    if set(diffusivity) != set(DIFFUSIVITY_LABELS) or set(solubility) != set(SOLUBILITY_LABELS):
+        raise ValueError(
+            f"Models in {HELPER_HEADER.name} do not match the labels in this script: "
+            f"{sorted(diffusivity)} / {sorted(solubility)}"
+        )
+    diffusivity_models = {
+        name: {
+            "temp_range_k": (t_min, t_max),
+            "prefactor_m2_s": prefactor,
+            "activation_j_mol": activation,
+            "label": DIFFUSIVITY_LABELS[name],
+        }
+        for name, (t_min, t_max, prefactor, activation) in diffusivity.items()
+    }
+    solubility_models = {
+        name: {
+            "temp_range_k": (t_min, t_max),
+            "a": a,
+            "b": b,
+            "label": SOLUBILITY_LABELS[name],
+        }
+        for name, (t_min, t_max, a, b) in solubility.items()
+    }
+    return diffusivity_models, solubility_models
+
+
+DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
 
 def apply_validation_style():
@@ -99,7 +158,7 @@ def diffusivity_m2_s(
 
 
 def solubility_atm_0_5(a: float, b: float, temperature_k: np.ndarray):
-    return 10.0 ** (a / temperature_k + b)
+    return np.exp(a / temperature_k + b)
 
 
 def inverse_temperature_axis(temperature_k: np.ndarray):
