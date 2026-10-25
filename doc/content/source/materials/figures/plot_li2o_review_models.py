@@ -46,7 +46,15 @@ REPO_DIR = SCRIPT_DIR.parents[4]
 HELPER_HEADER = REPO_DIR / "include" / "materials" / "Li2OPropertyHelper.h"
 # Header defining PhysicalConstants::ideal_gas_constant, which Li2OPropertyHelper.h uses through
 # TMAP8PhysicalConstants.h
-CONSTANTS_HEADER = REPO_DIR / "moose" / "modules" / "misc" / "include" / "utils" / "PhysicalConstants.h"
+CONSTANTS_HEADER = (
+    REPO_DIR
+    / "moose"
+    / "modules"
+    / "misc"
+    / "include"
+    / "utils"
+    / "PhysicalConstants.h"
+)
 # Header defining PhysicalConstants::atm_to_Pa
 TMAP8_CONSTANTS_HEADER = REPO_DIR / "include" / "utils" / "TMAP8PhysicalConstants.h"
 
@@ -80,7 +88,9 @@ def evaluate_number(expression: str) -> float:
             return -value if isinstance(node.op, ast.USub) else value
         if isinstance(node, ast.BinOp) and type(node.op) in _OPERATORS:
             return _OPERATORS[type(node.op)](visit(node.left), visit(node.right))
-        raise ValueError(f"Unsupported expression in {HELPER_HEADER.name}: {expression!r}")
+        raise ValueError(
+            f"Unsupported expression in {HELPER_HEADER.name}: {expression!r}"
+        )
 
     return visit(ast.parse(expression.strip(), mode="eval"))
 
@@ -112,10 +122,13 @@ def parse_helper_header(header: Path):
     text = header.read_text()
     models = {"Diffusivity": {}, "Solubility": {}}
     pattern = re.compile(
-        r"case\s+(Diffusivity|Solubility)Model::(\w+)\s*:\s*return\s*\{(.*?)\};", re.DOTALL
+        r"case\s+(Diffusivity|Solubility)Model::(\w+)\s*:\s*return\s*\{(.*?)\};",
+        re.DOTALL,
     )
     for kind, name, body in pattern.findall(text):
-        body = re.sub(r'"(?:[^"\\]|\\.)*"', "", body)  # drop (concatenated) string literals
+        body = re.sub(
+            r'"(?:[^"\\]|\\.)*"', "", body
+        )  # drop (concatenated) string literals
         numbers = [
             evaluate_number(item)
             for item in body.replace("{", "").replace("}", "").split(",")
@@ -132,7 +145,9 @@ def parse_helper_header(header: Path):
 def build_models():
     """Combine the numbers parsed from the C++ header with the plot labels defined here."""
     diffusivity, solubility = parse_helper_header(HELPER_HEADER)
-    if set(diffusivity) != set(DIFFUSIVITY_LABELS) or set(solubility) != set(SOLUBILITY_LABELS):
+    if set(diffusivity) != set(DIFFUSIVITY_LABELS) or set(solubility) != set(
+        SOLUBILITY_LABELS
+    ):
         raise ValueError(
             f"Models in {HELPER_HEADER.name} do not match the labels in this script: "
             f"{sorted(diffusivity)} / {sorted(solubility)}"
@@ -161,8 +176,12 @@ def build_models():
 R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
 ATM_TO_PA = parse_constant(TMAP8_CONSTANTS_HEADER, "atm_to_Pa")  # Pa/atm
 # Temperature-dependent lattice parameter a_0(T) = intercept + slope * T (m) of anti-fluorite Li2O
-LI2O_LATTICE_INTERCEPT = parse_constant(HELPER_HEADER, "li2o_lattice_parameter_intercept")  # m
-LI2O_LATTICE_SLOPE = parse_constant(HELPER_HEADER, "li2o_lattice_parameter_slope")  # m/K
+LI2O_LATTICE_INTERCEPT = parse_constant(
+    HELPER_HEADER, "li2o_lattice_parameter_intercept"
+)  # m
+LI2O_LATTICE_SLOPE = parse_constant(
+    HELPER_HEADER, "li2o_lattice_parameter_slope"
+)  # m/K
 LI2O_ATOMS_PER_UNIT_CELL = parse_constant(HELPER_HEADER, "li2o_atoms_per_unit_cell")
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
