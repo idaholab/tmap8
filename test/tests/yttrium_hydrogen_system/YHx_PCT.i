@@ -331,5 +331,9 @@ output_file_base = 'YHx_PCT_out'
 [Outputs]
   file_base = ${output_file_base}
   csv = true
-  exodus = true
+  [exodus]
+    type = Exodus
+    # legacy value
+    max_output_name_length = 32
+  []
 []
