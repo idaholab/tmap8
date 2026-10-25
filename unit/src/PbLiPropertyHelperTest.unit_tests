@@ -1,0 +1,65 @@
+[Tests]
+  design = 'DensityPbLi.md TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
+  issues = '#484'
+
+  [option_strings]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.optionStrings
+    requirement = 'The system shall expose the PbLi density model, diffusivity model, solubility model and hydrogen isotope options with the names used in input files.'
+  []
+  [validity_ranges]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.validityRanges
+    requirement = 'The system shall store the documented temperature and lithium atomic fraction validity ranges of the PbLi diffusivity and solubility models.'
+  []
+  [is_in_range]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.isInRange
+    requirement = 'The system shall identify whether a temperature is inside the documented validity range of every PbLi model, including at its bounds and just outside them, and accept every temperature for a model without a documented range.'
+  []
+  [composition_range]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.compositionRange
+    requirement = 'The system shall identify whether a lithium atomic fraction is inside the documented composition range of a PbLi model, including a single-composition range such as Pb-15.7Li, and return a message that names the object, model, composition and range otherwise.'
+  []
+  [density_values]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.densityValues
+    requirement = 'The system shall reproduce independently calculated values of the PbLi density and decrease the density as the temperature increases.'
+  []
+  [diffusivity_values]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.diffusivityValues
+    requirement = 'The system shall reproduce independently calculated values of the PbLi hydrogen isotope diffusivity models.'
+  []
+  [isotope_scaling]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.isotopeScaling
+    requirement = 'The system shall scale the pre-exponential factor of a PbLi diffusivity model from the isotope it was measured for to the requested isotope with the classical mass factor, and return a message that names both isotopes when no scaling is requested for a different isotope.'
+  []
+  [atom_density]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.atomDensity
+    requirement = 'The system shall compute the number density of metal atoms in PbLi from the temperature-dependent density and the lithium atomic fraction.'
+  []
+  [solubility_values]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.solubilityValues
+    requirement = 'The system shall convert PbLi solubility correlations published as atom fractions and as molar concentrations to atoms m$^{-3}$ Pa$^{-1/2}$ and reproduce independently calculated values.'
+  []
+  [mixing_rule_limits]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.mixingRuleLimits
+    requirement = 'The system shall reduce the logarithmic PbLi solubility mixing rule to the Sieverts constants of pure lead and pure lithium at the composition limits.'
+  []
+  [finite_sweep]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.finiteOverTemperatureSweep
+    requirement = 'The system shall compute positive, finite PbLi diffusivities and solubilities for every model, inside and outside its validity range.'
+  []
+  [ad_derivative]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.adDerivativeMatchesAnalytic
+    requirement = 'The system shall compute automatic differentiation derivatives of the PbLi density, diffusivity and solubility with respect to temperature that match the analytic derivatives.'
+  []
+[]
