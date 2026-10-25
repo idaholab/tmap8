@@ -96,10 +96,9 @@ validityMessage(const std::string & object_name,
 
   std::ostringstream oss;
   oss << "In " << object_name << ": model '" << model_name
-      << "' is being used outside its documented validity range because temperature "
-      << std::fixed << std::setprecision(2) << temperature << " K is outside "
-      << temperatureRange(metadata) << ". Source: " << metadata.citation << ". "
-      << metadata.validity_note;
+      << "' is being used outside its documented validity range because temperature " << std::fixed
+      << std::setprecision(2) << temperature << " K is outside " << temperatureRange(metadata)
+      << ". Source: " << metadata.citation << ". " << metadata.validity_note;
   return oss.str();
 }
 }

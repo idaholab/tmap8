@@ -250,8 +250,9 @@ computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 }
 
 /**
- * Compute the Sieverts solubility K_s = N_at(T) X_0 exp(-E_a / (R T)), such that C = K_s sqrt(P) with C in
- * atoms/m^3 and P in Pa. See convertSolubilityFit() for the relation to the published fit.
+ * Compute the Sieverts solubility K_s = N_at(T) X_0 exp(-E_a / (R T)), such that C = K_s sqrt(P)
+ * with C in atoms/m^3 and P in Pa. See convertSolubilityFit() for the relation to the published
+ * fit.
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
  */

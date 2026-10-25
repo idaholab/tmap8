@@ -188,8 +188,8 @@ TEST(Li2OPropertyHelperTest, solubilityMatchesPaperForm)
       const Real temperature = fit.t_min + (fit.t_max - fit.t_min) * i / 10.0;
       for (const Real pressure : {0.01, 1.0, 100.0, 1.0e4, 1.0e5}) // Pa
       {
-        const Real paper_concentration =
-            n_atoms * std::sqrt(pressure / pa_per_atm) / std::pow(10.0, fit.a / temperature + fit.b);
+        const Real paper_concentration = n_atoms * std::sqrt(pressure / pa_per_atm) /
+                                         std::pow(10.0, fit.a / temperature + fit.b);
         const Real implemented_concentration =
             computeSolubility(data, temperature) * std::sqrt(pressure);
         EXPECT_LT(relativeError(implemented_concentration, paper_concentration), 1e-8)
@@ -248,9 +248,8 @@ TEST(Li2OPropertyHelperTest, adDerivativeMatchesAnalytic)
 
     const auto d = computeDiffusivity(data, t);
     // dD/dT = D * Ea / (R T^2)
-    const Real expected =
-        MetaPhysicL::raw_value(d) * data.activation_energy /
-        (ideal_gas_constant * temperature * temperature);
+    const Real expected = MetaPhysicL::raw_value(d) * data.activation_energy /
+                          (ideal_gas_constant * temperature * temperature);
     EXPECT_LT(relativeError(d.derivatives()[0], expected), 1e-12);
   }
 
