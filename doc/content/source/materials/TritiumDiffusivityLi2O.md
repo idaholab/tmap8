@@ -29,6 +29,14 @@ plotted in [li2o_diffusivity_models_figure].
 Note that the models are not interchangeable descriptions of the same specimen.
 They reflect different combinations of material microstructures and irradiation damage.
 
+!media plot_li2o_review_models.py
+       image_name=li2o_diffusivity_models.png
+       style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
+       id=li2o_diffusivity_models_figure
+       caption=Comparison of the implemented Li$_2$O tritium diffusivity correlations from [li2o_diffusivity_models_table].
+
+## Behavior when outside of range of validity
+
 The [!param](/Materials/TritiumDiffusivityLi2O/validity_action) parameter sets what TMAP8 does when a model is evaluated
 at a temperature outside its documented validity range (the ranges are listed in
 [li2o_diffusivity_models_table]):
@@ -43,12 +51,6 @@ at a temperature outside its documented validity range (the ranges are listed in
 
 Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
 `warning` or `error` is recommended unless the extrapolation is intentional.
-
-!media plot_li2o_review_models.py
-       image_name=li2o_diffusivity_models.png
-       style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
-       id=li2o_diffusivity_models_figure
-       caption=Comparison of the implemented Li$_2$O tritium diffusivity correlations from [li2o_diffusivity_models_table].
 
 !syntax parameters /Materials/TritiumDiffusivityLi2O
 
