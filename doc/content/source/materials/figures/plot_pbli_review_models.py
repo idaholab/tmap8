@@ -4,12 +4,13 @@
 Plot the PbLi hydrogen isotope diffusivity and solubility correlations implemented in TMAP8
 (TritiumDiffusivityPbLi and TritiumSolubilityPbLi).
 
-Intended use: regenerate the two documentation figures that are included with `!media` in
-TritiumDiffusivityPbLi.md and TritiumSolubilityPbLi.md. Run it from any directory:
+Intended use: regenerate the three documentation figures that are included with `!media` in
+DensityPbLi.md, TritiumDiffusivityPbLi.md and TritiumSolubilityPbLi.md. Run it from any directory:
 
     python plot_pbli_review_models.py
 
 Outputs (written next to this script):
+    pbli_density_models.png      -- rho (g/m^3) versus T
     pbli_diffusivity_models.png  -- D (m^2/s) versus 1000/T, one curve per model
     pbli_solubility_models.png   -- K_s (atoms m^-3 Pa^-1/2) versus 1000/T, one curve per model
 
@@ -56,6 +57,8 @@ CONSTANTS_HEADER = (
 
 # Lithium atomic fraction used for the atom-fraction conversion in the figure
 LITHIUM_FRACTION = 0.17
+# Temperature range (K) over which the density is drawn, since the model has no documented range
+DENSITY_PLOT_RANGE_K = (500.0, 1000.0)
 # Models documented for a single composition, plotted at that composition
 LITHIUM_FRACTION_OVERRIDE = {"Penalva2024": 0.157}
 
@@ -271,9 +274,9 @@ def parse_density():
 
 R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
 AVOGADRO = parse_constant(CONSTANTS_HEADER, "avogadro_number")  # 1/mol
-LITHIUM_MOLAR_MASS = parse_constant(HELPER_HEADER, "lithium_molar_mass")  # kg/mol
-LEAD_MOLAR_MASS = parse_constant(HELPER_HEADER, "lead_molar_mass")  # kg/mol
-DENSITY_REFERENCE, DENSITY_EXPANSION = parse_density()  # kg/m^3, 1/K
+LITHIUM_MOLAR_MASS = parse_constant(HELPER_HEADER, "lithium_molar_mass")  # g/mol
+LEAD_MOLAR_MASS = parse_constant(HELPER_HEADER, "lead_molar_mass")  # g/mol
+DENSITY_REFERENCE, DENSITY_EXPANSION = parse_density()  # g/m^3, 1/K
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
 
@@ -400,8 +403,22 @@ def plot_models(models, value_function, y_label, file_name, top_ticks, figsize):
     finish_figure(fig, ax, line_info, top_ticks, y_label, file_name)
 
 
+def plot_density():
+    fig = plt.figure(figsize=[6.5, 4.5])
+    ax = fig.add_subplot(gridspec.GridSpec(1, 1)[0])
+    temperature = np.linspace(*DENSITY_PLOT_RANGE_K, 250)
+    density = DENSITY_REFERENCE * (1.0 - DENSITY_EXPANSION * temperature)
+    ax.plot(temperature, density, linewidth=2.0, label="LinearExpansion")
+    apply_axes_style(ax, "Temperature (K)", r"$\rho$ (g/m$^3$)")
+    ax.legend(loc="upper right")
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "pbli_density_models.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main():
     apply_validation_style()
+    plot_density()
     plot_models(
         DIFFUSIVITY_MODELS,
         lambda name, model, t: np.broadcast_to(

@@ -66,7 +66,7 @@ N(T) = \frac{\rho(T) N_A}{\bar{M}},
 \bar{M} = x_{Li} M_{Li} + (1 - x_{Li}) M_{Pb},
 
 where $\rho(T)$ is the PbLi density from [DensityPbLi](DensityPbLi.md), $\bar{M}$ is the mean atomic
-mass of the metal atoms, $M_{Li} = 6.941\times10^{-3}$ kg/mol, $M_{Pb} = 207.2\times10^{-3}$ kg/mol,
+mass of the metal atoms, $M_{Li} = 6.941$ g/mol, $M_{Pb} = 207.2$ g/mol,
 and $x_{Li}$ is the
 [!param](/Materials/TritiumSolubilityPbLi/lithium_atomic_fraction) parameter. This gives
 $C = N(T) X$, which assumes that the atom fraction is much smaller than 1 ($X \ll 1$), as is the

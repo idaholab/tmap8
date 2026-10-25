@@ -110,7 +110,7 @@ validityMessage(const std::string & object_name,
   return oss.str();
 }
 
-/// Tolerance on the composition bounds, so that e.g. 0.157 matches a documented value of 15.7%
+/// Tolerance on the composition bounds
 constexpr Real composition_tolerance = 1e-9;
 
 /**

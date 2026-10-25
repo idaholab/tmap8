@@ -25,11 +25,9 @@
  * Each literature model is described by a plain data struct holding its correlation coefficients,
  * the hydrogen isotope it was measured for, and its documented validity range.
  *
- * The code is unit-agnostic. The literature coefficients are stored in SI units (kg/m$^3$, m$^2$/s,
- * J/mol, K, atoms m$^{-3}$ Pa$^{-1/2}$) after the conversions documented in the model data.
- *
- * Warning: the coefficients carried over from earlier drafts have not yet been verified against the
- * primary sources. Models with an unverified coefficient or isotope basis say so in their note.
+ * The code is unit-agnostic. The coefficients are stored in the units g/m$^3$ (density), g/mol
+ * (molar masses), m$^2$/s, J/mol, K and atoms m$^{-3}$ Pa$^{-1/2}$, after the conversions
+ * documented in the model data.
  */
 namespace PbLiPropertyHelper
 {
@@ -38,10 +36,10 @@ const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
 /// Avogadro number (1/mol), from TMAP8PhysicalConstants
 const Real avogadro_number = PhysicalConstants::avogadro_number;
 
-/// Molar mass of lithium (kg/mol)
-const Real lithium_molar_mass = 6.941e-3;
-/// Molar mass of lead (kg/mol)
-const Real lead_molar_mass = 207.2e-3;
+/// Molar mass of lithium (g/mol)
+const Real lithium_molar_mass = 6.941;
+/// Molar mass of lead (g/mol)
+const Real lead_molar_mass = 207.2;
 
 /// Lithium atomic fraction range of the eutectic Pb-17Li used by most correlations (-)
 const Real eutectic_min_lithium_fraction = 0.157;
@@ -177,7 +175,7 @@ struct DensityModelData
 {
   /// Citation, validity range and notes
   ModelMetadata metadata;
-  /// Density extrapolated to 0 K, rho_0 (kg/m$^3$)
+  /// Density extrapolated to 0 K, rho_0 (g/m$^3$)
   Real reference_density;
   /// Volumetric thermal expansion coefficient (1/K)
   Real expansion_coefficient;
@@ -212,7 +210,7 @@ densityModelData(const DensityModel model)
                            no_min_temperature,
                            no_max_temperature,
                            "Source and temperature range not yet verified."),
-              10520.0,
+              1.052e7,
               1.13e-4};
   }
   mooseError("Unsupported PbLi density model.");
@@ -358,7 +356,7 @@ struct SolubilityInputs
 };
 
 /**
- * Atomic mass of PbLi averaged over the metal atoms, M = x_Li M_Li + (1 - x_Li) M_Pb (kg/mol)
+ * Atomic mass of PbLi averaged over the metal atoms, M = x_Li M_Li + (1 - x_Li) M_Pb (g/mol)
  * @param lithium_fraction the lithium atomic fraction (-)
  */
 inline Real

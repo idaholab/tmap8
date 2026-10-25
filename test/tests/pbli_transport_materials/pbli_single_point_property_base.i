@@ -1,6 +1,6 @@
 # PbLi single-point material property regression base
 # Unit system: temperature in K; property units depend on the selected material type
-# (density in kg/m^3, diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2)
+# (density in g/m^3, diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2)
 
 [Mesh]
   type = GeneratedMesh
