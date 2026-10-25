@@ -1,0 +1,471 @@
+[Tests]
+  design = 'DensityPbLi.md TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
+  issues = '#484'
+
+  [pbli_density_linearexpansion_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=DensityPbLi
+                Materials/pbli_property/model=LinearExpansion
+                AuxKernels/temperature_1/value=600
+                AuxKernels/temperature_2/value=700
+                AuxKernels/temperature_3/value=800
+                Outputs/file_base=pbli_density_linearexpansion_out'
+    csvdiff = pbli_density_linearexpansion_out.csv
+    requirement = 'The system shall compute the LinearExpansion PbLi density model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_density_linearexpansion_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=DensityPbLi
+                Materials/pbli_property/model=LinearExpansion
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_density_linearexpansion_reference_point_out'
+    csvdiff = pbli_density_linearexpansion_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated LinearExpansion PbLi density reference point at 700 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_fauvet1988_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Fauvet1988
+                AuxKernels/temperature_1/value=718.15
+                AuxKernels/temperature_2/value=723.15
+                AuxKernels/temperature_3/value=728.15
+                Outputs/file_base=pbli_diffusivity_fauvet1988_out'
+    csvdiff = pbli_diffusivity_fauvet1988_out.csv
+    requirement = 'The system shall compute the Fauvet1988 PbLi tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_fauvet1988_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Fauvet1988
+                AuxKernels/set_temperature/value=723.15
+                Outputs/file_base=pbli_diffusivity_fauvet1988_reference_point_out'
+    csvdiff = pbli_diffusivity_fauvet1988_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Fauvet1988 PbLi tritium diffusivity reference point at 723.15 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_reiter1991_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Reiter1991
+                AuxKernels/temperature_1/value=508
+                AuxKernels/temperature_2/value=600
+                AuxKernels/temperature_3/value=700
+                Outputs/file_base=pbli_diffusivity_reiter1991_out'
+    csvdiff = pbli_diffusivity_reiter1991_out.csv
+    requirement = 'The system shall compute the Reiter1991 PbLi tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_reiter1991_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Reiter1991
+                AuxKernels/set_temperature/value=600
+                Outputs/file_base=pbli_diffusivity_reiter1991_reference_point_out'
+    csvdiff = pbli_diffusivity_reiter1991_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991 PbLi tritium diffusivity reference point at 600 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_terai1992_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Terai1992
+                AuxKernels/temperature_1/value=573.15
+                AuxKernels/temperature_2/value=700
+                AuxKernels/temperature_3/value=973.15
+                Outputs/file_base=pbli_diffusivity_terai1992_out'
+    csvdiff = pbli_diffusivity_terai1992_out.csv
+    requirement = 'The system shall compute the Terai1992 PbLi tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_terai1992_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Terai1992
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_diffusivity_terai1992_reference_point_out'
+    csvdiff = pbli_diffusivity_terai1992_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Terai1992 PbLi tritium diffusivity reference point at 700 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_maeda2008_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Maeda2008
+                AuxKernels/temperature_1/value=573.15
+                AuxKernels/temperature_2/value=650
+                AuxKernels/temperature_3/value=773.15
+                Outputs/file_base=pbli_diffusivity_maeda2008_out'
+    csvdiff = pbli_diffusivity_maeda2008_out.csv
+    requirement = 'The system shall compute the Maeda2008 PbLi tritium diffusivity model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_diffusivity_maeda2008_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Maeda2008
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=pbli_diffusivity_maeda2008_reference_point_out'
+    csvdiff = pbli_diffusivity_maeda2008_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Maeda2008 PbLi tritium diffusivity reference point at 650 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_katsuta1985_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Katsuta1985
+                AuxKernels/temperature_1/value=673.15
+                AuxKernels/temperature_2/value=723.15
+                AuxKernels/temperature_3/value=773.15
+                Outputs/file_base=pbli_solubility_katsuta1985_out'
+    csvdiff = pbli_solubility_katsuta1985_out.csv
+    requirement = 'The system shall compute the Katsuta1985 PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_katsuta1985_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Katsuta1985
+                AuxKernels/set_temperature/value=723.15
+                Outputs/file_base=pbli_solubility_katsuta1985_reference_point_out'
+    csvdiff = pbli_solubility_katsuta1985_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Katsuta1985 PbLi tritium solubility reference point at 723.15 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_fauvet1988_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fauvet1988
+                AuxKernels/temperature_1/value=718.15
+                AuxKernels/temperature_2/value=723.15
+                AuxKernels/temperature_3/value=728.15
+                Outputs/file_base=pbli_solubility_fauvet1988_out'
+    csvdiff = pbli_solubility_fauvet1988_out.csv
+    requirement = 'The system shall compute the Fauvet1988 PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_fauvet1988_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fauvet1988
+                AuxKernels/set_temperature/value=723.15
+                Outputs/file_base=pbli_solubility_fauvet1988_reference_point_out'
+    csvdiff = pbli_solubility_fauvet1988_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Fauvet1988 PbLi tritium solubility reference point at 723.15 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_maeda2008_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Maeda2008
+                AuxKernels/temperature_1/value=573.15
+                AuxKernels/temperature_2/value=650
+                AuxKernels/temperature_3/value=773.15
+                Outputs/file_base=pbli_solubility_maeda2008_out'
+    csvdiff = pbli_solubility_maeda2008_out.csv
+    requirement = 'The system shall compute the Maeda2008 PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_maeda2008_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Maeda2008
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=pbli_solubility_maeda2008_reference_point_out'
+    csvdiff = pbli_solubility_maeda2008_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Maeda2008 PbLi tritium solubility reference point at 650 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_reiter1991_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Reiter1991
+                AuxKernels/temperature_1/value=508
+                AuxKernels/temperature_2/value=600
+                AuxKernels/temperature_3/value=700
+                Outputs/file_base=pbli_solubility_reiter1991_out'
+    csvdiff = pbli_solubility_reiter1991_out.csv
+    requirement = 'The system shall compute the Reiter1991 PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_reiter1991_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Reiter1991
+                AuxKernels/set_temperature/value=600
+                Outputs/file_base=pbli_solubility_reiter1991_reference_point_out'
+    csvdiff = pbli_solubility_reiter1991_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991 PbLi tritium solubility reference point at 600 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_penalva2024_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Penalva2024
+                Materials/pbli_property/lithium_atomic_fraction=0.157
+                AuxKernels/temperature_1/value=514.15
+                AuxKernels/temperature_2/value=700
+                AuxKernels/temperature_3/value=852.15
+                Outputs/file_base=pbli_solubility_penalva2024_out'
+    csvdiff = pbli_solubility_penalva2024_out.csv
+    requirement = 'The system shall compute the Penalva2024 PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_penalva2024_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Penalva2024
+                Materials/pbli_property/lithium_atomic_fraction=0.157
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_solubility_penalva2024_reference_point_out'
+    csvdiff = pbli_solubility_penalva2024_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Penalva2024 PbLi tritium solubility reference point at 700 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_fukada2013mixingrule_csv]
+    type = CSVDiff
+    input = pbli_three_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fukada2013MixingRule
+                Materials/pbli_property/lithium_sieverts_constant=1e22
+                Materials/pbli_property/lead_sieverts_constant=1e20
+                AuxKernels/temperature_1/value=600
+                AuxKernels/temperature_2/value=700
+                AuxKernels/temperature_3/value=800
+                Outputs/file_base=pbli_solubility_fukada2013mixingrule_out'
+    csvdiff = pbli_solubility_fukada2013mixingrule_out.csv
+    requirement = 'The system shall compute the Fukada2013MixingRule PbLi tritium solubility model across a representative in-range temperature sweep and expose both regular and AD material properties.'
+  []
+
+  [pbli_solubility_fukada2013mixingrule_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fukada2013MixingRule
+                Materials/pbli_property/lithium_sieverts_constant=1e22
+                Materials/pbli_property/lead_sieverts_constant=1e20
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_solubility_fukada2013mixingrule_reference_point_out'
+    csvdiff = pbli_solubility_fukada2013mixingrule_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Fukada2013MixingRule PbLi tritium solubility reference point at 700 K and expose both regular and AD material properties.'
+  []
+
+  [pbli_density_ad_jacobian]
+    type = PetscJacobianTester
+    input = pbli_ad_property_base.i
+    # The density residual is large (about 7e3) compared with its derivative (about 1), so the
+    # finite-difference roundoff exceeds 1e-6. The analytic derivative is checked in the unit tests.
+    ratio_tol = 1e-5
+    cli_args = 'Materials/pbli_property/type=DensityPbLi
+                Materials/pbli_property/model=LinearExpansion
+                Variables/temperature/initial_condition=700'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the LinearExpansion PbLi density material property.'
+  []
+
+  [pbli_diffusivity_ad_jacobian]
+    type = PetscJacobianTester
+    input = pbli_ad_property_base.i
+    ratio_tol = 1e-6
+    cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
+                Materials/pbli_property/model=Terai1992
+                Variables/temperature/initial_condition=700'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Terai1992 PbLi tritium diffusivity material property.'
+  []
+
+  [pbli_solubility_ad_jacobian]
+    type = PetscJacobianTester
+    input = pbli_ad_property_base.i
+    ratio_tol = 1e-6
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Katsuta1985
+                Variables/temperature/initial_condition=700'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Katsuta1985 PbLi tritium solubility material property.'
+  []
+
+  [pbli_diffusivity_terai1992_low_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=573'
+    expect_err = "In pbli_property: model 'Terai1992' is being used outside its documented validity range because temperature 573"
+    requirement = 'The system shall return a specific error message when the Terai1992 PbLi tritium diffusivity model is used below its documented temperature range.'
+  []
+
+  [pbli_diffusivity_terai1992_high_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=974'
+    expect_err = "In pbli_property: model 'Terai1992' is being used outside its documented validity range because temperature 974"
+    requirement = 'The system shall return a specific error message when the Terai1992 PbLi tritium diffusivity model is used above its documented temperature range.'
+  []
+
+  [pbli_diffusivity_out_of_range_warning]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=573'
+    expect_out = "TritiumDiffusivityPbLi : In pbli_property: model 'Terai1992' is being used outside its documented validity range"
+    requirement = 'The system shall continue the run and report a solution warning when the Terai1992 PbLi tritium diffusivity model is used outside its documented temperature range with the warning validity action.'
+  []
+
+  [pbli_diffusivity_out_of_range_ignore]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=ignore AuxKernels/set_temperature/value=573'
+    absent_out = "outside its documented validity range"
+    requirement = 'The system shall not report any message when the Terai1992 PbLi tritium diffusivity model is used outside its documented temperature range with the ignore validity action.'
+  []
+
+  [pbli_solubility_out_of_range_warning]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=600'
+    expect_out = "TritiumSolubilityPbLi : In pbli_property: model 'Katsuta1985' is being used outside its documented validity range"
+    requirement = 'The system shall continue the run and report a solution warning when the Katsuta1985 PbLi hydrogen solubility model is used outside its documented temperature range with the warning validity action.'
+  []
+
+  [pbli_solubility_out_of_range_ignore]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=ignore AuxKernels/set_temperature/value=600'
+    absent_out = "outside its documented validity range"
+    requirement = 'The system shall not report any message when the Katsuta1985 PbLi hydrogen solubility model is used outside its documented temperature range with the ignore validity action.'
+  []
+
+  [pbli_density_out_of_range_ignore]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=DensityPbLi Materials/pbli_property/model=LinearExpansion Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=2000'
+    absent_out = "outside its documented validity range"
+    requirement = 'The system shall not report a validity message for the LinearExpansion PbLi density model, which has no documented temperature range.'
+  []
+
+  [pbli_diffusivity_composition_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=error Materials/pbli_property/lithium_atomic_fraction=0.3'
+    expect_err = "because lithium atomic fraction 0.3000 is outside \[0.1570, 0.1700\]"
+    requirement = 'The system shall return a specific error message when a PbLi tritium diffusivity model is used with a lithium atomic fraction outside its documented composition range.'
+  []
+
+  [pbli_diffusivity_composition_warning]
+    type = RunApp
+    allow_warnings = true
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=warning Materials/pbli_property/lithium_atomic_fraction=0.3'
+    expect_out = "because lithium atomic fraction 0.3000 is outside"
+    requirement = 'The system shall continue the run and report a warning when a PbLi tritium diffusivity model is used with a lithium atomic fraction outside its documented composition range with the warning validity action.'
+  []
+
+  [pbli_diffusivity_composition_ignore]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=ignore Materials/pbli_property/lithium_atomic_fraction=0.3'
+    absent_out = "outside its documented validity range"
+    requirement = 'The system shall not report any message when a PbLi tritium diffusivity model is used with a lithium atomic fraction outside its documented composition range with the ignore validity action.'
+  []
+
+  [pbli_solubility_composition_warning]
+    type = RunApp
+    allow_warnings = true
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Penalva2024 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=700'
+    expect_out = "because lithium atomic fraction 0.1700 is outside \[0.1570, 0.1570\]"
+    requirement = 'The system shall report a warning when the Penalva2024 PbLi solubility model is used with the default lithium atomic fraction, which is outside its documented single-composition range.'
+  []
+
+  [pbli_diffusivity_isotope_mismatch_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Maeda2008 Materials/pbli_property/isotope=T Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=650'
+    expect_err = "it was measured for isotope H but isotope T is requested without isotope scaling"
+    requirement = 'The system shall return a specific error message when a PbLi diffusivity model is used for a hydrogen isotope other than the one it was measured for without isotope scaling.'
+  []
+
+  [pbli_diffusivity_isotope_scaling_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Maeda2008
+                Materials/pbli_property/isotope=T
+                Materials/pbli_property/isotope_scaling=true
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=pbli_diffusivity_isotope_scaling_out'
+    csvdiff = pbli_diffusivity_isotope_scaling_out.csv
+    requirement = 'The system shall scale the pre-exponential factor of a PbLi diffusivity model from the isotope it was measured for to the requested isotope with the classical mass factor and reproduce an independently calculated reference point at 650 K.'
+  []
+
+  [pbli_diffusivity_scaled_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992
+                Materials/pbli_property/prefactor_scaling=2.0
+                Materials/pbli_property/activation_energy_scaling=1.1
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_diffusivity_scaled_reference_point_out'
+    csvdiff = pbli_diffusivity_scaled_reference_point_out.csv
+    requirement = 'The system shall scale the pre-exponential factor and the activation energy of a PbLi tritium diffusivity model with user-provided factors and reproduce an independently calculated scaled reference point at 700 K.'
+  []
+
+  [pbli_solubility_scaled_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Reiter1991
+                Materials/pbli_property/prefactor_scaling=0.5
+                Materials/pbli_property/activation_energy_scaling=0.9
+                AuxKernels/set_temperature/value=600
+                Outputs/file_base=pbli_solubility_scaled_reference_point_out'
+    csvdiff = pbli_solubility_scaled_reference_point_out.csv
+    requirement = 'The system shall scale the pre-exponential factor and the activation energy of a PbLi hydrogen solubility model with user-provided factors and reproduce an independently calculated scaled reference point at 600 K.'
+  []
+
+  [pbli_prefactor_scaling_negative_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/prefactor_scaling=-1.0'
+    expect_err = "prefactor_scaling"
+    requirement = 'The system shall return an error when the pre-exponential factor scaling of a PbLi material is negative.'
+  []
+
+  [pbli_solubility_mixing_rule_missing_constants_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Fukada2013MixingRule'
+    expect_err = "The Fukada2013MixingRule model requires this parameter"
+    requirement = 'The system shall return an error when the Fukada2013MixingRule PbLi solubility model is used without the Sieverts constants of pure lithium and lead.'
+  []
+
+  [pbli_solubility_mixing_rule_pure_lead_reference_point]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fukada2013MixingRule
+                Materials/pbli_property/lithium_atomic_fraction=0
+                Materials/pbli_property/lithium_sieverts_constant=1e22
+                Materials/pbli_property/lead_sieverts_constant=1e20
+                AuxKernels/set_temperature/value=700
+                Outputs/file_base=pbli_solubility_mixing_rule_pure_lead_out'
+    csvdiff = pbli_solubility_mixing_rule_pure_lead_out.csv
+    requirement = 'The system shall reduce the Fukada2013MixingRule PbLi solubility model to the Sieverts constant of pure lead when the lithium atomic fraction is zero.'
+  []
+[]
