@@ -17,8 +17,8 @@
  * correlations.
  * The solubility is provided as both a regular and an AD material property.
  */
-class TritiumSolubilityLi2O
-  : public ValidatedModelMaterial<Li2OPropertyHelper::SolubilityModel, Li2OPropertyHelper::SolubilityModelData>
+class TritiumSolubilityLi2O : public ValidatedModelMaterial<Li2OPropertyHelper::SolubilityModel,
+                                                            Li2OPropertyHelper::SolubilityModelData>
 {
 public:
   static InputParameters validParams();

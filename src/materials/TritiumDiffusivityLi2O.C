@@ -14,16 +14,15 @@ InputParameters
 TritiumDiffusivityLi2O::validParams()
 {
   auto params = ValidatedModelMaterial::validParams();
-  params.addClassDescription(
-      "Computes tritium diffusivity in Li$_2$O from literature correlations and provides both regular and AD material properties.");
+  params.addClassDescription("Computes tritium diffusivity in Li$_2$O from literature correlations "
+                             "and provides both regular and AD material properties.");
   params.addParam<MaterialPropertyName>(
       "property_name", "diffusivity", "The regular material property name for the diffusivity.");
   params.addParam<MaterialPropertyName>(
       "ad_property_name", "ad_diffusivity", "The AD material property name for the diffusivity.");
-  params.addRequiredParam<MooseEnum>(
-      "model",
-      MooseEnum(Li2OPropertyHelper::getDiffusivityModelOptions()),
-      "The Li$_2$O tritium diffusivity correlation.");
+  params.addRequiredParam<MooseEnum>("model",
+                                     MooseEnum(Li2OPropertyHelper::getDiffusivityModelOptions()),
+                                     "The Li$_2$O tritium diffusivity correlation.");
   return params;
 }
 

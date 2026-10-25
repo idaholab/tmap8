@@ -17,7 +17,8 @@
  * The diffusivity is provided as both a regular and an AD material property.
  */
 class TritiumDiffusivityLi2O
-  : public ValidatedModelMaterial<Li2OPropertyHelper::DiffusivityModel, Li2OPropertyHelper::DiffusivityModelData>
+  : public ValidatedModelMaterial<Li2OPropertyHelper::DiffusivityModel,
+                                  Li2OPropertyHelper::DiffusivityModelData>
 {
 public:
   static InputParameters validParams();

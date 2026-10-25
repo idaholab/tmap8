@@ -15,7 +15,8 @@ TritiumSolubilityLi2O::validParams()
 {
   auto params = ValidatedModelMaterial::validParams();
   params.addClassDescription(
-      "Computes hydrogen isotope solubility in Li$_2$O from reduced-species literature correlations and provides both regular and AD material properties.");
+      "Computes hydrogen isotope solubility in Li$_2$O from reduced-species literature "
+      "correlations and provides both regular and AD material properties.");
   params.addParam<MaterialPropertyName>(
       "property_name", "solubility", "The regular material property name for the solubility.");
   params.addParam<MaterialPropertyName>(
