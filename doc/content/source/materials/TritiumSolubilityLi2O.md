@@ -117,7 +117,11 @@ per total lattice atom and for a pressure in atm. The reported fits are
 with $K$ in atm$^{1/2}$ and $T$ in K, where $a = 1271 \pm 46$ K and $b = 2.33 \pm 0.07$ for hydrogen
 (476-963 K), and $a = 1290 \pm 81$ K and $b = 1.14 \pm 0.11$ for tritium (583-963 K). Inverting the
 definition of $K$ gives $X = 10^{-b}\,10^{-a/T}\sqrt{P_{atm}}$. The volumetric concentration is
-$C = N_{at}(T) X$, where $N_{at}(T)$ is the temperature-dependent number density of all lattice atoms (Li and O). The number 101325
+$C = N_{at}(T) X$, where $N_{at}(T)$ is the temperature-dependent number density of all lattice atoms (Li and O).
+Because $X = n_H/(n_{Li} + n_O + n_H)$, the exact relation is $C = N_{at}(T) X/(1 - X)$, so $C = N_{at}(T) X$ assumes
+$X \ll 1$ (i.e., $n_H \ll n_{Li} + n_O$). Over the validity ranges, $X \lesssim 3.3\times10^{-3}$ at 1 atm (tritium at 963 K), and
+$X$ scales with $\sqrt{P_{atm}}$ (about 1% at 9 atm), so the relative error of the approximation, about $X$, is well below the
+uncertainty of the fit. The number 101325
 is the definition of one standard atmosphere in pascals: 1 atm = 101325 Pa exactly (available as
 `atm_to_Pa` in [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md)). The pressures in [!cite](Ohira1989Li2O) are in atm and TMAP8 uses
 Pa, so $P_{atm} = P_{Pa}/101325$, where $P = P_{Pa}$ is the pressure in Pa. Therefore,
