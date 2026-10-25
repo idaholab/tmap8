@@ -58,6 +58,25 @@ In [!cite](Ohira1989Li2O), the text above Eq. (3) states that the upper temperat
        id=li2o_solubility_models_figure
        caption=Comparison of the implemented Li$_2$O hydrogen isotope solubility correlations from [li2o_solubility_models_table].
 
+The broader Li$_2$O solubility literature also includes H/D reduced-species measurements
+from [!cite](Katsuta1983Li2O) and oxidized LiOH-in-Li$_2$O solution chemistry from
+[!cite](Tetenbaum1985LiOHInLi2O), but those models are not implemented here yet.
+
+The [!param](/Materials/TritiumSolubilityLi2O/validity_action) parameter sets what TMAP8 does when a model is evaluated
+at a temperature outside its documented validity range (the ranges are listed in
+[li2o_solubility_models_table]):
+
+- `ignore`: nothing happens and the model is silently extrapolated.
+- `warning` (default): the simulation continues. Each out-of-range evaluation is recorded in MOOSE's
+  solution-invalidity system and summarized in the "Warnings History" table printed at the end of
+  the run, with the number of occurrences per time step. Set
+  [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.
+- `error`: the run stops immediately with a message giving the model, the offending temperature
+  and the documented range.
+
+Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
+`warning` or `error` is recommended unless the extrapolation is intentional.
+
 
 ### Conversion of the O'Hira et al. correlations
 
@@ -124,25 +143,6 @@ The temperature dependence of $N_{at}$ was not applied in [!cite](Ohira1989Li2O)
 In the implementation, the coefficients $a$ and $b$ of the paper, the coefficients of $a_0(T)$,
 and the number of atoms per unit cell are kept as named constants, and $X_0$ and $E_a$ are derived
 from them in the code.
-
-The broader Li$_2$O solubility literature also includes H/D reduced-species measurements
-from [!cite](Katsuta1983Li2O) and oxidized LiOH-in-Li$_2$O solution chemistry from
-[!cite](Tetenbaum1985LiOHInLi2O), but those models are not implemented here yet.
-
-The [!param](/Materials/TritiumSolubilityLi2O/validity_action) parameter sets what TMAP8 does when a model is evaluated
-at a temperature outside its documented validity range (the ranges are listed in
-[li2o_solubility_models_table]):
-
-- `ignore`: nothing happens and the model is silently extrapolated.
-- `warning` (default): the simulation continues. Each out-of-range evaluation is recorded in MOOSE's
-  solution-invalidity system and summarized in the "Warnings History" table printed at the end of
-  the run, with the number of occurrences per time step. Set
-  [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.
-- `error`: the run stops immediately with a message giving the model, the offending temperature
-  and the documented range.
-
-Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
-`warning` or `error` is recommended unless the extrapolation is intentional.
 
 !syntax parameters /Materials/TritiumSolubilityLi2O
 
