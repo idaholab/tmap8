@@ -14,6 +14,7 @@
 #include "ADReal.h"
 
 #include <cmath>
+#include <utility>
 #include <vector>
 
 using namespace Li2OPropertyHelper;
@@ -140,19 +141,49 @@ TEST(Li2OPropertyHelperTest, diffusivityValues)
   check(DiffusivityModel::Terai1988GrainBoundary, 753.15, 4.086053385035498e-09);
 }
 
+/// The temperature-dependent atom density N_at(T) = 12 / a_0(T)^3, verified against hand
+/// calculations, and its agreement with the lattice constants of Table I of Farley et al. (1991)
+TEST(Li2OPropertyHelperTest, latticeParameterMatchesFarley)
+{
+  // Hand calculation of N_at for a_0(T) = 4.55224e-10 + 1.69514e-14 T m
+  EXPECT_LT(relativeError(li2oAtomDensity(476.0), 1.206742e29), 1e-5);
+  EXPECT_LT(relativeError(li2oAtomDensity(650.0), 1.183984e29), 1e-5);
+  EXPECT_LT(relativeError(li2oAtomDensity(963.0), 1.144466e29), 1e-5);
+
+  // Lattice constants (Angstrom) of Table I of Farley et al. (1991) as (T in K, a_0), the linear
+  // fit must reproduce them to within 0.6%
+  const std::vector<std::pair<Real, Real>> farley = {
+      {293.0, 4.60},   {293.0, 4.610},  {293.0, 4.612},  {523.0, 4.64},   {773.0, 4.69},
+      {873.0, 4.689},  {873.0, 4.693},  {973.0, 4.71},   {1123.0, 4.728}, {1123.0, 4.73},
+      {1273.0, 4.77},  {1473.0, 4.807}, {1273.0, 4.764}, {1373.0, 4.78},  {1373.0, 4.782},
+      {1473.0, 4.81},  {1603.0, 4.837}, {1603.0, 4.85}};
+  for (const auto & [temperature, lattice_parameter] : farley)
+  {
+    const Real fit = (li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature) *
+                     1e10;
+    EXPECT_LT(relativeError(fit, lattice_parameter), 6e-3) << "T = " << temperature << " K";
+  }
+
+  // Thermal expansion decreases the atom density as the temperature increases
+  Real previous = li2oAtomDensity(300.0);
+  for (Real t = 310.0; t <= 1600.0; t += 10.0)
+  {
+    EXPECT_LT(li2oAtomDensity(t), previous);
+    previous = li2oAtomDensity(t);
+  }
+}
+
 /// The converted pre-exponential factor and activation energy, verified against hand calculations
 TEST(Li2OPropertyHelperTest, convertedSolubilityConstants)
 {
-  // N_at = 12 / a_0^3 for anti-fluorite Li2O with a_0 = 4.619e-10 m
-  EXPECT_LT(relativeError(li2o_atom_density, 1.2177e29), 1e-4);
-
+  // X_0 = 10^-b / sqrt(101325) in Pa^-1/2, such that K_s = N_at(T) X_0 exp(-E_a / (R T))
   const auto hydrogen = solubilityModelData(SolubilityModel::Ohira1989Hydrogen);
-  EXPECT_LT(relativeError(hydrogen.prefactor, 1.79e24), 5e-3);
-  EXPECT_LT(relativeError(hydrogen.activation_energy, 24.33e3), 5e-4);
+  EXPECT_LT(relativeError(hydrogen.prefactor, 1.469406e-5), 1e-6);
+  EXPECT_LT(relativeError(hydrogen.activation_energy, 24332.99), 1e-6);
 
   const auto tritium = solubilityModelData(SolubilityModel::Ohira1989Tritium);
-  EXPECT_LT(relativeError(tritium.prefactor, 2.77e25), 5e-3);
-  EXPECT_LT(relativeError(tritium.activation_energy, 24.70e3), 5e-4);
+  EXPECT_LT(relativeError(tritium.prefactor, 2.275840e-4), 1e-6);
+  EXPECT_LT(relativeError(tritium.activation_energy, 24696.74), 1e-6);
 
   // The published coefficients are kept alongside the converted ones
   EXPECT_DOUBLE_EQ(hydrogen.a, 1271.0);
@@ -161,7 +192,7 @@ TEST(Li2OPropertyHelperTest, convertedSolubilityConstants)
   EXPECT_DOUBLE_EQ(tritium.b, 1.14);
 }
 
-/// The implemented K_0 exp(-E_a / (R T)) sqrt(P) must equal the concentration obtained directly
+/// The implemented N_at(T) X_0 exp(-E_a / (R T)) sqrt(P) must equal the concentration obtained directly
 /// from the paper's definition, K = sqrt(P_atm) / X with log10(K) = a / T + b and C = N_at X. The
 /// reference is written out below from the published numbers, independently of the helper's
 /// converted constants.
@@ -177,7 +208,6 @@ TEST(Li2OPropertyHelperTest, solubilityMatchesPaperForm)
       {SolubilityModel::Ohira1989Hydrogen, 1271.0, 2.33, 476.0, 963.0},
       {SolubilityModel::Ohira1989Tritium, 1290.0, 1.14, 583.0, 963.0}};
 
-  const Real n_atoms = 12.0 / std::pow(4.619e-10, 3); // atoms/m^3
   const Real pa_per_atm = 101325.0;
 
   for (const auto & fit : published)
@@ -186,6 +216,10 @@ TEST(Li2OPropertyHelperTest, solubilityMatchesPaperForm)
     for (int i = 0; i <= 10; ++i)
     {
       const Real temperature = fit.t_min + (fit.t_max - fit.t_min) * i / 10.0;
+      // Atom density from the lattice parameter of Farley et al. (1991), a_0 = 4.55224e-10 +
+      // 1.69514e-14 T m, written out here independently of the helper
+      const Real lattice = 4.55224e-10 + 1.69514e-14 * temperature;
+      const Real n_atoms = 12.0 / std::pow(lattice, 3); // atoms/m^3
       for (const Real pressure : {0.01, 1.0, 100.0, 1.0e4, 1.0e5}) // Pa
       {
         const Real paper_concentration = n_atoms * std::sqrt(pressure / pa_per_atm) /
@@ -260,9 +294,13 @@ TEST(Li2OPropertyHelperTest, adDerivativeMatchesAnalytic)
     Moose::derivInsert(t.derivatives(), 0, 1.0);
 
     const auto s = computeSolubility(data, t);
-    // dK/dT = K * Ea / (R T^2)
-    const Real expected = MetaPhysicL::raw_value(s) * data.activation_energy /
-                          (ideal_gas_constant * temperature * temperature);
+    // K = N_at(T) X_0 exp(-Ea / (R T)), so dK/dT = K (Ea / (R T^2) + d ln(N_at) / dT) with
+    // d ln(N_at) / dT = -3 slope / a_0(T)
+    const Real lattice = li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature;
+    const Real expected =
+        MetaPhysicL::raw_value(s) * (data.activation_energy /
+                                         (ideal_gas_constant * temperature * temperature) -
+                                     3.0 * li2o_lattice_parameter_slope / lattice);
     EXPECT_LT(relativeError(s.derivatives()[0], expected), 1e-12);
   }
 }
