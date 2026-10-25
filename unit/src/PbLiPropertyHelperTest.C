@@ -142,13 +142,13 @@ TEST(PbLiPropertyHelperTest, compositionRange)
       << message;
 }
 
-/// The density against hand calculations of rho = 10520 (1 - 1.13e-4 T)
+/// The density (g/m^3) against hand calculations of rho = 1.052e7 (1 - 1.13e-4 T)
 TEST(PbLiPropertyHelperTest, densityValues)
 {
   const auto data = densityModelData(DensityModel::LinearExpansion);
-  EXPECT_LT(relativeError(computeDensity(data, 700.0), 9687.868), 1e-12);
-  EXPECT_LT(relativeError(computeDensity(data, 600.0), 9806.744), 1e-12);
-  EXPECT_LT(relativeError(computeDensity(data, 800.0), 9568.992), 1e-12);
+  EXPECT_LT(relativeError(computeDensity(data, 700.0), 9.687868e6), 1e-12);
+  EXPECT_LT(relativeError(computeDensity(data, 600.0), 9.806744e6), 1e-12);
+  EXPECT_LT(relativeError(computeDensity(data, 800.0), 9.568992e6), 1e-12);
 
   // The density decreases with temperature
   Real previous = computeDensity(data, 300.0);
@@ -208,7 +208,7 @@ TEST(PbLiPropertyHelperTest, isotopeScaling)
 /// The number density of metal atoms N = rho N_A / M, against hand calculations
 TEST(PbLiPropertyHelperTest, atomDensity)
 {
-  EXPECT_LT(relativeError(averageAtomicMass(0.17), 0.17 * 6.941e-3 + 0.83 * 207.2e-3), 1e-14);
+  EXPECT_LT(relativeError(averageAtomicMass(0.17), 0.17 * 6.941 + 0.83 * 207.2), 1e-14);
   EXPECT_LT(relativeError(pbliAtomDensity(700.0, 0.17), 3.369315234138314e+28), 1e-9);
   EXPECT_LT(relativeError(pbliAtomDensity(700.0, 0.157), 3.3194085592334526e+28), 1e-9);
 }
