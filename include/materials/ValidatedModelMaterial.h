@@ -8,17 +8,13 @@
 
 #pragma once
 
-#include "Material.h"
-
-#include "ModelValidity.h"
+#include "ValidatedModelBase.h"
 
 /**
- * Base class for materials that evaluate one literature correlation, selected with an enum
- * parameter, and that must respond when the temperature leaves the documented validity range of
- * the selected model. It provides the 'temperature', 'validity_action', 'prefactor_scaling' and
- * 'activation_energy_scaling' parameters, looks up the model data once at construction, applies the
- * scaling factors to it, and implements the ignore / warning / error behavior in
- * checkTemperatureValidity().
+ * Base class for materials that evaluate one Arrhenius literature correlation, selected with an
+ * enum parameter, and that must respond when the temperature leaves the documented validity range
+ * of the selected model. On top of ValidatedModelBase, it provides the 'prefactor_scaling' and
+ * 'activation_energy_scaling' parameters and applies them to the model data once at construction.
  *
  * Derived classes must add a MooseEnum parameter named 'model' whose options come from the enum
  * class ModelEnum (declared with CreateMooseEnumClass), declare their own properties, and call
@@ -30,19 +26,12 @@
  *                   'activation_energy' of an Arrhenius expression prefactor * exp(-Ea / (R T))
  */
 template <typename ModelEnum, typename ModelData>
-class ValidatedModelMaterial : public Material
+class ValidatedModelMaterial : public ValidatedModelBase<ModelEnum, ModelData>
 {
 public:
   static InputParameters validParams()
   {
-    auto params = Material::validParams();
-    params.addRequiredCoupledVar("temperature", "The temperature in K.");
-    params.addParam<MooseEnum>(
-        "validity_action",
-        MooseEnum(ModelValidity::getValidityActionOptions(), "warning"),
-        "What to do when the selected model is used outside its documented temperature range: "
-        "'ignore' does nothing, 'warning' counts the occurrence as a MOOSE solution warning that "
-        "is summarized at the end of the run, and 'error' stops the run.");
+    InputParameters params = ValidatedModelBase<ModelEnum, ModelData>::validParams();
     params.addRangeCheckedParam<Real>(
         "prefactor_scaling",
         1.0,
@@ -59,63 +48,29 @@ public:
 
   /**
    * @param parameters the input parameters
-   * @param lookup function returning the data (coefficients and validity range) of a model
+   * @param lookup function returning the data (coefficients and validity range) of a model, as
+   *               published. The scaling parameters are applied to it here.
    */
-  ValidatedModelMaterial(const InputParameters & parameters, ModelData (*lookup)(ModelEnum))
-    : Material(parameters),
-      _temperature(adCoupledValue("temperature")),
-      _model(getParam<MooseEnum>("model").template getEnum<ModelEnum>()),
-      _model_name(getParam<MooseEnum>("model")),
-      _validity_action(
-          getParam<MooseEnum>("validity_action").template getEnum<ModelValidity::ValidityAction>()),
-      _model_data(scaleModelData(lookup(_model))),
-      _out_of_range_warning_id(registerInvalidSolutionInternal(
-          ModelValidity::warningMessage(name(), _model_name, _model_data.metadata),
-          /*warning=*/true))
+  ValidatedModelMaterial(const InputParameters & parameters,
+                         const std::function<ModelData(ModelEnum)> & lookup)
+    : ValidatedModelBase<ModelEnum, ModelData>(
+          parameters,
+          [&lookup, &parameters](const ModelEnum model)
+          { return scaleModelData(lookup(model), parameters); })
   {
   }
 
-protected:
+private:
   /**
    * Apply the 'prefactor_scaling' and 'activation_energy_scaling' parameters to the data of a model
    * @param data the data of the model as published
+   * @param parameters the input parameters
    * @return the data with the scaled pre-exponential factor and activation energy
    */
-  ModelData scaleModelData(ModelData data) const
+  static ModelData scaleModelData(ModelData data, const InputParameters & parameters)
   {
-    data.prefactor *= getParam<Real>("prefactor_scaling");
-    data.activation_energy *= getParam<Real>("activation_energy_scaling");
+    data.prefactor *= parameters.get<Real>("prefactor_scaling");
+    data.activation_energy *= parameters.get<Real>("activation_energy_scaling");
     return data;
   }
-
-  /**
-   * Apply the validity action if the temperature is outside the documented range of the model:
-   * nothing for 'ignore', a MOOSE solution warning for 'warning', and an error for 'error'.
-   * @param temperature the temperature (K)
-   */
-  void checkTemperatureValidity(const Real temperature) const
-  {
-    if (_validity_action == ModelValidity::ValidityAction::ignore ||
-        ModelValidity::isInRange(_model_data.metadata, temperature))
-      return;
-
-    if (_validity_action == ModelValidity::ValidityAction::warning)
-      flagInvalidSolutionInternal<true>(_out_of_range_warning_id);
-    else
-      mooseError(
-          ModelValidity::validityMessage(name(), _model_name, temperature, _model_data.metadata));
-  }
-
-  /// Temperature (K)
-  const ADVariableValue & _temperature;
-  /// Selected model
-  const ModelEnum _model;
-  /// Name of the selected model, used in messages
-  const std::string _model_name;
-  /// Behavior when the temperature is outside the documented validity range
-  const ModelValidity::ValidityAction _validity_action;
-  /// Coefficients (after scaling) and validity range of the selected model
-  const ModelData _model_data;
-  /// ID of the out-of-range solution warning, registered once at construction
-  const InvalidSolutionID _out_of_range_warning_id;
 };
