@@ -71,7 +71,7 @@ sensitivity of a simulation to the uncertainty of a correlation, or to represent
 differs from the one measured in the literature. The properties become
 
 !equation
-K_s = f_{A}\, K_s_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
+K_s = f_{A}\, K_{s,0} \exp\left(-\frac{f_{E} E_a}{RT}\right),
 
 where $K_{s,0} = N_{at}(T) X_0$ is the pre-exponential factor of the selected model,
 including the temperature-dependent atom density described below, $f_A$ is `prefactor_scaling`,
