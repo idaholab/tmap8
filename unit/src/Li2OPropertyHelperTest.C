@@ -152,15 +152,28 @@ TEST(Li2OPropertyHelperTest, latticeParameterMatchesFarley)
 
   // Lattice constants (Angstrom) of Table I of Farley et al. (1991) as (T in K, a_0), the linear
   // fit must reproduce them to within 0.6%
-  const std::vector<std::pair<Real, Real>> farley = {
-      {293.0, 4.60},   {293.0, 4.610},  {293.0, 4.612},  {523.0, 4.64},   {773.0, 4.69},
-      {873.0, 4.689},  {873.0, 4.693},  {973.0, 4.71},   {1123.0, 4.728}, {1123.0, 4.73},
-      {1273.0, 4.77},  {1473.0, 4.807}, {1273.0, 4.764}, {1373.0, 4.78},  {1373.0, 4.782},
-      {1473.0, 4.81},  {1603.0, 4.837}, {1603.0, 4.85}};
+  const std::vector<std::pair<Real, Real>> farley = {{293.0, 4.60},
+                                                     {293.0, 4.610},
+                                                     {293.0, 4.612},
+                                                     {523.0, 4.64},
+                                                     {773.0, 4.69},
+                                                     {873.0, 4.689},
+                                                     {873.0, 4.693},
+                                                     {973.0, 4.71},
+                                                     {1123.0, 4.728},
+                                                     {1123.0, 4.73},
+                                                     {1273.0, 4.77},
+                                                     {1473.0, 4.807},
+                                                     {1273.0, 4.764},
+                                                     {1373.0, 4.78},
+                                                     {1373.0, 4.782},
+                                                     {1473.0, 4.81},
+                                                     {1603.0, 4.837},
+                                                     {1603.0, 4.85}};
   for (const auto & [temperature, lattice_parameter] : farley)
   {
-    const Real fit = (li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature) *
-                     1e10;
+    const Real fit =
+        (li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature) * 1e10;
     EXPECT_LT(relativeError(fit, lattice_parameter), 6e-3) << "T = " << temperature << " K";
   }
 
@@ -219,7 +232,7 @@ TEST(Li2OPropertyHelperTest, solubilityMatchesPaperForm)
       // Atom density from the lattice parameter of Farley et al. (1991), a_0 = 4.55224e-10 +
       // 1.69514e-14 T m, written out here independently of the helper
       const Real lattice = 4.55224e-10 + 1.69514e-14 * temperature;
-      const Real n_atoms = 12.0 / std::pow(lattice, 3); // atoms/m^3
+      const Real n_atoms = 12.0 / std::pow(lattice, 3);            // atoms/m^3
       for (const Real pressure : {0.01, 1.0, 100.0, 1.0e4, 1.0e5}) // Pa
       {
         const Real paper_concentration = n_atoms * std::sqrt(pressure / pa_per_atm) /
@@ -296,11 +309,12 @@ TEST(Li2OPropertyHelperTest, adDerivativeMatchesAnalytic)
     const auto s = computeSolubility(data, t);
     // K = N_at(T) X_0 exp(-Ea / (R T)), so dK/dT = K (Ea / (R T^2) + d ln(N_at) / dT) with
     // d ln(N_at) / dT = -3 slope / a_0(T)
-    const Real lattice = li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature;
+    const Real lattice =
+        li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature;
     const Real expected =
-        MetaPhysicL::raw_value(s) * (data.activation_energy /
-                                         (ideal_gas_constant * temperature * temperature) -
-                                     3.0 * li2o_lattice_parameter_slope / lattice);
+        MetaPhysicL::raw_value(s) *
+        (data.activation_energy / (ideal_gas_constant * temperature * temperature) -
+         3.0 * li2o_lattice_parameter_slope / lattice);
     EXPECT_LT(relativeError(s.derivatives()[0], expected), 1e-12);
   }
 }
