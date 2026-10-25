@@ -4,12 +4,12 @@
 
 ## Overview
 
-`TritiumDiffusivityLi2O` computes the diffusivity $D$ of tritium in Li$_2$O. This 
-diffusivity is presented as both a regular Real- and AD-Real-valued material property 
-for use in a variety of simulation configurations. The property fits are implemented as 
-published in the literature and stored in the implementation directly in units of m$^2$/s. 
-To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityLi2O/model) 
-parameter +must+ be provided, as the available Li$_2$O correlations correspond to 
+`TritiumDiffusivityLi2O` computes the diffusivity $D$ of tritium in Li$_2$O. This
+diffusivity is presented as both a regular Real- and AD-Real-valued material property
+for use in a variety of simulation configurations. The property fits are implemented as
+published in the literature and stored in the implementation directly in units of m$^2$/s.
+To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityLi2O/model)
+parameter +must+ be provided, as the available Li$_2$O correlations correspond to
 different irradiation states and microstructures.
 
 ## Implemented Models
@@ -34,6 +34,25 @@ They reflect different combinations of material microstructures and irradiation 
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=li2o_diffusivity_models_figure
        caption=Comparison of the implemented Li$_2$O tritium diffusivity correlations from [li2o_diffusivity_models_table].
+
+## Scaling the Model Parameters
+
+The pre-exponential factor and the activation energy of the selected model can be scaled with the
+[!param](/Materials/TritiumDiffusivityLi2O/prefactor_scaling) and
+[!param](/Materials/TritiumDiffusivityLi2O/activation_energy_scaling) parameters, for example to explore the
+sensitivity of a simulation to the uncertainty of a correlation, or to represent a specimen that
+differs from the one measured in the literature. The properties become
+
+!equation
+D = f_{A}\, D_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
+
+where $D_0$ is the pre-exponential factor of the selected model, $f_A$ is `prefactor_scaling`,
+$f_E$ is `activation_energy_scaling`, and $E_a$ is the activation energy of the selected model in J/mol.
+Both parameters default to 1, which gives the model as published.
+`prefactor_scaling` must not be negative (a value of 0 sets the property to zero), while
+`activation_energy_scaling` may take any value, including a negative one.
+Scaling does not change the documented validity range of the model, so the
+`validity_action` still refers to the range of the unscaled correlation.
 
 ## Behavior when outside of range of validity
 

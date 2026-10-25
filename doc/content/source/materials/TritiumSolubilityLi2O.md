@@ -62,6 +62,26 @@ The broader Li$_2$O solubility literature also includes H/D reduced-species meas
 from [!cite](Katsuta1983Li2O) and oxidized LiOH-in-Li$_2$O solution chemistry from
 [!cite](Tetenbaum1985LiOHInLi2O), but those models are not implemented here yet.
 
+## Scaling the Model Parameters
+
+The pre-exponential factor and the activation energy of the selected model can be scaled with the
+[!param](/Materials/TritiumSolubilityLi2O/prefactor_scaling) and
+[!param](/Materials/TritiumSolubilityLi2O/activation_energy_scaling) parameters, for example to explore the
+sensitivity of a simulation to the uncertainty of a correlation, or to represent a specimen that
+differs from the one measured in the literature. The properties become
+
+!equation
+K_s = f_{A}\, K_s_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
+
+where $K_{s,0} = N_{at}(T) X_0$ is the pre-exponential factor of the selected model,
+including the temperature-dependent atom density described below, $f_A$ is `prefactor_scaling`,
+$f_E$ is `activation_energy_scaling`, and $E_a$ is the activation energy of the selected model in J/mol.
+Both parameters default to 1, which gives the model as published.
+`prefactor_scaling` must not be negative (a value of 0 sets the property to zero), while
+`activation_energy_scaling` may take any value, including a negative one.
+Scaling does not change the documented validity range of the model, so the
+`validity_action` still refers to the range of the unscaled correlation.
+
 ## Behavior when outside of range of validity
 
 The [!param](/Materials/TritiumSolubilityLi2O/validity_action) parameter sets what TMAP8 does when a model is evaluated

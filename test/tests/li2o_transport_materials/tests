@@ -232,4 +232,62 @@
     absent_out = "outside its documented validity range"
     requirement = 'The system shall not report any message when the Ohira1989Tritium Li$_2$O tritium solubility model is used outside its documented temperature range with the ignore validity action.'
   []
+
+  [li2o_diffusivity_scaled_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/prefactor_scaling=2.0
+                Materials/li2o_property/activation_energy_scaling=1.1
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_diffusivity_scaled_reference_point_out'
+    csvdiff = li2o_diffusivity_scaled_reference_point_out.csv
+    requirement = 'The system shall scale the pre-exponential factor and the activation energy of a Li$_2$O tritium diffusivity model with user-provided factors and reproduce an independently calculated scaled reference point at 650 K.'
+  []
+
+  [li2o_solubility_scaled_reference_point]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989Tritium
+                Materials/li2o_property/prefactor_scaling=0.5
+                Materials/li2o_property/activation_energy_scaling=0.9
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_solubility_scaled_reference_point_out'
+    csvdiff = li2o_solubility_scaled_reference_point_out.csv
+    requirement = 'The system shall scale the pre-exponential factor and the activation energy of a Li$_2$O hydrogen isotope solubility model with user-provided factors and reproduce an independently calculated scaled reference point at 650 K.'
+  []
+
+  [li2o_prefactor_scaling_negative_error]
+    type = RunException
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/prefactor_scaling=-1.0'
+    expect_err = "prefactor_scaling"
+    requirement = 'The system shall return an error when the pre-exponential factor scaling of a Li$_2$O material is not positive.'
+  []
+
+  [li2o_diffusivity_negative_activation_energy_scaling]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumDiffusivityLi2O
+                Materials/li2o_property/model=Ohira1989
+                Materials/li2o_property/activation_energy_scaling=-0.5
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_diffusivity_negative_activation_energy_scaling_out'
+    csvdiff = li2o_diffusivity_negative_activation_energy_scaling_out.csv
+    requirement = 'The system shall accept a negative activation energy scaling of a Li$_2$O material and reproduce an independently calculated reference point at 650 K.'
+  []
+
+  [li2o_solubility_zero_prefactor_scaling]
+    type = CSVDiff
+    input = li2o_single_point_property_base.i
+    cli_args = 'Materials/li2o_property/type=TritiumSolubilityLi2O
+                Materials/li2o_property/model=Ohira1989Tritium
+                Materials/li2o_property/prefactor_scaling=0
+                AuxKernels/set_temperature/value=650
+                Outputs/file_base=li2o_solubility_zero_prefactor_scaling_out'
+    csvdiff = li2o_solubility_zero_prefactor_scaling_out.csv
+    requirement = 'The system shall accept a pre-exponential factor scaling of zero for a Li$_2$O material, which sets the property to zero.'
+  []
 []
