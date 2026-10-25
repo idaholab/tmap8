@@ -15,7 +15,8 @@ Outputs (written next to this script):
 
 Each curve is drawn only over the documented temperature range of its model. The coefficients and
 temperature ranges are read from include/materials/Li2OPropertyHelper.h (the switch statements in
-diffusivityModelData and publishedSolubilityFit), the Li2O lattice constants from the same header,
+diffusivityModelData and publishedSolubilityFit), the coefficients of the temperature-dependent
+Li2O lattice parameter a_0(T) from the same header,
 the standard atmosphere from include/utils/TMAP8PhysicalConstants.h and the ideal gas constant from
 MOOSE's PhysicalConstants.h, so the figures cannot drift from the C++. Only the plot labels and the
 functional forms are defined here; if the header's structs or switch layout change, update
@@ -24,8 +25,10 @@ parse_helper_header accordingly.
 The diffusivity is D = D0 exp(-Ea / (R T)), with temperatures in K, activation energies in J/mol and
 D in m^2/s. The solubility is computed from the published O'Hira et al. (1989) fit,
 log10(K) = a / T + b with K = sqrt(P_atm) / X (X the atom fraction), converted as in
-Li2OPropertyHelper::convertSolubilityFit to K_s = N_at 10^-(a / T + b) / sqrt(atm_to_Pa), such that
-C = K_s sqrt(P) with C in atoms/m^3 and P in Pa. N_at = 12 / a_0^3 is the atom density of Li2O.
+Li2OPropertyHelper::convertSolubilityFit and computeSolubility to
+K_s = N_at(T) 10^-(a / T + b) / sqrt(atm_to_Pa), such that C = K_s sqrt(P) with C in atoms/m^3 and
+P in Pa. N_at(T) = 12 / a_0(T)^3 is the atom density of Li2O, with a_0(T) the linear fit to the
+lattice parameter of Farley et al. (1991) (Li2OPropertyHelper::li2oAtomDensity).
 """
 
 import ast
@@ -157,10 +160,10 @@ def build_models():
 
 R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
 ATM_TO_PA = parse_constant(TMAP8_CONSTANTS_HEADER, "atm_to_Pa")  # Pa/atm
-# Atom density of Li2O (atoms/m^3): 12 atoms per anti-fluorite unit cell of lattice parameter a_0
-LI2O_ATOM_DENSITY = parse_constant(HELPER_HEADER, "li2o_atoms_per_unit_cell") / (
-    parse_constant(HELPER_HEADER, "li2o_lattice_parameter") ** 3
-)  # atoms/m^3
+# Temperature-dependent lattice parameter a_0(T) = intercept + slope * T (m) of anti-fluorite Li2O
+LI2O_LATTICE_INTERCEPT = parse_constant(HELPER_HEADER, "li2o_lattice_parameter_intercept")  # m
+LI2O_LATTICE_SLOPE = parse_constant(HELPER_HEADER, "li2o_lattice_parameter_slope")  # m/K
+LI2O_ATOMS_PER_UNIT_CELL = parse_constant(HELPER_HEADER, "li2o_atoms_per_unit_cell")
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()
 
 
@@ -182,12 +185,22 @@ def diffusivity_m2_s(
     return prefactor_m2_s * np.exp(-activation_j_mol / (R * temperature_k))
 
 
+def li2o_atom_density(temperature_k: np.ndarray):
+    """Atom density N_at(T) = 12 / a_0(T)^3 of Li2O (atoms/m^3), as Li2OPropertyHelper::li2oAtomDensity."""
+    lattice_parameter = LI2O_LATTICE_INTERCEPT + LI2O_LATTICE_SLOPE * temperature_k
+    return LI2O_ATOMS_PER_UNIT_CELL / lattice_parameter**3
+
+
 def solubility_atoms_m3_pa0_5(a: float, b: float, temperature_k: np.ndarray):
     """
     Sieverts solubility K_s (atoms m^-3 Pa^-1/2) from the published fit log10(K) = a / T + b, where
-    K = sqrt(P_atm) / X is the inverse of the atom-fraction solubility: C = N_at X = K_s sqrt(P).
+    K = sqrt(P_atm) / X is the inverse of the atom-fraction solubility: C = N_at(T) X = K_s sqrt(P).
     """
-    return LI2O_ATOM_DENSITY / np.sqrt(ATM_TO_PA) * 10.0 ** (-(a / temperature_k + b))
+    return (
+        li2o_atom_density(temperature_k)
+        / np.sqrt(ATM_TO_PA)
+        * 10.0 ** (-(a / temperature_k + b))
+    )
 
 
 def inverse_temperature_axis(temperature_k: np.ndarray):

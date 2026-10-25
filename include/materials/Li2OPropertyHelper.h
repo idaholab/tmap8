@@ -30,18 +30,33 @@ namespace Li2OPropertyHelper
 /// Ideal gas constant, from TMAP8PhysicalConstants
 const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
 
-/// Lattice parameter a_0 of anti-fluorite Li$_2$O (m)
-const Real li2o_lattice_parameter = 4.619e-10;
+/**
+ * Lattice parameter of anti-fluorite Li$_2$O, a_0(T) = a_0_intercept + a_0_slope T, from a
+ * weighted linear least-squares fit to Table I of Farley et al., J. Phys.: Condens. Matter 3, 4761
+ * (1991) (293-1603 K, neutron diffraction and earlier data, weighted by the quoted errors).
+ */
+/// Intercept of the linear lattice parameter fit (m)
+const Real li2o_lattice_parameter_intercept = 4.55224e-10;
+/// Slope of the linear lattice parameter fit (m/K)
+const Real li2o_lattice_parameter_slope = 1.69514e-14;
 
 /// Atoms per Li$_2$O unit cell: 4 formula units (Li$_2$O) of 3 atoms each (-)
 const Real li2o_atoms_per_unit_cell = 12.0;
 
 /**
- * Number density of all lattice atoms (Li and O) in Li$_2$O, N_at = 12 / a_0^3 (atoms/m^3). This
- * is the density relative to which O'Hira et al. (1989) define the atom fraction X. It is
- * equivalent to a density of 2.013 g/cm^3 with a molar mass of 29.88 g/mol (agreement to 0.05%).
+ * Number density of all lattice atoms (Li and O) in Li$_2$O, N_at = 12 / a_0(T)^3 (atoms/m^3). This
+ * is the density relative to which O'Hira et al. (1989) define the atom fraction X. It decreases
+ * with temperature because of the thermal expansion of Li$_2$O.
+ * @param temperature the temperature (K); may be a regular or AD type
  */
-const Real li2o_atom_density = li2o_atoms_per_unit_cell / std::pow(li2o_lattice_parameter, 3);
+template <typename T>
+inline T
+li2oAtomDensity(const T & temperature)
+{
+  const T lattice_parameter =
+      li2o_lattice_parameter_intercept + li2o_lattice_parameter_slope * temperature;
+  return li2o_atoms_per_unit_cell / (lattice_parameter * lattice_parameter * lattice_parameter);
+}
 
 /// Tritium diffusivity models available for Li$_2$O
 CreateMooseEnumClass(DiffusivityModel,
@@ -84,9 +99,9 @@ struct SolubilityFit
 };
 
 /**
- * Sieverts solubility in the form used by TMAP8, C = K_s sqrt(P) with K_s = K_0 exp(-E_a / (R T)),
- * C in atoms/m^3, P in Pa and K_s in atoms m^-3 Pa^-1/2, derived from a published fit by
- * convertSolubilityFit().
+ * Sieverts solubility in the form used by TMAP8, C = K_s sqrt(P) with
+ * K_s = N_at(T) X_0 exp(-E_a / (R T)), C in atoms/m^3, P in Pa and K_s in atoms m^-3 Pa^-1/2,
+ * derived from a published fit by convertSolubilityFit().
  */
 struct SolubilityModelData
 {
@@ -96,7 +111,7 @@ struct SolubilityModelData
   Real a;
   /// Constant b of the published fit, log10(K) = a / T + b (-)
   Real b;
-  /// Pre-exponential factor K_0 (atoms m^-3 Pa^-1/2)
+  /// Pre-exponential factor X_0 of the atom fraction (Pa^-1/2)
   Real prefactor;
   /// Activation energy E_a (J/mol)
   Real activation_energy;
@@ -193,9 +208,10 @@ publishedSolubilityFit(const SolubilityModel model)
  * The published constant is K = sqrt(P_atm) / X, i.e. the inverse of the solubility, with the
  * gas pressure in atm and X the atom fraction. Inverting and changing units gives
  *   X = 10^(-b) 10^(-a / T) sqrt(P_atm),   C = N_at X,   P_atm = P / atm_to_Pa,
- * so that C = K_s sqrt(P) with K_s = K_0 exp(-E_a / (R T)) and
- *   K_0 = N_at 10^(-b) / sqrt(atm_to_Pa)   (atoms m^-3 Pa^-1/2),
- *   E_a = a R ln(10)                        (J/mol).
+ * so that C = K_s sqrt(P) with K_s = N_at(T) X_0 exp(-E_a / (R T)) and
+ *   X_0 = 10^(-b) / sqrt(atm_to_Pa)   (Pa^-1/2),
+ *   E_a = a R ln(10)                  (J/mol).
+ * The temperature dependence of N_at(T) is given by li2oAtomDensity().
  * @param fit the published fit
  * @return the data in the form used by TMAP8
  */
@@ -205,7 +221,7 @@ convertSolubilityFit(const SolubilityFit & fit)
   return {fit.metadata,
           fit.a,
           fit.b,
-          li2o_atom_density * std::pow(10.0, -fit.b) / std::sqrt(PhysicalConstants::atm_to_Pa),
+          std::pow(10.0, -fit.b) / std::sqrt(PhysicalConstants::atm_to_Pa),
           fit.a * ideal_gas_constant * std::log(10.0)};
 }
 
@@ -234,7 +250,7 @@ computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 }
 
 /**
- * Compute the Sieverts solubility K_s = K_0 exp(-E_a / (R T)), such that C = K_s sqrt(P) with C in
+ * Compute the Sieverts solubility K_s = N_at(T) X_0 exp(-E_a / (R T)), such that C = K_s sqrt(P) with C in
  * atoms/m^3 and P in Pa. See convertSolubilityFit() for the relation to the published fit.
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
@@ -244,6 +260,7 @@ inline T
 computeSolubility(const SolubilityModelData & data, const T & temperature)
 {
   using std::exp;
-  return data.prefactor * exp(-data.activation_energy / (ideal_gas_constant * temperature));
+  return li2oAtomDensity(temperature) * data.prefactor *
+         exp(-data.activation_energy / (ideal_gas_constant * temperature));
 }
 }
