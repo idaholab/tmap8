@@ -244,37 +244,45 @@ diffusivityModelData(const DiffusivityModel model)
   {
     case DiffusivityModel::Fauvet1988:
       // single value 1.5e-9 m^2/s at 723 K
-      return {
-          withPressureRange(pbliMetadata("Fauvet and Sannier (1988)",
-                       718.15,
-                       728.15,
-                       "Single datum at 723 K, treated as temperature independent."), 1.0e3, 1.0e4),
-          1.5e-9,
-          0.0,
-          Isotope::H};
+      return {withPressureRange(
+                  pbliMetadata("Fauvet and Sannier (1988)",
+                               718.15,
+                               728.15,
+                               "Single datum at 723 K, treated as temperature independent."),
+                  1.0e3,
+                  1.0e4),
+              1.5e-9,
+              0.0,
+              Isotope::H};
 
     case DiffusivityModel::Reiter1991:
       // This is the expression usually quoted for Reiter.
       // It is therefore best regarded as an isotope-averaged fit.
-      return {
-          withPressureRange(pbliMetadata("Reiter et al. (1991), also summarized by Mas de les Valls et al. (2008)",
-                       508.0,
-                       700.0,
-                       "Isotope-averaged fit for eutectic Pb-17Li; see "
-                       "Reiter1991Hydrogen_DelaporteMathurin and "
-                       "Reiter1991Deuterium_DelaporteMathurin for the isotope-specific fits."), 1.0e3, 1.0e5),
-          4.03e-8,
-          19500.0,
-          Isotope::H};
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Reiter et al. (1991), also summarized by Mas de les Valls et al. (2008)",
+                      508.0,
+                      700.0,
+                      "Isotope-averaged fit for eutectic Pb-17Li; see "
+                      "Reiter1991Hydrogen_DelaporteMathurin and "
+                      "Reiter1991Deuterium_DelaporteMathurin for the isotope-specific fits."),
+                  1.0e3,
+                  1.0e5),
+              4.03e-8,
+              19500.0,
+              Isotope::H};
 
     case DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin:
       // Fit of 16 digitized H data points from Reiter1991
       // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit diverge by
       // up to ~25 % at the ends of the range.
-      return {withPressureRange(pbliMetadata("Reiter (1991), H data fitted by Delaporte-Mathurin et al. (2023)",
-                           524.0,
-                           690.0,
-                           "Arrhenius fit of Reiter's 16 digitized hydrogen data points."), 1.0e3, 1.0e5),
+      return {withPressureRange(
+                  pbliMetadata("Reiter (1991), H data fitted by Delaporte-Mathurin et al. (2023)",
+                               524.0,
+                               690.0,
+                               "Arrhenius fit of Reiter's 16 digitized hydrogen data points."),
+                  1.0e3,
+                  1.0e5),
               7.48e-8,
               22956.0,
               Isotope::H};
@@ -284,10 +292,13 @@ diffusivityModelData(const DiffusivityModel model)
       // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and
       // ~0.8 at 773 K, i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of
       // the raw data (factor ~2) is larger than the isotope effect.
-      return {withPressureRange(pbliMetadata("Reiter (1991), D data fitted by Delaporte-Mathurin et al. (2023)",
-                           524.0,
-                           691.0,
-                           "Arrhenius fit of Reiter's 6 digitized deuterium data points."), 1.0e3, 1.0e5),
+      return {withPressureRange(
+                  pbliMetadata("Reiter (1991), D data fitted by Delaporte-Mathurin et al. (2023)",
+                               524.0,
+                               691.0,
+                               "Arrhenius fit of Reiter's 6 digitized deuterium data points."),
+                  1.0e3,
+                  1.0e5),
               1.38e-8,
               13609.0,
               Isotope::D};
@@ -308,13 +319,17 @@ diffusivityModelData(const DiffusivityModel model)
 
     case DiffusivityModel::Terai1992:
       // in-pile tritium release.
-      return {withPressureRange(pbliMetadata("Terai et al. (1992), also summarized by Mas de les Valls et al. (2008)",
+      return {
+          withPressureRange(
+              pbliMetadata("Terai et al. (1992), also summarized by Mas de les Valls et al. (2008)",
                            573.15,
                            973.15,
-                           "Tritium diffusivity fit in Pb-17Li under neutron irradiation."), 3.0e3, 3.0e3),
-              2.50e-7,
-              27000.0,
-              Isotope::T};
+                           "Tritium diffusivity fit in Pb-17Li under neutron irradiation."),
+              3.0e3,
+              3.0e3),
+          2.50e-7,
+          27000.0,
+          Isotope::T};
 
     case DiffusivityModel::Maeda2008:
       // unsteady permeation in permeation pot.
@@ -506,75 +521,94 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
     case SolubilityModel::Katsuta1985:
       //  Sieverts constant sqrt(P)/x_H = 2.9e3 sqrt(atm), temperature
       //  independent over 573-723 K and 0.146-1.05 atm, i.e. 1.083e-6 atom fraction Pa^-1/2.
-      return {
-          withPressureRange(pbliMetadata("Katsuta et al. (1985), also summarized by Mas de les Valls et al. (2008)",
-                       573.0,
-                       723.0,
-                       "Hydrogen in Li17Pb83, hot extraction, no temperature dependence."), 0.146 * PhysicalConstants::atm_to_Pa, 1.05 * PhysicalConstants::atm_to_Pa),
-          SolubilityBasis::AtomFraction,
-          1.0 / (2.9e3 * std::sqrt(PhysicalConstants::atm_to_Pa)),
-          0.0,
-          Isotope::H};
-
-    case SolubilityModel::Fauvet1988:
-      // from Fauvet and Sannier (1988) (2.7 +/- 0.2)e-8 atom fraction Pa^-1/2 at 723 K
-      return {withPressureRange(pbliMetadata(
-                  "Fauvet and Sannier (1988), also summarized by Mas de les Valls et al. (2008)",
-                  718.15,
-                  728.15,
-                  "Single datum at 723 K, treated as temperature independent."), 1.0e3, 1.0e4),
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Katsuta et al. (1985), also summarized by Mas de les Valls et al. (2008)",
+                      573.0,
+                      723.0,
+                      "Hydrogen in Li17Pb83, hot extraction, no temperature dependence."),
+                  0.146 * PhysicalConstants::atm_to_Pa,
+                  1.05 * PhysicalConstants::atm_to_Pa),
               SolubilityBasis::AtomFraction,
-              2.7e-8,
+              1.0 / (2.9e3 * std::sqrt(PhysicalConstants::atm_to_Pa)),
               0.0,
               Isotope::H};
 
-    case SolubilityModel::Reiter1991Tritium:
+    case SolubilityModel::Fauvet1988:
+      // from Fauvet and Sannier (1988) (2.7 +/- 0.2)e-8 atom fraction Pa^-1/2 at 723 K
       return {
-          withPressureRange(pbliMetadata("Reiter (1991) tritium, also summarized by Mas de les Valls et al. (2008)",
-                       508.0,
-                       700.0,
-                       "Published tritium fit for eutectic Pb-17Li."), 1.0e3, 1.0e5),
+          withPressureRange(
+              pbliMetadata(
+                  "Fauvet and Sannier (1988), also summarized by Mas de les Valls et al. (2008)",
+                  718.15,
+                  728.15,
+                  "Single datum at 723 K, treated as temperature independent."),
+              1.0e3,
+              1.0e4),
           SolubilityBasis::AtomFraction,
-          2.32e-8,
-          1350.0,
-          Isotope::T};
-
-    case SolubilityModel::Reiter1991Hydrogen:
-      return {
-          withPressureRange(pbliMetadata("Reiter (1991) hydrogen, also summarized by Mas de les Valls et al. (2008)",
-                       508.0,
-                       700.0,
-                       "Published hydrogen fit for eutectic Pb-17Li."), 1.0e3, 1.0e5),
-          SolubilityBasis::AtomFraction,
-          2.44e-8,
-          1350.0,
+          2.7e-8,
+          0.0,
           Isotope::H};
 
+    case SolubilityModel::Reiter1991Tritium:
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Reiter (1991) tritium, also summarized by Mas de les Valls et al. (2008)",
+                      508.0,
+                      700.0,
+                      "Published tritium fit for eutectic Pb-17Li."),
+                  1.0e3,
+                  1.0e5),
+              SolubilityBasis::AtomFraction,
+              2.32e-8,
+              1350.0,
+              Isotope::T};
+
+    case SolubilityModel::Reiter1991Hydrogen:
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Reiter (1991) hydrogen, also summarized by Mas de les Valls et al. (2008)",
+                      508.0,
+                      700.0,
+                      "Published hydrogen fit for eutectic Pb-17Li."),
+                  1.0e3,
+                  1.0e5),
+              SolubilityBasis::AtomFraction,
+              2.44e-8,
+              1350.0,
+              Isotope::H};
+
     case SolubilityModel::Reiter1991Deuterium:
-      return {
-          withPressureRange(pbliMetadata("Reiter (1991) deuterium, also summarized by Mas de les Valls et al. (2008)",
-                       508.0,
-                       700.0,
-                       "Published deuterium fit for eutectic Pb-17Li."), 1.0e3, 1.0e5),
-          SolubilityBasis::AtomFraction,
-          2.36e-8,
-          1350.0,
-          Isotope::D};
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Reiter (1991) deuterium, also summarized by Mas de les Valls et al. (2008)",
+                      508.0,
+                      700.0,
+                      "Published deuterium fit for eutectic Pb-17Li."),
+                  1.0e3,
+                  1.0e5),
+              SolubilityBasis::AtomFraction,
+              2.36e-8,
+              1350.0,
+              Isotope::D};
 
     case SolubilityModel::Aiello2006:
       // SOLE absorption device, Pb-15.8Li, measured values 1e-2 to 7e-2).
       // This is the "high solubility" bound used in EU WCLL/HCLL analyses, ~2 orders of
       // magnitude above Reiter1991Tritium.
-      return {withPressureRange(pbliMetadata("Aiello et al. (2006)",
-                           600.0,
-                           900.0,
-                           "Hydrogen absorption in Pb-15.8Li with the SOLE device.",
-                           0.158,
-                           0.158), 1.0e3, 1.0e5),
-              SolubilityBasis::MolesPerVolume,
-              0.237,
-              12844.0,
-              Isotope::H};
+      return {
+          withPressureRange(pbliMetadata("Aiello et al. (2006)",
+                                         600.0,
+                                         900.0,
+                                         "Hydrogen absorption in Pb-15.8Li with the SOLE device.",
+                                         0.158,
+                                         0.158),
+                            1.0e3,
+                            1.0e5),
+          SolubilityBasis::MolesPerVolume,
+          0.237,
+          12844.0,
+          Isotope::H};
 
     case SolubilityModel::Maeda2008:
       // Maeda 2008 unstead permeation measurements
@@ -651,28 +685,34 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               Isotope::D};
 
     case SolubilityModel::Wu1983:
-      return {
-          withPressureRange(pbliMetadata("Wu (1983), as summarized by Mas de les Valls et al. (2008)",
-                       850.0,
-                       1040.0,
-                       "Deuterium, temperature independent value from . Wu (1983) provides other "
-                       "models for different compositions, which are not yet included here."), 1.0e-1, 1.0e0),
-          SolubilityBasis::AtomFraction,
-          6.33e-7,
-          0.0,
-          Isotope::D};
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Wu (1983), as summarized by Mas de les Valls et al. (2008)",
+                      850.0,
+                      1040.0,
+                      "Deuterium, temperature independent value from . Wu (1983) provides other "
+                      "models for different compositions, which are not yet included here."),
+                  1.0e-1,
+                  1.0e0),
+              SolubilityBasis::AtomFraction,
+              6.33e-7,
+              0.0,
+              Isotope::D};
 
     case SolubilityModel::Chan1984:
-      return {
-          withPressureRange(pbliMetadata("Chan and Veleckis (1984), as summarized by Mas de les Valls et al. (2008)",
-                       573.0,
-                       773.0,
-                       "Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. more "
-                       "compositions are available in Chan and Veleckis (1984)"), 0.0, 1.0e4),
-          SolubilityBasis::AtomFraction,
-          4.7e-7,
-          9000.0,
-          Isotope::H};
+      return {withPressureRange(
+                  pbliMetadata(
+                      "Chan and Veleckis (1984), as summarized by Mas de les Valls et al. (2008)",
+                      573.0,
+                      773.0,
+                      "Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. more "
+                      "compositions are available in Chan and Veleckis (1984)"),
+                  0.0,
+                  1.0e4),
+              SolubilityBasis::AtomFraction,
+              4.7e-7,
+              9000.0,
+              Isotope::H};
 
     case SolubilityModel::Fukada2013MixingRule:
     {
@@ -698,8 +738,12 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
     }
 
     case SolubilityModel::Alberro2015:
-      return {withPressureRange(pbliMetadata(
-                  "Alberro et al. (2015)", 523.0, 922.0, "Hydrogen solubility in eutectic PbLi."), 1.0, 1.0e5),
+      return {withPressureRange(pbliMetadata("Alberro et al. (2015)",
+                                             523.0,
+                                             922.0,
+                                             "Hydrogen solubility in eutectic PbLi."),
+                                1.0,
+                                1.0e5),
               SolubilityBasis::MolesPerVolume,
               8.64e-3,
               900.0,
@@ -723,9 +767,9 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
 
 /**
  * Compute the Sieverts solubility K_s = prefactor exp(-E_a / (R T)), converted from the basis of
- * the published fit to atoms m^-3 Pa^-1/2 such that C = K_s sqrt(P) with C in atoms/m^3 and P in Pa.
- * Mole-based fits are multiplied by the Avogadro number, and atom-fraction fits by the atom density
- * N (see atomDensity()), assuming that the atom fraction is much smaller than 1.
+ * the published fit to atoms m^-3 Pa^-1/2 such that C = K_s sqrt(P) with C in atoms/m^3 and P in
+ * Pa. Mole-based fits are multiplied by the Avogadro number, and atom-fraction fits by the atom
+ * density N (see atomDensity()), assuming that the atom fraction is much smaller than 1.
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
  * @param atom_density the number density of metal atoms (atoms/m^3), only used by atom-fraction
