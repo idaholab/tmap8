@@ -68,12 +68,10 @@ TritiumSolubilityPbLi::validParams()
 }
 
 TritiumSolubilityPbLi::TritiumSolubilityPbLi(const InputParameters & parameters)
-  : ValidatedModelMaterial(parameters,
-                           [&parameters](const PbLiPropertyHelper::SolubilityModel model)
-                           {
-                             return PbLiPropertyHelper::solubilityModelData(
-                                 model, solubilityInputs(parameters));
-                           }),
+  : ValidatedModelMaterial(
+        parameters,
+        [&parameters](const PbLiPropertyHelper::SolubilityModel model)
+        { return PbLiPropertyHelper::solubilityModelData(model, solubilityInputs(parameters)); }),
     _lithium_fraction(getParam<Real>("lithium_atomic_fraction")),
     _fp(isParamValid("fp") ? &getUserObject<SinglePhaseFluidProperties>("fp") : nullptr),
     _pressure(isCoupled("pressure") ? &adCoupledValue("pressure") : nullptr),
@@ -90,11 +88,12 @@ TritiumSolubilityPbLi::TritiumSolubilityPbLi(const InputParameters & parameters)
     }
 
   if (_model_data.basis == PbLiPropertyHelper::SolubilityBasis::AtomFraction && !_fp)
-    paramError("fp",
-               "The ",
-               _model_name,
-               " model is published as an atom fraction and needs the PbLi density to convert it "
-               "to a concentration. Provide the fluid properties, e.g. LeadLithiumFluidProperties.");
+    paramError(
+        "fp",
+        "The ",
+        _model_name,
+        " model is published as an atom fraction and needs the PbLi density to convert it "
+        "to a concentration. Provide the fluid properties, e.g. LeadLithiumFluidProperties.");
 
   checkCompositionValidity(_lithium_fraction, "lithium_atomic_fraction");
 }

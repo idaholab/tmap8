@@ -20,9 +20,8 @@ class SinglePhaseFluidProperties;
  * property. The PbLi density needed to convert atom-fraction correlations comes from the fluid
  * properties of MOOSE (LeadLithiumFluidProperties).
  */
-class TritiumSolubilityPbLi
-  : public ValidatedModelMaterial<PbLiPropertyHelper::SolubilityModel,
-                                  PbLiPropertyHelper::SolubilityModelData>
+class TritiumSolubilityPbLi : public ValidatedModelMaterial<PbLiPropertyHelper::SolubilityModel,
+                                                            PbLiPropertyHelper::SolubilityModelData>
 {
 public:
   static InputParameters validParams();

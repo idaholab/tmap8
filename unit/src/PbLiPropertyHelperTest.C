@@ -96,12 +96,16 @@ relativeError(const Real value, const Real reference)
 TEST(PbLiPropertyHelperTest, optionStrings)
 {
   EXPECT_EQ(getDiffusivityModelOptions(),
-            "Fauvet1988 Reiter1991 Reiter1991Hydrogen_DelaporteMathurin Reiter1991Deuterium_DelaporteMathurin "
-            "Shibuya1987 Terai1992 Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium "
+            "Fauvet1988 Reiter1991 Reiter1991Hydrogen_DelaporteMathurin "
+            "Reiter1991Deuterium_DelaporteMathurin "
+            "Shibuya1987 Terai1992 Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen "
+            "Okitsu2012Deuterium "
             "Okada2012Hydrogen Okada2012Deuterium");
   EXPECT_EQ(getSolubilityModelOptions(),
-            "Wu1983 Chan1984 Katsuta1985 Fauvet1988 Reiter1991Hydrogen Reiter1991Deuterium Reiter1991Tritium Aiello2006 "
-            "Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium Okada2012Hydrogen Okada2012Deuterium "
+            "Wu1983 Chan1984 Katsuta1985 Fauvet1988 Reiter1991Hydrogen Reiter1991Deuterium "
+            "Reiter1991Tritium Aiello2006 "
+            "Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium "
+            "Okada2012Hydrogen Okada2012Deuterium "
             "Alberro2015 Penalva2024 Fukada2013MixingRule");
   EXPECT_EQ(getIsotopeOptions(), "H D T");
 }
@@ -176,9 +180,10 @@ TEST(PbLiPropertyHelperTest, compositionRange)
 
   EXPECT_EQ(compositionMessage("mat", "Terai1992", 0.16, eutectic), "");
   const auto message = compositionMessage("mat", "Terai1992", 0.3, eutectic);
-  EXPECT_NE(message.find("In mat: model 'Terai1992' is being used outside its documented validity "
-                         "range because lithium atomic fraction 0.3000 is outside [0.1570, 0.1700]"),
-            std::string::npos)
+  EXPECT_NE(
+      message.find("In mat: model 'Terai1992' is being used outside its documented validity "
+                   "range because lithium atomic fraction 0.3000 is outside [0.1570, 0.1700]"),
+      std::string::npos)
       << message;
 }
 
@@ -326,28 +331,25 @@ TEST(PbLiPropertyHelperTest, mixingRuleLimits)
   auto inputs = mixingRuleInputs();
 
   inputs.lithium_fraction = 0.0;
-  EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
-                                                                inputs),
-                                            700.0,
-                                            0.0),
-                          1e20),
+  EXPECT_LT(relativeError(
+                computeSolubility(
+                    solubilityModelData(SolubilityModel::Fukada2013MixingRule, inputs), 700.0, 0.0),
+                1e20),
             1e-12);
 
   inputs.lithium_fraction = 1.0;
-  EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
-                                                                inputs),
-                                            700.0,
-                                            0.0),
-                          1e22),
+  EXPECT_LT(relativeError(
+                computeSolubility(
+                    solubilityModelData(SolubilityModel::Fukada2013MixingRule, inputs), 700.0, 0.0),
+                1e22),
             1e-12);
 
   // The mixing rule is the geometric mean for equal weights
   inputs.lithium_fraction = 0.5;
-  EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
-                                                                inputs),
-                                            700.0,
-                                            0.0),
-                          1e21),
+  EXPECT_LT(relativeError(
+                computeSolubility(
+                    solubilityModelData(SolubilityModel::Fukada2013MixingRule, inputs), 700.0, 0.0),
+                1e21),
             1e-12);
 }
 
@@ -405,10 +407,8 @@ TEST(PbLiPropertyHelperTest, adDerivativeMatchesAnalytic)
     const auto data = solubilityModelData(model, mixingRuleInputs());
     const ADReal ad_temperature = make_ad_temperature();
     const ADReal density_g_per_m3 = (10520.35 - 1.19051 * ad_temperature) * 1000.0;
-    const auto s =
-        computeSolubility(data, ad_temperature, atomDensity(density_g_per_m3, 0.17));
-    Real log_derivative =
-        data.activation_energy / (ideal_gas_constant * temperature * temperature);
+    const auto s = computeSolubility(data, ad_temperature, atomDensity(density_g_per_m3, 0.17));
+    Real log_derivative = data.activation_energy / (ideal_gas_constant * temperature * temperature);
     if (data.basis == SolubilityBasis::AtomFraction)
       log_derivative += -1.19051 / (10520.35 - 1.19051 * temperature);
     const Real expected = MetaPhysicL::raw_value(s) * log_derivative;

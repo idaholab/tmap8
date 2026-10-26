@@ -301,7 +301,9 @@ def parse_density():
     MOOSE's LeadLithiumFluidProperties. Returns (a, b) in kg/m^3 and kg/m^3/K.
     """
     text = DENSITY_SOURCE.read_text()
-    start = text.index("LeadLithiumFluidProperties::rho_from_p_T(Real /*p*/, Real T) const")
+    start = text.index(
+        "LeadLithiumFluidProperties::rho_from_p_T(Real /*p*/, Real T) const"
+    )
     match = re.search(r"return\s+([0-9.]+)\s*-\s*([0-9.]+)\s*\*\s*T\s*;", text[start:])
     if match is None:
         raise ValueError(f"Could not find the density correlation in {DENSITY_SOURCE}")

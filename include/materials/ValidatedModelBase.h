@@ -66,9 +66,9 @@ public:
           /*warning=*/true)),
       _out_of_range_pressure_warning_id(
           _model_data.metadata.has_pressure_range
-              ? registerInvalidSolutionInternal(
-                    ModelValidity::pressureWarningMessage(name(), _model_name, _model_data.metadata),
-                    /*warning=*/true)
+              ? registerInvalidSolutionInternal(ModelValidity::pressureWarningMessage(
+                                                    name(), _model_name, _model_data.metadata),
+                                                /*warning=*/true)
               : _out_of_range_warning_id)
   {
   }
@@ -114,8 +114,8 @@ protected:
   /**
    * Apply the validity action if a composition is outside the documented composition range of the
    * model (see ModelMetadata). The composition is an input parameter that is constant in space and
-   * time, so this is meant to be called once, from the constructor of the derived class: nothing for
-   * 'ignore', a warning for 'warning', and an error on the parameter for 'error'.
+   * time, so this is meant to be called once, from the constructor of the derived class: nothing
+   * for 'ignore', a warning for 'warning', and an error on the parameter for 'error'.
    * @param composition the composition (-)
    * @param param_name name of the input parameter holding the composition
    */

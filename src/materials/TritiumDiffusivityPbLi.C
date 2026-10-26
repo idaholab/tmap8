@@ -47,20 +47,21 @@ TritiumDiffusivityPbLi::validParams()
                         0.17,
                         "Lithium atomic fraction of the PbLi (-), checked against the documented "
                         "composition range of the model.");
-  params.addCoupledVar("pressure",
-                       "The gas pressure in Pa. It is only used to check the documented pressure range of the selected model, and the check is skipped if it is not provided.");
+  params.addCoupledVar(
+      "pressure",
+      "The gas pressure in Pa. It is only used to check the documented pressure range of the "
+      "selected model, and the check is skipped if it is not provided.");
   return params;
 }
 
 TritiumDiffusivityPbLi::TritiumDiffusivityPbLi(const InputParameters & parameters)
-  : ValidatedModelMaterial(parameters,
-                           [&parameters](const PbLiPropertyHelper::DiffusivityModel model)
-                           {
-                             return PbLiPropertyHelper::diffusivityModelDataForIsotope(
-                                 model,
-                                 requestedIsotope(parameters),
-                                 parameters.get<bool>("isotope_scaling"));
-                           }),
+  : ValidatedModelMaterial(
+        parameters,
+        [&parameters](const PbLiPropertyHelper::DiffusivityModel model)
+        {
+          return PbLiPropertyHelper::diffusivityModelDataForIsotope(
+              model, requestedIsotope(parameters), parameters.get<bool>("isotope_scaling"));
+        }),
     _pressure(isCoupled("pressure") ? &adCoupledValue("pressure") : nullptr),
     _diffusivity(declareProperty<Real>(getParam<MaterialPropertyName>("property_name"))),
     _ad_diffusivity(declareADProperty<Real>(getParam<MaterialPropertyName>("ad_property_name")))
