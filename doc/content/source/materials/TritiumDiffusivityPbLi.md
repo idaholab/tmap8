@@ -10,33 +10,44 @@ property for use in a variety of simulation configurations. The property fits ar
 published in the literature and stored in the implementation directly in units of m$^2$/s.
 To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityPbLi/model)
 parameter +must+ be provided, as the available PbLi correlations were measured for different
-hydrogen isotopes, temperature ranges and compositions.
-
-!alert warning title=Unverified coefficients
-The coefficients, temperature ranges, composition ranges and measured isotopes of the models
-below were carried over from earlier drafts and have not yet been verified against the primary
-sources. Entries that are not verified say so in their note.
+hydrogen isotopes, temperature and pressure ranges, and compositions.
 
 ## Implemented Models
 
 The implemented diffusivity models are summarized in [pbli_diffusivity_models_table] and
 plotted in [pbli_diffusivity_models_figure].
 
-!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md). The composition range is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li).
-| Enum | Expression used in TMAP8 | Property units | Validity range (K) | Measured isotope | Reference | Notes |
-| :- | :- | :- | :- | :- | :- | :- |
-| `Fauvet1988` | $D = 1.5\times10^{-9}$ | m$^2$/s | 718.15-728.15 | H | [!cite](Fauvet1988PbLi) | Single datum at 450 C, treated as temperature independent |
-| `Reiter1991` | $D = 4.03\times10^{-8}\exp(-19.5\times10^3/RT)$ | m$^2$/s | 508-700 | H | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Recommended database fit for eutectic Pb-17Li |
-| `Terai1992` | $D = 2.50\times10^{-7}\exp(-27.0\times10^3/RT)$ | m$^2$/s | 573.15-973.15 | T | [!cite](Terai1992PbLi) | Tritium diffusivity in Pb-17Li |
-| `Maeda2008` | $D = 1.8\times10^{-8}\exp(-11.59\times10^3/RT)$ | m$^2$/s | 573.15-773.15 | H | [!cite](Maeda2008PbLi) | Hydrogen isotope fit measured in molten Li-Pb |
+!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models, in m$^2$/s. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md). The composition is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li). "No documented range" means that the source does not document a range for that quantity, so it is not checked.
+| Enum | Expression used in TMAP8 | Temperature range (K) | Pressure range (Pa) | Composition $x_{Li}$ | Measured isotope | Reference | Notes |
+| :- | :- | :- | :- | :- | :- | :- | :- |
+| `Fauvet1988` | $D = 1.5\times10^{-9}$ | 718.15-728.15 | $1\times10^{3}$-$1\times10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent, for hydrogen. |
+| `Reiter1991` | $D = 4.03\times10^{-8}\exp(-19.5\times10^3/RT)$ | 508-700 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Isotope-averaged fit for eutectic Pb-17Li; see Reiter1991Hydrogen_DelaporteMathurin and Reiter1991Deuterium_DelaporteMathurin for the isotope-specific fits. |
+| `Reiter1991Hydrogen_DelaporteMathurin` | $D = 7.48\times10^{-8}\exp(-22.956\times10^3/RT)$ | 524-690 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 16 digitized hydrogen data points. |
+| `Reiter1991Deuterium_DelaporteMathurin` | $D = 1.38\times10^{-8}\exp(-13.609\times10^3/RT)$ | 524-691 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | deuterium | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 6 digitized deuterium data points. |
+| `Shibuya1987` | $D = 2.62\times10^{-9}\exp(-6.63\times10^3/RT)$ | 573.15-773.15 | no documented range | 0.157-0.17 | tritium | [!cite](Shibuya1987PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium, isothermal release from neutron-irradiated Li17Pb83. Arrhenius fit of the three published values. |
+| `Terai1992` | $D = 2.5\times10^{-7}\exp(-27\times10^3/RT)$ | 573.15-973.15 | $3\times10^{3}$ | 0.157-0.17 | tritium | [!cite](Terai1992PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium diffusivity fit in Pb-17Li under neutron irradiation. |
+| `Maeda2008` | $D = 1.8\times10^{-8}\exp(-11.59\times10^3/RT)$ | 573.15-973.15 | no documented range | 0.157-0.17 | hydrogen | [!cite](Maeda2008PbLi) | Hydrogen fit from unsteady permeation through molten Li-Pb. Surface resistance affected the data below 673 K. |
+| `Edao2011Hydrogen` | $D = 8.18\times10^{-8}\exp(-15.8\times10^3/RT)$ | 573-873 | no documented range | 0.157-0.17 | hydrogen | [!cite](Edao2011PbLi) | Hydrogen, transient permeation through Li17Pb83. |
+| `Edao2011Deuterium` | $D = 5.73\times10^{-8}\exp(-13.6\times10^3/RT)$ | 573-873 | no documented range | 0.157-0.17 | deuterium | [!cite](Edao2011PbLi) | Deuterium, transient permeation through Li17Pb83. |
+| `Okitsu2012Hydrogen` | $D = 2\times10^{-8}\exp(-11.2\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | hydrogen | [!cite](Okitsu2012PbLi) | Hydrogen in two-component (H + D) permeation through Li17Pb83. |
+| `Okitsu2012Deuterium` | $D = 4.8\times10^{-8}\exp(-20.3\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | deuterium | [!cite](Okitsu2012PbLi) | Deuterium in two-component (H + D) permeation through Li17Pb83. |
+| `Okada2012Hydrogen` | $D = 4.68\times10^{-8}\exp(-17.6\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | hydrogen | [!cite](Okada2012PbLi) | Hydrogen, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
+| `Okada2012Deuterium` | $D = 2.64\times10^{-8}\exp(-15.6\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
 
-All models are documented for a lithium atomic fraction between 0.157 and 0.17.
+Models whose name ends with `_DelaporteMathurin` are Arrhenius fits of the data points of
+[!cite](Reiter1991PbLi) digitized in the h-transport-materials database
+[!citep](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023). `Reiter1991` is the
+isotope-averaged expression usually quoted for [!cite](Reiter1991PbLi).
+`Shibuya1987` is a fit of the three values published in [!cite](Shibuya1987PbLi), which are shown
+together with the fit in [pbli_diffusivity_models_figure]. The `Okitsu2012*` and `Okada2012*`
+models are two different fits of the same permeation data, from [!cite](Okitsu2012PbLi) and
+[!cite](Okada2012PbLi).
 
 !media plot_pbli_review_models.py
        image_name=pbli_diffusivity_models.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=pbli_diffusivity_models_figure
-       caption=Comparison of the implemented PbLi hydrogen isotope diffusivity correlations from [pbli_diffusivity_models_table], each drawn over its documented temperature range.
+       caption=Comparison of the implemented PbLi hydrogen isotope diffusivity correlations from [pbli_diffusivity_models_table], each drawn over its documented temperature range. The circles are the three values of `Shibuya1987` published in [!cite](Shibuya1987PbLi) (6.6e-10, 7.8e-10 and 9.5e-10 m$^2$/s at 573, 673 and 773 K).
 
 ## Hydrogen Isotope and Isotope Scaling
 
@@ -62,6 +73,16 @@ the lithium atomic fraction of the PbLi. It does not enter the diffusivity expre
 checked once, at the start of the simulation, against the documented composition range of the
 selected model with the `validity_action` behavior described below.
 
+## Pressure
+
+The [!param](/Materials/TritiumDiffusivityPbLi/pressure) parameter is an optional variable
+providing the gas pressure in Pa. It does not enter the diffusivity expressions: it is only used to
+check the pressure against the documented pressure range of the selected model
+([pbli_diffusivity_models_table]), at every evaluation, with the `validity_action` behavior
+described below. The check is skipped if no pressure is provided, and for the models without a
+documented pressure range. For example, `Terai1992` is documented for a single pressure of
+$3\times10^3$ Pa.
+
 ## Scaling the Model Parameters
 
 The pre-exponential factor and the activation energy of the selected model can be scaled with the
@@ -84,11 +105,11 @@ Scaling does not change the documented validity range of the model, so the
 ## Behavior when outside of range of validity
 
 The [!param](/Materials/TritiumDiffusivityPbLi/validity_action) parameter sets what TMAP8 does when a model is evaluated
-outside its documented validity range, for the temperature (checked at every evaluation), the
-lithium atomic fraction and the isotope (both checked once, at construction):
+outside its documented validity range, for the temperature and the pressure (checked at every
+evaluation), and the lithium atomic fraction and the isotope (both checked once, at construction):
 
 - `ignore`: nothing happens and the model is silently extrapolated.
-- `warning` (default): the simulation continues. Each out-of-range temperature evaluation is recorded in MOOSE's
+- `warning` (default): the simulation continues. Each out-of-range temperature or pressure evaluation is recorded in MOOSE's
   solution-invalidity system and summarized in the "Warnings History" table printed at the end of
   the run, with the number of occurrences per time step. Set
   [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.
