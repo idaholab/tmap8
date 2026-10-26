@@ -36,8 +36,8 @@ const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
 /// Avogadro number (1/mol), from TMAP8PhysicalConstants
 const Real avogadro_number = PhysicalConstants::avogadro_number;
 
-/// Conversion factor from eV/particle to J/mol
-const Real eV_to_J_per_mol = 96485.33;
+/// Conversion factor from eV/particle to J/mol, derived from PhysicalConstants
+const Real eV_to_J_per_mol = PhysicalConstants::eV_to_J * PhysicalConstants::avogadro_number;
 
 /// Molar mass of lithium (g/mol)
 const Real lithium_molar_mass = 6.941;
@@ -58,17 +58,17 @@ CreateMooseEnumClass(DensityModel, LinearExpansion);
 CreateMooseEnumClass(DiffusivityModel,
                      Fauvet1988,
                      Reiter1991,
-                     Reiter1991H_DelaporteMathurin,
-                     Reiter1991D_DelaporteMathurin,
+                     Reiter1991Hydrogen_DelaporteMathurin,
+                     Reiter1991Deuterium_DelaporteMathurin,
                      Shibuya1987,
                      Terai1992,
                      Maeda2008,
-                     Edao2011H,
-                     Edao2011D,
-                     Okitsu2012H,
-                     Okitsu2012D,
-                     Okada2012H,
-                     Okada2012D);
+                     Edao2011Hydrogen,
+                     Edao2011Deuterium,
+                     Okitsu2012Hydrogen,
+                     Okitsu2012Deuterium,
+                     Okada2012Hydrogen,
+                     Okada2012Deuterium);
 
 /// Hydrogen isotope solubility models available for PbLi
 CreateMooseEnumClass(SolubilityModel,
@@ -76,17 +76,17 @@ CreateMooseEnumClass(SolubilityModel,
                      Chan1984,
                      Katsuta1985,
                      Fauvet1988,
-                     Reiter1991H,
-                     Reiter1991D,
-                     Reiter1991T,
+                     Reiter1991Hydrogen,
+                     Reiter1991Deuterium,
+                     Reiter1991Tritium,
                      Aiello2006,
                      Maeda2008,
-                     Edao2011H,
-                     Edao2011D,
-                     Okitsu2012H,
-                     Okitsu2012D,
-                     Okada2012H,
-                     Okada2012D,
+                     Edao2011Hydrogen,
+                     Edao2011Deuterium,
+                     Okitsu2012Hydrogen,
+                     Okitsu2012Deuterium,
+                     Okada2012Hydrogen,
+                     Okada2012Deuterium,
                      Alberro2015,
                      Penalva2024,
                      Fukada2013MixingRule);
@@ -283,18 +283,17 @@ diffusivityModelData(const DiffusivityModel model)
           pbliMetadata("Reiter et al. (1991), also summarized by Mas de les Valls et al. (2008)",
                        508.0,
                        700.0,
-                       "Isotope-averaged fit for eutectic Pb-17Li; see Reiter1991H and "
-                       "Reiter1991D for the isotope-specific fits."),
+                       "Isotope-averaged fit for eutectic Pb-17Li; see Reiter1991Hydrogen and "
+                       "Reiter1991Deuterium for the isotope-specific fits."),
           4.03e-8,
           19500.0,
           Isotope::H};
 
-    case DiffusivityModel::Reiter1991H_DelaporteMathurin:
+    case DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin:
       // Fit of 16 digitized H data points from Reiter1991
       // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit diverge by
       // up to ~25 % at the ends of the range.
-      return {pbliMetadata("Reiter (1991), H data fitted in "
-                           "RemDelaporteMathurin/h-transport-materials 10.5281/zenodo.7888448",
+      return {pbliMetadata("Reiter (1991), H data fitted by Delaporte-Mathurin et al. (2023)",
                            524.0,
                            690.0,
                            "Arrhenius fit of Reiter's 16 digitized hydrogen data points."),
@@ -302,13 +301,12 @@ diffusivityModelData(const DiffusivityModel model)
               22956.0,
               Isotope::H};
 
-    case DiffusivityModel::Reiter1991D_DelaporteMathurin:
+    case DiffusivityModel::Reiter1991Deuterium_DelaporteMathurin:
       // Fit of 6 digitized D data points
       // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and
       // ~0.8 at 773 K, i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of
       // the raw data (factor ~2) is larger than the isotope effect.
-      return {pbliMetadata("Reiter (1991), D data fitted in "
-                           "RemDelaporteMathurin/h-transport-materials 10.5281/zenodo.7888448",
+      return {pbliMetadata("Reiter (1991), D data fitted by Delaporte-Mathurin et al. (2023)",
                            524.0,
                            691.0,
                            "Arrhenius fit of Reiter's 6 digitized deuterium data points."),
@@ -351,8 +349,8 @@ diffusivityModelData(const DiffusivityModel model)
               11590.0,
               Isotope::H};
 
-    case DiffusivityModel::Edao2011H:
-      // Fit of 3 H points from Edao2011H
+    case DiffusivityModel::Edao2011Hydrogen:
+      // Fit of 3 H points from Edao2011Hydrogen
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
                            873.0,
@@ -361,7 +359,7 @@ diffusivityModelData(const DiffusivityModel model)
               15800.0,
               Isotope::H};
 
-    case DiffusivityModel::Edao2011D:
+    case DiffusivityModel::Edao2011Deuterium:
       // Fit of 4  D points from Edao et al. (2011)
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
@@ -371,7 +369,7 @@ diffusivityModelData(const DiffusivityModel model)
               13600.0,
               Isotope::D};
 
-    case DiffusivityModel::Okitsu2012H:
+    case DiffusivityModel::Okitsu2012Hydrogen:
       // Fit over 5 temperatures in Okitsu et al. (2012)
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
@@ -381,7 +379,7 @@ diffusivityModelData(const DiffusivityModel model)
               11200.0,
               Isotope::H};
 
-    case DiffusivityModel::Okitsu2012D:
+    case DiffusivityModel::Okitsu2012Deuterium:
       // Fit over 5 temperatures in Okitsu et al. (2012)
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
@@ -391,7 +389,7 @@ diffusivityModelData(const DiffusivityModel model)
               20300.0,
               Isotope::D};
 
-    case DiffusivityModel::Okada2012H:
+    case DiffusivityModel::Okada2012Hydrogen:
       // Fit over 5 temperatures in Okada et al. (2012), same data as Okitsu et al. (2012)
       return {pbliMetadata("Okada et al. (2012)",
                            773.0,
@@ -402,7 +400,7 @@ diffusivityModelData(const DiffusivityModel model)
               17600.0,
               Isotope::H};
 
-    case DiffusivityModel::Okada2012D:
+    case DiffusivityModel::Okada2012Deuterium:
       // Fit over 5 temperatures in Okada et al. (2012), same data as Okitsu et al. (2012)
       return {pbliMetadata("Okada et al. (2012)",
                            773.0,
@@ -563,7 +561,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               0.0,
               Isotope::H};
 
-    case SolubilityModel::Reiter1991T:
+    case SolubilityModel::Reiter1991Tritium:
       return {
           pbliMetadata("Reiter (1991) tritium, also summarized by Mas de les Valls et al. (2008)",
                        508.0,
@@ -574,7 +572,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
           1350.0,
           Isotope::T};
 
-    case SolubilityModel::Reiter1991H:
+    case SolubilityModel::Reiter1991Hydrogen:
       return {
           pbliMetadata("Reiter (1991) hydrogen, also summarized by Mas de les Valls et al. (2008)",
                        508.0,
@@ -585,7 +583,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
           1350.0,
           Isotope::H};
 
-    case SolubilityModel::Reiter1991D:
+    case SolubilityModel::Reiter1991Deuterium:
       return {
           pbliMetadata("Reiter (1991) deuterium, also summarized by Mas de les Valls et al. (2008)",
                        508.0,
@@ -599,7 +597,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
     case SolubilityModel::Aiello2006:
       // SOLE absorption device, Pb-15.8Li, measured values 1e-2 to 7e-2).
       // This is the "high solubility" bound used in EU WCLL/HCLL analyses, ~2 orders of
-      // magnitude above Reiter1991T.
+      // magnitude above Reiter1991Tritium.
       return {pbliMetadata("Aiello et al. (2006)",
                            600.0,
                            900.0,
@@ -622,7 +620,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               18700.0,
               Isotope::H};
 
-    case SolubilityModel::Edao2011H:
+    case SolubilityModel::Edao2011Hydrogen:
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
                            873.0,
@@ -632,7 +630,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               4180.0,
               Isotope::H};
 
-    case SolubilityModel::Edao2011D:
+    case SolubilityModel::Edao2011Deuterium:
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
                            873.0,
@@ -642,7 +640,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               3100.0,
               Isotope::D};
 
-    case SolubilityModel::Okitsu2012H:
+    case SolubilityModel::Okitsu2012Hydrogen:
       // note that the paper lists 8.6e5 as prefactor (+ sign), but it is indeed 8.6e-5
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
@@ -653,7 +651,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               53800.0,
               Isotope::H};
 
-    case SolubilityModel::Okitsu2012D:
+    case SolubilityModel::Okitsu2012Deuterium:
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
                            973.0,
@@ -663,7 +661,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               55200.0,
               Isotope::D};
 
-    case SolubilityModel::Okada2012H:
+    case SolubilityModel::Okada2012Hydrogen:
       return {pbliMetadata("Okada et al. (2012)",
                            773.0,
                            973.0,
@@ -674,7 +672,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               57400.0,
               Isotope::H};
 
-    case SolubilityModel::Okada2012D:
+    case SolubilityModel::Okada2012Deuterium:
       return {pbliMetadata("Okada et al. (2012)",
                            773.0,
                            973.0,
@@ -716,7 +714,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
       // Fukada et al. (2013), Mater. Trans. 54, 425 reports the Kyushu H/D permeation
       // results (no isotope effect on solubility, D_H ~ 1.4 D_D) and discusses solubility
       // versus Li content. The Kyushu solubility correlations themselves are available as
-      // Maeda2008, Edao2011H/D and Okitsu2012H/D.
+      // Maeda2008, Edao2011Hydrogen/D and Okitsu2012Hydrogen/D.
       const Real x = inputs.lithium_fraction;
       return {pbliMetadata("Fukada et al. (2013)",
                            no_min_temperature,

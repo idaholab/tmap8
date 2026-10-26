@@ -25,34 +25,34 @@ namespace
 const std::vector<DiffusivityModel> all_diffusivity_models = {
     DiffusivityModel::Fauvet1988,
     DiffusivityModel::Reiter1991,
-    DiffusivityModel::Reiter1991H_DelaporteMathurin,
-    DiffusivityModel::Reiter1991D_DelaporteMathurin,
+    DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin,
+    DiffusivityModel::Reiter1991Deuterium_DelaporteMathurin,
     DiffusivityModel::Shibuya1987,
     DiffusivityModel::Terai1992,
     DiffusivityModel::Maeda2008,
-    DiffusivityModel::Edao2011H,
-    DiffusivityModel::Edao2011D,
-    DiffusivityModel::Okitsu2012H,
-    DiffusivityModel::Okitsu2012D,
-    DiffusivityModel::Okada2012H,
-    DiffusivityModel::Okada2012D};
+    DiffusivityModel::Edao2011Hydrogen,
+    DiffusivityModel::Edao2011Deuterium,
+    DiffusivityModel::Okitsu2012Hydrogen,
+    DiffusivityModel::Okitsu2012Deuterium,
+    DiffusivityModel::Okada2012Hydrogen,
+    DiffusivityModel::Okada2012Deuterium};
 
 /// All solubility models, so that tests loop over every model
 const std::vector<SolubilityModel> all_solubility_models = {SolubilityModel::Wu1983,
                                                             SolubilityModel::Chan1984,
                                                             SolubilityModel::Katsuta1985,
                                                             SolubilityModel::Fauvet1988,
-                                                            SolubilityModel::Reiter1991H,
-                                                            SolubilityModel::Reiter1991D,
-                                                            SolubilityModel::Reiter1991T,
+                                                            SolubilityModel::Reiter1991Hydrogen,
+                                                            SolubilityModel::Reiter1991Deuterium,
+                                                            SolubilityModel::Reiter1991Tritium,
                                                             SolubilityModel::Aiello2006,
                                                             SolubilityModel::Maeda2008,
-                                                            SolubilityModel::Edao2011H,
-                                                            SolubilityModel::Edao2011D,
-                                                            SolubilityModel::Okitsu2012H,
-                                                            SolubilityModel::Okitsu2012D,
-                                                            SolubilityModel::Okada2012H,
-                                                            SolubilityModel::Okada2012D,
+                                                            SolubilityModel::Edao2011Hydrogen,
+                                                            SolubilityModel::Edao2011Deuterium,
+                                                            SolubilityModel::Okitsu2012Hydrogen,
+                                                            SolubilityModel::Okitsu2012Deuterium,
+                                                            SolubilityModel::Okada2012Hydrogen,
+                                                            SolubilityModel::Okada2012Deuterium,
                                                             SolubilityModel::Alberro2015,
                                                             SolubilityModel::Penalva2024,
                                                             SolubilityModel::Fukada2013MixingRule};
@@ -81,12 +81,12 @@ TEST(PbLiPropertyHelperTest, optionStrings)
 {
   EXPECT_EQ(getDensityModelOptions(), "LinearExpansion");
   EXPECT_EQ(getDiffusivityModelOptions(),
-            "Fauvet1988 Reiter1991 Reiter1991H_DelaporteMathurin Reiter1991D_DelaporteMathurin "
-            "Shibuya1987 Terai1992 Maeda2008 Edao2011H Edao2011D Okitsu2012H Okitsu2012D "
-            "Okada2012H Okada2012D");
+            "Fauvet1988 Reiter1991 Reiter1991Hydrogen_DelaporteMathurin Reiter1991Deuterium_DelaporteMathurin "
+            "Shibuya1987 Terai1992 Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium "
+            "Okada2012Hydrogen Okada2012Deuterium");
   EXPECT_EQ(getSolubilityModelOptions(),
-            "Wu1983 Chan1984 Katsuta1985 Fauvet1988 Reiter1991H Reiter1991D Reiter1991T Aiello2006 "
-            "Maeda2008 Edao2011H Edao2011D Okitsu2012H Okitsu2012D Okada2012H Okada2012D "
+            "Wu1983 Chan1984 Katsuta1985 Fauvet1988 Reiter1991Hydrogen Reiter1991Deuterium Reiter1991Tritium Aiello2006 "
+            "Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium Okada2012Hydrogen Okada2012Deuterium "
             "Alberro2015 Penalva2024 Fukada2013MixingRule");
   EXPECT_EQ(getIsotopeOptions(), "H D T");
 }
@@ -198,10 +198,10 @@ TEST(PbLiPropertyHelperTest, diffusivityValues)
   };
   check(DiffusivityModel::Terai1992, 700.0, 2.4166550328994415e-09);
   check(DiffusivityModel::Maeda2008, 650.0, 2.1081760666882994e-09);
-  check(DiffusivityModel::Edao2011H, 700.0, 5.417087842613871e-09);
+  check(DiffusivityModel::Edao2011Hydrogen, 700.0, 5.417087842613871e-09);
   check(DiffusivityModel::Shibuya1987, 673.15, 8.013847337257099e-10);
-  check(DiffusivityModel::Reiter1991H_DelaporteMathurin, 600.0, 7.50660030379591e-10);
-  check(DiffusivityModel::Okada2012D, 850.0, 2.903777724542236e-09);
+  check(DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin, 600.0, 7.50660030379591e-10);
+  check(DiffusivityModel::Okada2012Deuterium, 850.0, 2.903777724542236e-09);
   // Fauvet1988 is a single datum, treated as temperature independent
   check(DiffusivityModel::Fauvet1988, 723.15, 1.5e-9);
   check(DiffusivityModel::Fauvet1988, 900.0, 1.5e-9);
@@ -258,10 +258,10 @@ TEST(PbLiPropertyHelperTest, solubilityValues)
   // Atom-fraction fit converted with N(T), mole-based fit converted with N_A
   // Katsuta1985 is a temperature independent Sieverts constant sqrt(P_atm)/X = 2.9e3
   check(SolubilityModel::Katsuta1985, 650.0, 3.6723302402533804e+22);
-  check(SolubilityModel::Reiter1991T, 600.0, 6.036714138692476e+20);
+  check(SolubilityModel::Reiter1991Tritium, 600.0, 6.036714138692476e+20);
   check(SolubilityModel::Aiello2006, 750.0, 1.8196216381245049e+22);
   check(SolubilityModel::Wu1983, 900.0, 2.0804356268488886e+22);
-  check(SolubilityModel::Okitsu2012H, 850.0, 1.405695116085559e+21);
+  check(SolubilityModel::Okitsu2012Hydrogen, 850.0, 1.405695116085559e+21);
   check(SolubilityModel::Alberro2015, 700.0, 4.4576619799900937e+21);
   // Mixing rule: exp(x ln K_Li + (1 - x) ln K_Pb), independent of temperature
   check(SolubilityModel::Fukada2013MixingRule, 600.0, 2.1877616239495473e+20);

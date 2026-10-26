@@ -74,52 +74,52 @@
     requirement = 'The system shall reproduce an independently calculated Reiter1991 PbLi hydrogen isotope diffusivity reference point at 604 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991h_delaportemathurin_csv]
+  [pbli_diffusivity_reiter1991hydrogen_delaportemathurin_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991H_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Hydrogen_DelaporteMathurin
                 AuxKernels/temperature_1/value=524
                 AuxKernels/temperature_2/value=607
                 AuxKernels/temperature_3/value=690
-                Outputs/file_base=pbli_diffusivity_reiter1991h_delaportemathurin_out'
-    csvdiff = pbli_diffusivity_reiter1991h_delaportemathurin_out.csv
-    requirement = 'The system shall compute the Reiter1991H_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_delaportemathurin_out'
+    csvdiff = pbli_diffusivity_reiter1991hydrogen_delaportemathurin_out.csv
+    requirement = 'The system shall compute the Reiter1991Hydrogen_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991h_delaportemathurin_reference_point]
+  [pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991H_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Hydrogen_DelaporteMathurin
                 AuxKernels/set_temperature/value=607
-                Outputs/file_base=pbli_diffusivity_reiter1991h_delaportemathurin_reference_point_out'
-    csvdiff = pbli_diffusivity_reiter1991h_delaportemathurin_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991H_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point_out'
+    csvdiff = pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Hydrogen_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991d_delaportemathurin_csv]
+  [pbli_diffusivity_reiter1991deuterium_delaportemathurin_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991D_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Deuterium_DelaporteMathurin
                 AuxKernels/temperature_1/value=524
                 AuxKernels/temperature_2/value=607.5
                 AuxKernels/temperature_3/value=691
-                Outputs/file_base=pbli_diffusivity_reiter1991d_delaportemathurin_out'
-    csvdiff = pbli_diffusivity_reiter1991d_delaportemathurin_out.csv
-    requirement = 'The system shall compute the Reiter1991D_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_delaportemathurin_out'
+    csvdiff = pbli_diffusivity_reiter1991deuterium_delaportemathurin_out.csv
+    requirement = 'The system shall compute the Reiter1991Deuterium_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991d_delaportemathurin_reference_point]
+  [pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991D_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Deuterium_DelaporteMathurin
                 AuxKernels/set_temperature/value=607.5
-                Outputs/file_base=pbli_diffusivity_reiter1991d_delaportemathurin_reference_point_out'
-    csvdiff = pbli_diffusivity_reiter1991d_delaportemathurin_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991D_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607.5 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point_out'
+    csvdiff = pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Deuterium_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607.5 K and expose both regular and AD material properties.'
   []
 
   [pbli_diffusivity_shibuya1987_csv]
@@ -194,148 +194,148 @@
     requirement = 'The system shall reproduce an independently calculated Maeda2008 PbLi hydrogen isotope diffusivity reference point at 773.15 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_edao2011h_csv]
+  [pbli_diffusivity_edao2011hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Edao2011H
+                Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
                 AuxKernels/temperature_3/value=873
-                Outputs/file_base=pbli_diffusivity_edao2011h_out'
-    csvdiff = pbli_diffusivity_edao2011h_out.csv
-    requirement = 'The system shall compute the Edao2011H PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_edao2011hydrogen_out'
+    csvdiff = pbli_diffusivity_edao2011hydrogen_out.csv
+    requirement = 'The system shall compute the Edao2011Hydrogen PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_edao2011h_reference_point]
+  [pbli_diffusivity_edao2011hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Edao2011H
+                Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/set_temperature/value=723
-                Outputs/file_base=pbli_diffusivity_edao2011h_reference_point_out'
-    csvdiff = pbli_diffusivity_edao2011h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Edao2011H PbLi hydrogen isotope diffusivity reference point at 723 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_edao2011hydrogen_reference_point_out'
+    csvdiff = pbli_diffusivity_edao2011hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Edao2011Hydrogen PbLi hydrogen isotope diffusivity reference point at 723 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_edao2011d_csv]
+  [pbli_diffusivity_edao2011deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Edao2011D
+                Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
                 AuxKernels/temperature_3/value=873
-                Outputs/file_base=pbli_diffusivity_edao2011d_out'
-    csvdiff = pbli_diffusivity_edao2011d_out.csv
-    requirement = 'The system shall compute the Edao2011D PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_edao2011deuterium_out'
+    csvdiff = pbli_diffusivity_edao2011deuterium_out.csv
+    requirement = 'The system shall compute the Edao2011Deuterium PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_edao2011d_reference_point]
+  [pbli_diffusivity_edao2011deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Edao2011D
+                Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/set_temperature/value=723
-                Outputs/file_base=pbli_diffusivity_edao2011d_reference_point_out'
-    csvdiff = pbli_diffusivity_edao2011d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Edao2011D PbLi hydrogen isotope diffusivity reference point at 723 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_edao2011deuterium_reference_point_out'
+    csvdiff = pbli_diffusivity_edao2011deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Edao2011Deuterium PbLi hydrogen isotope diffusivity reference point at 723 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okitsu2012h_csv]
+  [pbli_diffusivity_okitsu2012hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okitsu2012H
+                Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_diffusivity_okitsu2012h_out'
-    csvdiff = pbli_diffusivity_okitsu2012h_out.csv
-    requirement = 'The system shall compute the Okitsu2012H PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okitsu2012hydrogen_out'
+    csvdiff = pbli_diffusivity_okitsu2012hydrogen_out.csv
+    requirement = 'The system shall compute the Okitsu2012Hydrogen PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okitsu2012h_reference_point]
+  [pbli_diffusivity_okitsu2012hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okitsu2012H
+                Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_diffusivity_okitsu2012h_reference_point_out'
-    csvdiff = pbli_diffusivity_okitsu2012h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okitsu2012H PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okitsu2012hydrogen_reference_point_out'
+    csvdiff = pbli_diffusivity_okitsu2012hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okitsu2012Hydrogen PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okitsu2012d_csv]
+  [pbli_diffusivity_okitsu2012deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okitsu2012D
+                Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_diffusivity_okitsu2012d_out'
-    csvdiff = pbli_diffusivity_okitsu2012d_out.csv
-    requirement = 'The system shall compute the Okitsu2012D PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okitsu2012deuterium_out'
+    csvdiff = pbli_diffusivity_okitsu2012deuterium_out.csv
+    requirement = 'The system shall compute the Okitsu2012Deuterium PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okitsu2012d_reference_point]
+  [pbli_diffusivity_okitsu2012deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okitsu2012D
+                Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_diffusivity_okitsu2012d_reference_point_out'
-    csvdiff = pbli_diffusivity_okitsu2012d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okitsu2012D PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okitsu2012deuterium_reference_point_out'
+    csvdiff = pbli_diffusivity_okitsu2012deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okitsu2012Deuterium PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okada2012h_csv]
+  [pbli_diffusivity_okada2012hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okada2012H
+                Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_diffusivity_okada2012h_out'
-    csvdiff = pbli_diffusivity_okada2012h_out.csv
-    requirement = 'The system shall compute the Okada2012H PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okada2012hydrogen_out'
+    csvdiff = pbli_diffusivity_okada2012hydrogen_out.csv
+    requirement = 'The system shall compute the Okada2012Hydrogen PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okada2012h_reference_point]
+  [pbli_diffusivity_okada2012hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okada2012H
+                Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_diffusivity_okada2012h_reference_point_out'
-    csvdiff = pbli_diffusivity_okada2012h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okada2012H PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okada2012hydrogen_reference_point_out'
+    csvdiff = pbli_diffusivity_okada2012hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okada2012Hydrogen PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okada2012d_csv]
+  [pbli_diffusivity_okada2012deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okada2012D
+                Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_diffusivity_okada2012d_out'
-    csvdiff = pbli_diffusivity_okada2012d_out.csv
-    requirement = 'The system shall compute the Okada2012D PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okada2012deuterium_out'
+    csvdiff = pbli_diffusivity_okada2012deuterium_out.csv
+    requirement = 'The system shall compute the Okada2012Deuterium PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_okada2012d_reference_point]
+  [pbli_diffusivity_okada2012deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Okada2012D
+                Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_diffusivity_okada2012d_reference_point_out'
-    csvdiff = pbli_diffusivity_okada2012d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okada2012D PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_okada2012deuterium_reference_point_out'
+    csvdiff = pbli_diffusivity_okada2012deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okada2012Deuterium PbLi hydrogen isotope diffusivity reference point at 873 K and expose both regular and AD material properties.'
   []
 
   [pbli_solubility_wu1983_csv]
@@ -434,76 +434,76 @@
     requirement = 'The system shall reproduce an independently calculated Fauvet1988 PbLi hydrogen isotope solubility reference point at 723.15 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991h_csv]
+  [pbli_solubility_reiter1991hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991H
+                Materials/pbli_property/model=Reiter1991Hydrogen
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
                 AuxKernels/temperature_3/value=700
-                Outputs/file_base=pbli_solubility_reiter1991h_out'
-    csvdiff = pbli_solubility_reiter1991h_out.csv
-    requirement = 'The system shall compute the Reiter1991H PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991hydrogen_out'
+    csvdiff = pbli_solubility_reiter1991hydrogen_out.csv
+    requirement = 'The system shall compute the Reiter1991Hydrogen PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991h_reference_point]
+  [pbli_solubility_reiter1991hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991H
+                Materials/pbli_property/model=Reiter1991Hydrogen
                 AuxKernels/set_temperature/value=604
-                Outputs/file_base=pbli_solubility_reiter1991h_reference_point_out'
-    csvdiff = pbli_solubility_reiter1991h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991H PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991hydrogen_reference_point_out'
+    csvdiff = pbli_solubility_reiter1991hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Hydrogen PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991d_csv]
+  [pbli_solubility_reiter1991deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991D
+                Materials/pbli_property/model=Reiter1991Deuterium
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
                 AuxKernels/temperature_3/value=700
-                Outputs/file_base=pbli_solubility_reiter1991d_out'
-    csvdiff = pbli_solubility_reiter1991d_out.csv
-    requirement = 'The system shall compute the Reiter1991D PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991deuterium_out'
+    csvdiff = pbli_solubility_reiter1991deuterium_out.csv
+    requirement = 'The system shall compute the Reiter1991Deuterium PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991d_reference_point]
+  [pbli_solubility_reiter1991deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991D
+                Materials/pbli_property/model=Reiter1991Deuterium
                 AuxKernels/set_temperature/value=604
-                Outputs/file_base=pbli_solubility_reiter1991d_reference_point_out'
-    csvdiff = pbli_solubility_reiter1991d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991D PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991deuterium_reference_point_out'
+    csvdiff = pbli_solubility_reiter1991deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Deuterium PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991t_csv]
+  [pbli_solubility_reiter1991tritium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991T
+                Materials/pbli_property/model=Reiter1991Tritium
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
                 AuxKernels/temperature_3/value=700
-                Outputs/file_base=pbli_solubility_reiter1991t_out'
-    csvdiff = pbli_solubility_reiter1991t_out.csv
-    requirement = 'The system shall compute the Reiter1991T PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991tritium_out'
+    csvdiff = pbli_solubility_reiter1991tritium_out.csv
+    requirement = 'The system shall compute the Reiter1991Tritium PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_reiter1991t_reference_point]
+  [pbli_solubility_reiter1991tritium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991T
+                Materials/pbli_property/model=Reiter1991Tritium
                 AuxKernels/set_temperature/value=604
-                Outputs/file_base=pbli_solubility_reiter1991t_reference_point_out'
-    csvdiff = pbli_solubility_reiter1991t_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991T PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_reiter1991tritium_reference_point_out'
+    csvdiff = pbli_solubility_reiter1991tritium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Tritium PbLi hydrogen isotope solubility reference point at 604 K and expose both regular and AD material properties.'
   []
 
   [pbli_solubility_aiello2006_csv]
@@ -556,148 +556,148 @@
     requirement = 'The system shall reproduce an independently calculated Maeda2008 PbLi hydrogen isotope solubility reference point at 773.15 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_edao2011h_csv]
+  [pbli_solubility_edao2011hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Edao2011H
+                Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
                 AuxKernels/temperature_3/value=873
-                Outputs/file_base=pbli_solubility_edao2011h_out'
-    csvdiff = pbli_solubility_edao2011h_out.csv
-    requirement = 'The system shall compute the Edao2011H PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_edao2011hydrogen_out'
+    csvdiff = pbli_solubility_edao2011hydrogen_out.csv
+    requirement = 'The system shall compute the Edao2011Hydrogen PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_edao2011h_reference_point]
+  [pbli_solubility_edao2011hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Edao2011H
+                Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/set_temperature/value=723
-                Outputs/file_base=pbli_solubility_edao2011h_reference_point_out'
-    csvdiff = pbli_solubility_edao2011h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Edao2011H PbLi hydrogen isotope solubility reference point at 723 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_edao2011hydrogen_reference_point_out'
+    csvdiff = pbli_solubility_edao2011hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Edao2011Hydrogen PbLi hydrogen isotope solubility reference point at 723 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_edao2011d_csv]
+  [pbli_solubility_edao2011deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Edao2011D
+                Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
                 AuxKernels/temperature_3/value=873
-                Outputs/file_base=pbli_solubility_edao2011d_out'
-    csvdiff = pbli_solubility_edao2011d_out.csv
-    requirement = 'The system shall compute the Edao2011D PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_edao2011deuterium_out'
+    csvdiff = pbli_solubility_edao2011deuterium_out.csv
+    requirement = 'The system shall compute the Edao2011Deuterium PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_edao2011d_reference_point]
+  [pbli_solubility_edao2011deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Edao2011D
+                Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/set_temperature/value=723
-                Outputs/file_base=pbli_solubility_edao2011d_reference_point_out'
-    csvdiff = pbli_solubility_edao2011d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Edao2011D PbLi hydrogen isotope solubility reference point at 723 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_edao2011deuterium_reference_point_out'
+    csvdiff = pbli_solubility_edao2011deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Edao2011Deuterium PbLi hydrogen isotope solubility reference point at 723 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okitsu2012h_csv]
+  [pbli_solubility_okitsu2012hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okitsu2012H
+                Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_solubility_okitsu2012h_out'
-    csvdiff = pbli_solubility_okitsu2012h_out.csv
-    requirement = 'The system shall compute the Okitsu2012H PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okitsu2012hydrogen_out'
+    csvdiff = pbli_solubility_okitsu2012hydrogen_out.csv
+    requirement = 'The system shall compute the Okitsu2012Hydrogen PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okitsu2012h_reference_point]
+  [pbli_solubility_okitsu2012hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okitsu2012H
+                Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_solubility_okitsu2012h_reference_point_out'
-    csvdiff = pbli_solubility_okitsu2012h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okitsu2012H PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okitsu2012hydrogen_reference_point_out'
+    csvdiff = pbli_solubility_okitsu2012hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okitsu2012Hydrogen PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okitsu2012d_csv]
+  [pbli_solubility_okitsu2012deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okitsu2012D
+                Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_solubility_okitsu2012d_out'
-    csvdiff = pbli_solubility_okitsu2012d_out.csv
-    requirement = 'The system shall compute the Okitsu2012D PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okitsu2012deuterium_out'
+    csvdiff = pbli_solubility_okitsu2012deuterium_out.csv
+    requirement = 'The system shall compute the Okitsu2012Deuterium PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okitsu2012d_reference_point]
+  [pbli_solubility_okitsu2012deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okitsu2012D
+                Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_solubility_okitsu2012d_reference_point_out'
-    csvdiff = pbli_solubility_okitsu2012d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okitsu2012D PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okitsu2012deuterium_reference_point_out'
+    csvdiff = pbli_solubility_okitsu2012deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okitsu2012Deuterium PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okada2012h_csv]
+  [pbli_solubility_okada2012hydrogen_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okada2012H
+                Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_solubility_okada2012h_out'
-    csvdiff = pbli_solubility_okada2012h_out.csv
-    requirement = 'The system shall compute the Okada2012H PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okada2012hydrogen_out'
+    csvdiff = pbli_solubility_okada2012hydrogen_out.csv
+    requirement = 'The system shall compute the Okada2012Hydrogen PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okada2012h_reference_point]
+  [pbli_solubility_okada2012hydrogen_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okada2012H
+                Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_solubility_okada2012h_reference_point_out'
-    csvdiff = pbli_solubility_okada2012h_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okada2012H PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okada2012hydrogen_reference_point_out'
+    csvdiff = pbli_solubility_okada2012hydrogen_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okada2012Hydrogen PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okada2012d_csv]
+  [pbli_solubility_okada2012deuterium_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okada2012D
+                Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
                 AuxKernels/temperature_3/value=973
-                Outputs/file_base=pbli_solubility_okada2012d_out'
-    csvdiff = pbli_solubility_okada2012d_out.csv
-    requirement = 'The system shall compute the Okada2012D PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okada2012deuterium_out'
+    csvdiff = pbli_solubility_okada2012deuterium_out.csv
+    requirement = 'The system shall compute the Okada2012Deuterium PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_solubility_okada2012d_reference_point]
+  [pbli_solubility_okada2012deuterium_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Okada2012D
+                Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/set_temperature/value=873
-                Outputs/file_base=pbli_solubility_okada2012d_reference_point_out'
-    csvdiff = pbli_solubility_okada2012d_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Okada2012D PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_solubility_okada2012deuterium_reference_point_out'
+    csvdiff = pbli_solubility_okada2012deuterium_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Okada2012Deuterium PbLi hydrogen isotope solubility reference point at 873 K and expose both regular and AD material properties.'
   []
 
   [pbli_solubility_alberro2015_csv]
@@ -807,9 +807,9 @@
     # 1e-6. The analytic derivative is checked to 1e-12 in the unit tests.
     ratio_tol = 1e-5
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991T
+                Materials/pbli_property/model=Reiter1991Tritium
                 Variables/temperature/initial_condition=700'
-    requirement = 'The system shall propagate automatic-differentiation derivatives for the Reiter1991T PbLi hydrogen isotope solubility material property.'
+    requirement = 'The system shall propagate automatic-differentiation derivatives for the Reiter1991Tritium PbLi hydrogen isotope solubility material property.'
   []
 
   [pbli_diffusivity_terai1992_low_error]
@@ -938,7 +938,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
-                Materials/pbli_property/model=Reiter1991T
+                Materials/pbli_property/model=Reiter1991Tritium
                 Materials/pbli_property/prefactor_scaling=0.5
                 Materials/pbli_property/activation_energy_scaling=0.9
                 AuxKernels/set_temperature/value=600
