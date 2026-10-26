@@ -248,7 +248,7 @@ diffusivityModelData(const DiffusivityModel model)
           withPressureRange(pbliMetadata("Fauvet and Sannier (1988)",
                        718.15,
                        728.15,
-                       "Single datum at 723 K, treated as temperature independent, for hydrogen."), 1.0e3, 1.0e4),
+                       "Single datum at 723 K, treated as temperature independent."), 1.0e3, 1.0e4),
           1.5e-9,
           0.0,
           Isotope::H};
