@@ -63,7 +63,13 @@ public:
       _model_data(lookup(_model)),
       _out_of_range_warning_id(registerInvalidSolutionInternal(
           ModelValidity::warningMessage(name(), _model_name, _model_data.metadata),
-          /*warning=*/true))
+          /*warning=*/true)),
+      _out_of_range_pressure_warning_id(
+          _model_data.metadata.has_pressure_range
+              ? registerInvalidSolutionInternal(
+                    ModelValidity::pressureWarningMessage(name(), _model_name, _model_data.metadata),
+                    /*warning=*/true)
+              : _out_of_range_warning_id)
   {
   }
 
@@ -84,6 +90,25 @@ protected:
     else
       mooseError(
           ModelValidity::validityMessage(name(), _model_name, temperature, _model_data.metadata));
+  }
+
+  /**
+   * Apply the validity action if the pressure is outside the documented pressure range of the
+   * model, if it has one: nothing for 'ignore', a MOOSE solution warning for 'warning', and an
+   * error for 'error'.
+   * @param pressure the pressure (Pa)
+   */
+  void checkPressureValidity(const Real pressure) const
+  {
+    if (_validity_action == ModelValidity::ValidityAction::ignore ||
+        ModelValidity::isPressureInRange(_model_data.metadata, pressure))
+      return;
+
+    if (_validity_action == ModelValidity::ValidityAction::warning)
+      flagInvalidSolutionInternal<true>(_out_of_range_pressure_warning_id);
+    else
+      mooseError(
+          ModelValidity::pressureMessage(name(), _model_name, pressure, _model_data.metadata));
   }
 
   /**
@@ -131,4 +156,6 @@ protected:
   const ModelData _model_data;
   /// ID of the out-of-range solution warning, registered once at construction
   const InvalidSolutionID _out_of_range_warning_id;
+  /// ID of the out-of-range pressure warning, registered only for models with a pressure range
+  const InvalidSolutionID _out_of_range_pressure_warning_id;
 };

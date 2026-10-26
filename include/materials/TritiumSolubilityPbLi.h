@@ -31,6 +31,8 @@ protected:
 
   /// Lithium atomic fraction of the PbLi (-)
   const Real _lithium_fraction;
+  /// Pressure (Pa), if provided, used to check the documented pressure range
+  const ADVariableValue * const _pressure;
   /// Regular solubility material property
   MaterialProperty<Real> & _solubility;
   /// AD solubility material property
