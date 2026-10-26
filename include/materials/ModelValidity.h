@@ -42,6 +42,12 @@ struct ModelMetadata
   bool has_composition_range = false;
   /// Name of the composition variable used in messages, e.g. "atomic fraction of the solute"
   std::string composition_name = "composition";
+  /// Lower bound of the documented pressure range (Pa), unrestricted by default
+  Real min_pressure = 0.0;
+  /// Upper bound of the documented pressure range (Pa), unrestricted by default
+  Real max_pressure = 0.0;
+  /// Whether the documented pressure range restricts the model
+  bool has_pressure_range = false;
 };
 
 /**
@@ -112,6 +118,80 @@ validityMessage(const std::string & object_name,
 
 /// Tolerance on the composition bounds
 constexpr Real composition_tolerance = 1e-9;
+
+/// Relative tolerance on the pressure bounds
+constexpr Real pressure_tolerance = 1e-9;
+
+/**
+ * Check whether a pressure lies within the documented pressure range (bounds included, up to a
+ * small relative tolerance). It is always true if the model has no pressure range.
+ * @param metadata the model metadata
+ * @param pressure the pressure (Pa)
+ */
+inline bool
+isPressureInRange(const ModelMetadata & metadata, const Real pressure)
+{
+  return !metadata.has_pressure_range ||
+         (pressure >= metadata.min_pressure * (1.0 - pressure_tolerance) &&
+          pressure <= metadata.max_pressure * (1.0 + pressure_tolerance));
+}
+
+/**
+ * Format the documented pressure range in scientific notation.
+ * @param metadata the model metadata
+ * @return the range, e.g. "[1.00e+03, 1.00e+05] Pa"
+ */
+inline std::string
+pressureRange(const ModelMetadata & metadata)
+{
+  std::ostringstream oss;
+  oss << std::scientific << std::setprecision(2) << "[" << metadata.min_pressure << ", "
+      << metadata.max_pressure << "] Pa";
+  return oss.str();
+}
+
+/**
+ * Build the message reported once per object when the 'warning' validity action is used for a
+ * pressure outside the documented range.
+ * @param object_name name of the material object
+ * @param model_name name of the selected model
+ * @param metadata the model metadata
+ */
+inline std::string
+pressureWarningMessage(const std::string & object_name,
+                       const std::string & model_name,
+                       const ModelMetadata & metadata)
+{
+  return "In " + object_name + ": model '" + model_name +
+         "' is being used outside its documented pressure range " + pressureRange(metadata) +
+         ". Source: " + metadata.citation + ".";
+}
+
+/**
+ * Build the message describing a pressure outside the documented pressure range.
+ * @param object_name name of the material object
+ * @param model_name name of the selected model
+ * @param pressure the offending pressure (Pa)
+ * @param metadata the model metadata
+ * @return the message, or an empty string if the pressure is within range
+ */
+inline std::string
+pressureMessage(const std::string & object_name,
+                const std::string & model_name,
+                const Real pressure,
+                const ModelMetadata & metadata)
+{
+  if (isPressureInRange(metadata, pressure))
+    return "";
+
+  std::ostringstream oss;
+  oss << "In " << object_name << ": model '" << model_name
+      << "' is being used outside its documented validity range because pressure "
+      << std::scientific << std::setprecision(2) << pressure << " Pa is outside "
+      << pressureRange(metadata) << ". Source: " << metadata.citation << ". "
+      << metadata.validity_note;
+  return oss.str();
+}
 
 /**
  * Check whether a composition lies within the documented composition range (bounds included, up to

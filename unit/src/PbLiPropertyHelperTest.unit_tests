@@ -22,6 +22,16 @@
     unit_test = PbLiPropertyHelperTest.compositionRange
     requirement = 'The system shall identify whether a lithium atomic fraction is inside the documented composition range of a PbLi model, including a single-composition range such as Pb-15.7Li, and return a message that names the object, model, composition and range otherwise.'
   []
+  [pressure_ranges]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.pressureRanges
+    requirement = 'The system shall store the documented pressure range of each PbLi model that has one, and none for the models that do not.'
+  []
+  [pressure_validity]
+    type = GoogleTest
+    unit_test = PbLiPropertyHelperTest.pressureValidity
+    requirement = 'The system shall identify whether a pressure is inside the documented pressure range of a PbLi model, including at its bounds, for a single-pressure range, and for a model without a pressure range, and return a message that names the object, model, pressure and range otherwise.'
+  []
   [density_values]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.densityValues

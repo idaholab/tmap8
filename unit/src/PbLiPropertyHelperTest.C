@@ -171,6 +171,63 @@ TEST(PbLiPropertyHelperTest, compositionRange)
       << message;
 }
 
+/// The documented pressure ranges (Pa) of the models, and their absence for the others
+TEST(PbLiPropertyHelperTest, pressureRanges)
+{
+  const auto check = [](const ModelMetadata & m, const Real min_p, const Real max_p)
+  {
+    EXPECT_TRUE(m.has_pressure_range);
+    EXPECT_DOUBLE_EQ(m.min_pressure, min_p);
+    EXPECT_DOUBLE_EQ(m.max_pressure, max_p);
+  };
+  const Real atm = PhysicalConstants::atm_to_Pa;
+  check(diffusivityModelData(DiffusivityModel::Fauvet1988).metadata, 1e3, 1e4);
+  check(diffusivityModelData(DiffusivityModel::Reiter1991).metadata, 1e3, 1e5);
+  check(diffusivityModelData(DiffusivityModel::Terai1992).metadata, 3e3, 3e3);
+  check(solubilityModelData(SolubilityModel::Fauvet1988).metadata, 1e3, 1e4);
+  check(solubilityModelData(SolubilityModel::Katsuta1985).metadata, 0.146 * atm, 1.05 * atm);
+  check(solubilityModelData(SolubilityModel::Reiter1991Tritium).metadata, 1e3, 1e5);
+  check(solubilityModelData(SolubilityModel::Aiello2006).metadata, 1e3, 1e5);
+  check(solubilityModelData(SolubilityModel::Wu1983).metadata, 0.1, 1.0);
+  check(solubilityModelData(SolubilityModel::Chan1984).metadata, 0.0, 1e4);
+  check(solubilityModelData(SolubilityModel::Alberro2015).metadata, 1.0, 1e5);
+
+  // Models without a documented pressure range
+  EXPECT_FALSE(diffusivityModelData(DiffusivityModel::Maeda2008).metadata.has_pressure_range);
+  EXPECT_FALSE(solubilityModelData(SolubilityModel::Penalva2024).metadata.has_pressure_range);
+}
+
+/// The pressure check accepts the documented bounds, rejects values outside, and accepts every
+/// pressure for a model without a pressure range
+TEST(PbLiPropertyHelperTest, pressureValidity)
+{
+  const auto fauvet = diffusivityModelData(DiffusivityModel::Fauvet1988).metadata;
+  EXPECT_TRUE(isPressureInRange(fauvet, 1e3));
+  EXPECT_TRUE(isPressureInRange(fauvet, 5e3));
+  EXPECT_TRUE(isPressureInRange(fauvet, 1e4));
+  EXPECT_FALSE(isPressureInRange(fauvet, 999.0));
+  EXPECT_FALSE(isPressureInRange(fauvet, 1.0001e4));
+
+  // A model documented for a single pressure accepts only that pressure
+  const auto terai = diffusivityModelData(DiffusivityModel::Terai1992).metadata;
+  EXPECT_TRUE(isPressureInRange(terai, 3e3));
+  EXPECT_FALSE(isPressureInRange(terai, 3.1e3));
+
+  const auto maeda = diffusivityModelData(DiffusivityModel::Maeda2008).metadata;
+  EXPECT_TRUE(isPressureInRange(maeda, 1e-6));
+  EXPECT_TRUE(isPressureInRange(maeda, 1e9));
+
+  EXPECT_EQ(pressureMessage("mat", "Fauvet1988", 5e3, fauvet), "");
+  const auto message = pressureMessage("mat", "Fauvet1988", 1e5, fauvet);
+  EXPECT_NE(message.find("In mat: model 'Fauvet1988' is being used outside its documented validity "
+                         "range because pressure 1.00e+05 Pa is outside [1.00e+03, 1.00e+04] Pa"),
+            std::string::npos)
+      << message;
+  EXPECT_EQ(pressureWarningMessage("mat", "Fauvet1988", fauvet),
+            "In mat: model 'Fauvet1988' is being used outside its documented pressure range "
+            "[1.00e+03, 1.00e+04] Pa. Source: Fauvet and Sannier (1988).");
+}
+
 /// The density (g/m^3) against hand calculations of rho = 1.052e7 (1 - 1.13e-4 T)
 TEST(PbLiPropertyHelperTest, densityValues)
 {

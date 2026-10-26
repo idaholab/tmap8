@@ -43,6 +43,8 @@ TritiumSolubilityPbLi::validParams()
                         "Lithium atomic fraction of the PbLi (-). It is checked against the "
                         "documented composition range of the model, converts atom-fraction "
                         "correlations to concentrations, and weights the mixing rule.");
+  params.addCoupledVar("pressure",
+                       "The gas pressure in Pa. It is only used to check the documented pressure range of the selected model, and the check is skipped if it is not provided.");
   params.addParam<Real>("lithium_sieverts_constant",
                         std::numeric_limits<Real>::quiet_NaN(),
                         "Sieverts constant of pure liquid lithium in atoms m^-3 Pa^-1/2. Required "
@@ -63,6 +65,7 @@ TritiumSolubilityPbLi::TritiumSolubilityPbLi(const InputParameters & parameters)
                                  model, solubilityInputs(parameters));
                            }),
     _lithium_fraction(getParam<Real>("lithium_atomic_fraction")),
+    _pressure(isCoupled("pressure") ? &adCoupledValue("pressure") : nullptr),
     _solubility(declareProperty<Real>(getParam<MaterialPropertyName>("property_name"))),
     _ad_solubility(declareADProperty<Real>(getParam<MaterialPropertyName>("ad_property_name")))
 {
@@ -82,6 +85,8 @@ void
 TritiumSolubilityPbLi::computeQpProperties()
 {
   checkTemperatureValidity(MetaPhysicL::raw_value(_temperature[_qp]));
+  if (_pressure)
+    checkPressureValidity(MetaPhysicL::raw_value((*_pressure)[_qp]));
 
   const auto ad_value =
       PbLiPropertyHelper::computeSolubility(_model_data, _temperature[_qp], _lithium_fraction);

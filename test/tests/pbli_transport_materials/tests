@@ -976,4 +976,68 @@
     csvdiff = pbli_solubility_mixing_rule_pure_lead_out.csv
     requirement = 'The system shall reduce the Fukada2013MixingRule PbLi solubility model to the Sieverts constant of pure lead when the lithium atomic fraction is zero.'
   []
+
+  [pbli_diffusivity_pressure_error]
+    type = RunException
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=723.15 AuxKernels/set_pressure/value=1e5'
+    expect_err = "because pressure 1.00e\+05 Pa is outside \[1.00e\+03, 1.00e\+04\] Pa"
+    requirement = 'The system shall return a specific error message when a PbLi hydrogen isotope diffusivity model is used with a pressure outside its documented pressure range.'
+  []
+
+  [pbli_diffusivity_pressure_warning]
+    type = RunApp
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=723.15 AuxKernels/set_pressure/value=1e5'
+    expect_out = "documented pressure range \[1.00e\+03, 1.00e\+04\] Pa"
+    requirement = 'The system shall continue the run and report a solution warning when a PbLi hydrogen isotope diffusivity model is used with a pressure outside its documented pressure range with the warning validity action.'
+  []
+
+  [pbli_diffusivity_pressure_ignore]
+    type = RunApp
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=ignore AuxKernels/set_temperature/value=723.15 AuxKernels/set_pressure/value=1e5'
+    absent_out = "documented pressure range"
+    requirement = 'The system shall not report any message when a PbLi hydrogen isotope diffusivity model is used with a pressure outside its documented pressure range with the ignore validity action.'
+  []
+
+  [pbli_diffusivity_pressure_in_range]
+    type = RunApp
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=723.15 AuxKernels/set_pressure/value=5e3'
+    absent_out = "documented pressure range"
+    requirement = 'The system shall not report any message when a PbLi hydrogen isotope diffusivity model is used with a pressure inside its documented pressure range.'
+  []
+
+  [pbli_diffusivity_pressure_not_provided]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=723.15'
+    absent_out = "documented pressure range"
+    requirement = 'The system shall skip the check of the pressure range of a PbLi hydrogen isotope diffusivity model when no pressure is provided.'
+  []
+
+  [pbli_diffusivity_single_pressure_error]
+    type = RunException
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/model=Terai1992 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=700 AuxKernels/set_pressure/value=5e3'
+    expect_err = "because pressure 5.00e\+03 Pa is outside \[3.00e\+03, 3.00e\+03\] Pa"
+    requirement = 'The system shall return a specific error message when a PbLi diffusivity model that is documented for a single pressure is used with another pressure.'
+  []
+
+  [pbli_solubility_pressure_error]
+    type = RunException
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
+    expect_err = "because pressure 2.00e\+05 Pa is outside \[1.48e\+04, 1.06e\+05\] Pa"
+    requirement = 'The system shall return a specific error message when a PbLi hydrogen isotope solubility model is used with a pressure outside its documented pressure range, given in atm for the Katsuta1985 model.'
+  []
+
+  [pbli_solubility_pressure_warning]
+    type = RunApp
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
+    expect_out = "TritiumSolubilityPbLi : In pbli_property: model 'Katsuta1985' is being used outside its documented pressure range"
+    requirement = 'The system shall continue the run and report a solution warning when a PbLi hydrogen isotope solubility model is used with a pressure outside its documented pressure range with the warning validity action.'
+  []
 []
