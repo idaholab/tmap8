@@ -11,6 +11,7 @@
 #include "MooseEnum.h"
 
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -45,7 +46,7 @@ struct ModelMetadata
   /// Lower bound of the documented pressure range (Pa), unrestricted by default
   Real min_pressure = 0.0;
   /// Upper bound of the documented pressure range (Pa), unrestricted by default
-  Real max_pressure = 0.0;
+  Real max_pressure = std::numeric_limits<Real>::max();
   /// Whether the documented pressure range restricts the model
   bool has_pressure_range = false;
 };
