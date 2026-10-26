@@ -1041,4 +1041,55 @@
     expect_err = "needs the PbLi density to convert it to a concentration"
     requirement = 'The system shall return an error when a PbLi solubility model published as an atom fraction is used without fluid properties providing the PbLi density.'
   []
+
+  [pbli_solubility_mixing_rule_pressure_no_range]
+    type = RunApp
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/model=Fukada2013MixingRule
+                Materials/pbli_property/lithium_sieverts_constant=1e22
+                Materials/pbli_property/lead_sieverts_constant=1e20
+                Materials/pbli_property/validity_action=error
+                AuxKernels/set_temperature/value=2000
+                AuxKernels/set_pressure/value=1e9'
+    absent_out = "outside its documented"
+    requirement = 'The system shall not check the temperature or the pressure of the Fukada2013MixingRule PbLi solubility model against any range, since the model has no documented temperature or pressure range, even when a pressure is provided.'
+  []
+
+  [pbli_solubility_pressure_independent_density]
+    type = CSVDiff
+    input = pbli_single_point_pressure_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
+                Materials/pbli_property/model=Reiter1991Tritium
+                AuxKernels/set_temperature/value=600
+                AuxKernels/set_pressure/value=5e4
+                Outputs/file_base=pbli_solubility_pressure_independent_density_out'
+    csvdiff = pbli_solubility_pressure_independent_density_out.csv
+    requirement = 'The system shall evaluate the PbLi density of the fluid properties at the provided pressure when converting an atom-fraction solubility model, and reproduce an independently calculated reference point at 600 K and a pressure of 5e4 Pa, for which the density of LeadLithiumFluidProperties does not depend on the pressure.'
+  []
+
+  [pbli_solubility_density_above_range_warning]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
+                Materials/pbli_property/model=Wu1983
+                Materials/pbli_property/validity_action=ignore
+                AuxKernels/set_temperature/value=1000'
+    expect_out = "LeadLithiumFluidProperties : Temperature out of bounds for the PbLi density computation"
+    requirement = 'The system shall report a solution warning from the fluid properties when the PbLi density used to convert an atom-fraction solubility model is evaluated above its 880 K upper temperature limit, even when the validity action of the model is ignore and 1000 K is inside the documented range of the Wu1983 model.'
+  []
+
+  [pbli_solubility_density_in_range_no_warning]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
+                Materials/pbli_property/model=Wu1983
+                Materials/pbli_property/validity_action=ignore
+                AuxKernels/set_temperature/value=870'
+    absent_out = "Temperature out of bounds for the PbLi density computation"
+    requirement = 'The system shall not report a solution warning from the fluid properties when the PbLi density used to convert an atom-fraction solubility model is evaluated within its 508-880 K temperature range.'
+  []
 []
