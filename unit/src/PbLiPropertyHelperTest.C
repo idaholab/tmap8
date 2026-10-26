@@ -68,6 +68,22 @@ mixingRuleInputs()
   return inputs;
 }
 
+/// PbLi density (g/m^3) of the LeadLithiumFluidProperties of MOOSE, rho = 10520.35 - 1.19051 T in
+/// kg/m^3, written out here independently of the helper
+Real
+mooseDensity(const Real temperature)
+{
+  return (10520.35 - 1.19051 * temperature) * 1000.0;
+}
+
+/// Atom density (atoms/m^3) from the density of MOOSE, written out independently of the helper
+Real
+referenceAtomDensity(const Real temperature, const Real lithium_fraction)
+{
+  return mooseDensity(temperature) * 6.02214076e23 /
+         (lithium_fraction * 6.941 + (1.0 - lithium_fraction) * 207.2);
+}
+
 /// Relative difference between two values
 Real
 relativeError(const Real value, const Real reference)
@@ -79,7 +95,6 @@ relativeError(const Real value, const Real reference)
 /// The enum option strings must stay in sync with the names used in input files
 TEST(PbLiPropertyHelperTest, optionStrings)
 {
-  EXPECT_EQ(getDensityModelOptions(), "LinearExpansion");
   EXPECT_EQ(getDiffusivityModelOptions(),
             "Fauvet1988 Reiter1991 Reiter1991Hydrogen_DelaporteMathurin Reiter1991Deuterium_DelaporteMathurin "
             "Shibuya1987 Terai1992 Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen Okitsu2012Deuterium "
@@ -139,10 +154,6 @@ TEST(PbLiPropertyHelperTest, isInRange)
     EXPECT_FALSE(isInRange(m, m.min_temperature - 1.0)) << m.citation;
     EXPECT_FALSE(isInRange(m, m.max_temperature + 1.0)) << m.citation;
   }
-
-  const auto density = densityModelData(DensityModel::LinearExpansion).metadata;
-  EXPECT_TRUE(isInRange(density, 300.0));
-  EXPECT_TRUE(isInRange(density, 2000.0));
 }
 
 /// The composition check accepts the documented bounds, including 0.157 for Pb-15.7Li, and rejects
@@ -228,23 +239,6 @@ TEST(PbLiPropertyHelperTest, pressureValidity)
             "[1.00e+03, 1.00e+04] Pa. Source: Fauvet and Sannier (1988).");
 }
 
-/// The density (g/m^3) against hand calculations of rho = 1.052e7 (1 - 1.13e-4 T)
-TEST(PbLiPropertyHelperTest, densityValues)
-{
-  const auto data = densityModelData(DensityModel::LinearExpansion);
-  EXPECT_LT(relativeError(computeDensity(data, 700.0), 9.687868e6), 1e-12);
-  EXPECT_LT(relativeError(computeDensity(data, 600.0), 9.806744e6), 1e-12);
-  EXPECT_LT(relativeError(computeDensity(data, 800.0), 9.568992e6), 1e-12);
-
-  // The density decreases with temperature
-  Real previous = computeDensity(data, 300.0);
-  for (Real t = 310.0; t <= 1000.0; t += 10.0)
-  {
-    EXPECT_LT(computeDensity(data, t), previous);
-    previous = computeDensity(data, t);
-  }
-}
-
 /// Diffusivities against independently calculated values D0 * exp(-Ea / (R T))
 TEST(PbLiPropertyHelperTest, diffusivityValues)
 {
@@ -299,8 +293,8 @@ TEST(PbLiPropertyHelperTest, isotopeScaling)
 TEST(PbLiPropertyHelperTest, atomDensity)
 {
   EXPECT_LT(relativeError(averageAtomicMass(0.17), 0.17 * 6.941 + 0.83 * 207.2), 1e-14);
-  EXPECT_LT(relativeError(pbliAtomDensity(700.0, 0.17), 3.369315234138314e+28), 1e-9);
-  EXPECT_LT(relativeError(pbliAtomDensity(700.0, 0.157), 3.3194085592334526e+28), 1e-9);
+  EXPECT_LT(relativeError(atomDensity(mooseDensity(700.0), 0.17), 3.369010920451353e+28), 1e-9);
+  EXPECT_LT(relativeError(atomDensity(mooseDensity(700.0), 0.157), 3.3191087530749322e+28), 1e-9);
 }
 
 /// Solubilities against independently calculated values, in atoms m^-3 Pa^-1/2
@@ -309,16 +303,17 @@ TEST(PbLiPropertyHelperTest, solubilityValues)
   const auto check = [](const SolubilityModel model, const Real temperature, const Real expected)
   {
     const auto data = solubilityModelData(model, mixingRuleInputs());
-    EXPECT_LT(relativeError(computeSolubility(data, temperature, 0.17), expected), 1e-9)
-        << "T = " << temperature;
+    const auto value =
+        computeSolubility(data, temperature, referenceAtomDensity(temperature, 0.17));
+    EXPECT_LT(relativeError(value, expected), 1e-9) << "T = " << temperature;
   };
-  // Atom-fraction fit converted with N(T), mole-based fit converted with N_A
+  // Atom-fraction fit converted with N(T) from the density of MOOSE, mole-based fit with N_A
   // Katsuta1985 is a temperature independent Sieverts constant sqrt(P_atm)/X = 2.9e3
-  check(SolubilityModel::Katsuta1985, 650.0, 3.6723302402533804e+22);
-  check(SolubilityModel::Reiter1991Tritium, 600.0, 6.036714138692476e+20);
+  check(SolubilityModel::Katsuta1985, 650.0, 3.6720335469861126e+22);
+  check(SolubilityModel::Reiter1991Tritium, 600.0, 6.036283241353147e+20);
   check(SolubilityModel::Aiello2006, 750.0, 1.8196216381245049e+22);
-  check(SolubilityModel::Wu1983, 900.0, 2.0804356268488886e+22);
-  check(SolubilityModel::Okitsu2012Hydrogen, 850.0, 1.405695116085559e+21);
+  check(SolubilityModel::Wu1983, 900.0, 2.0801659440595036e+22);
+  check(SolubilityModel::Okitsu2012Hydrogen, 850.0, 1.4055269716915588e+21);
   check(SolubilityModel::Alberro2015, 700.0, 4.4576619799900937e+21);
   // Mixing rule: exp(x ln K_Li + (1 - x) ln K_Pb), independent of temperature
   check(SolubilityModel::Fukada2013MixingRule, 600.0, 2.1877616239495473e+20);
@@ -334,7 +329,7 @@ TEST(PbLiPropertyHelperTest, mixingRuleLimits)
   EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
                                                                 inputs),
                                             700.0,
-                                            inputs.lithium_fraction),
+                                            0.0),
                           1e20),
             1e-12);
 
@@ -342,7 +337,7 @@ TEST(PbLiPropertyHelperTest, mixingRuleLimits)
   EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
                                                                 inputs),
                                             700.0,
-                                            inputs.lithium_fraction),
+                                            0.0),
                           1e22),
             1e-12);
 
@@ -351,7 +346,7 @@ TEST(PbLiPropertyHelperTest, mixingRuleLimits)
   EXPECT_LT(relativeError(computeSolubility(solubilityModelData(SolubilityModel::Fukada2013MixingRule,
                                                                 inputs),
                                             700.0,
-                                            inputs.lithium_fraction),
+                                            0.0),
                           1e21),
             1e-12);
 }
@@ -370,7 +365,8 @@ TEST(PbLiPropertyHelperTest, finiteOverTemperatureSweep)
   for (const auto model : all_solubility_models)
     for (Real t = 300.0; t <= 1200.0; t += 10.0)
     {
-      const auto s = computeSolubility(solubilityModelData(model, mixingRuleInputs()), t, 0.17);
+      const auto s = computeSolubility(
+          solubilityModelData(model, mixingRuleInputs()), t, referenceAtomDensity(t, 0.17));
       EXPECT_TRUE(std::isfinite(s));
       EXPECT_GT(s, 0.0);
     }
@@ -388,11 +384,6 @@ TEST(PbLiPropertyHelperTest, adDerivativeMatchesAnalytic)
     return t;
   };
 
-  // d rho / dT = -rho_0 beta
-  const auto density = densityModelData(DensityModel::LinearExpansion);
-  const auto rho = computeDensity(density, make_ad_temperature());
-  EXPECT_LT(relativeError(rho.derivatives()[0], -density.reference_density * 1.13e-4), 1e-12);
-
   // dD/dT = D Ea / (R T^2)
   for (const auto model : all_diffusivity_models)
   {
@@ -407,15 +398,19 @@ TEST(PbLiPropertyHelperTest, adDerivativeMatchesAnalytic)
   }
 
   // K_s = A exp(-Ea / (R T)) B(T), where B = 1 (atoms, moles) or N(T) (atom fraction), so
-  // dK/dT = K (Ea / (R T^2) + d ln(B) / dT) with d ln(N) / dT = -beta / (1 - beta T)
+  // dK/dT = K (Ea / (R T^2) + d ln(B) / dT) with d ln(N) / dT = -1.19051 / (10520.35 - 1.19051 T)
+  // for the density of MOOSE
   for (const auto model : all_solubility_models)
   {
     const auto data = solubilityModelData(model, mixingRuleInputs());
-    const auto s = computeSolubility(data, make_ad_temperature(), 0.17);
+    const ADReal ad_temperature = make_ad_temperature();
+    const ADReal density_g_per_m3 = (10520.35 - 1.19051 * ad_temperature) * 1000.0;
+    const auto s =
+        computeSolubility(data, ad_temperature, atomDensity(density_g_per_m3, 0.17));
     Real log_derivative =
         data.activation_energy / (ideal_gas_constant * temperature * temperature);
     if (data.basis == SolubilityBasis::AtomFraction)
-      log_derivative += -1.13e-4 / (1.0 - 1.13e-4 * temperature);
+      log_derivative += -1.19051 / (10520.35 - 1.19051 * temperature);
     const Real expected = MetaPhysicL::raw_value(s) * log_derivative;
     if (expected == 0.0)
       EXPECT_DOUBLE_EQ(s.derivatives()[0], 0.0);

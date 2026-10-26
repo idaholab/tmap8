@@ -1,30 +1,6 @@
 [Tests]
-  design = 'DensityPbLi.md TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
+  design = 'TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
   issues = '#484'
-
-  [pbli_density_linearexpansion_csv]
-    type = CSVDiff
-    input = pbli_three_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=DensityPbLi
-                Materials/pbli_property/model=LinearExpansion
-                AuxKernels/temperature_1/value=600
-                AuxKernels/temperature_2/value=700
-                AuxKernels/temperature_3/value=800
-                Outputs/file_base=pbli_density_linearexpansion_out'
-    csvdiff = pbli_density_linearexpansion_out.csv
-    requirement = 'The system shall compute the LinearExpansion PbLi density model across its documented temperature range and expose both regular and AD material properties.'
-  []
-
-  [pbli_density_linearexpansion_reference_point]
-    type = CSVDiff
-    input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=DensityPbLi
-                Materials/pbli_property/model=LinearExpansion
-                AuxKernels/set_temperature/value=700
-                Outputs/file_base=pbli_density_linearexpansion_reference_point_out'
-    csvdiff = pbli_density_linearexpansion_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated LinearExpansion PbLi density reference point at 700 K and expose both regular and AD material properties.'
-  []
 
   [pbli_diffusivity_fauvet1988_csv]
     type = CSVDiff
@@ -342,6 +318,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Wu1983
                 AuxKernels/temperature_1/value=850
                 AuxKernels/temperature_2/value=945
@@ -355,6 +332,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Wu1983
                 AuxKernels/set_temperature/value=945
                 Outputs/file_base=pbli_solubility_wu1983_reference_point_out'
@@ -366,6 +344,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Chan1984
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=673
@@ -379,6 +358,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Chan1984
                 AuxKernels/set_temperature/value=673
                 Outputs/file_base=pbli_solubility_chan1984_reference_point_out'
@@ -390,6 +370,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Katsuta1985
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=648
@@ -403,6 +384,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Katsuta1985
                 AuxKernels/set_temperature/value=648
                 Outputs/file_base=pbli_solubility_katsuta1985_reference_point_out'
@@ -414,6 +396,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fauvet1988
                 AuxKernels/temperature_1/value=718.15
                 AuxKernels/temperature_2/value=723.15
@@ -427,6 +410,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fauvet1988
                 AuxKernels/set_temperature/value=723.15
                 Outputs/file_base=pbli_solubility_fauvet1988_reference_point_out'
@@ -438,6 +422,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Hydrogen
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
@@ -451,6 +436,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Hydrogen
                 AuxKernels/set_temperature/value=604
                 Outputs/file_base=pbli_solubility_reiter1991hydrogen_reference_point_out'
@@ -462,6 +448,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Deuterium
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
@@ -475,6 +462,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Deuterium
                 AuxKernels/set_temperature/value=604
                 Outputs/file_base=pbli_solubility_reiter1991deuterium_reference_point_out'
@@ -486,6 +474,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Tritium
                 AuxKernels/temperature_1/value=508
                 AuxKernels/temperature_2/value=604
@@ -499,6 +488,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Tritium
                 AuxKernels/set_temperature/value=604
                 Outputs/file_base=pbli_solubility_reiter1991tritium_reference_point_out'
@@ -510,6 +500,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Aiello2006
                 Materials/pbli_property/lithium_atomic_fraction=0.158
                 AuxKernels/temperature_1/value=600
@@ -524,6 +515,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Aiello2006
                 Materials/pbli_property/lithium_atomic_fraction=0.158
                 AuxKernels/set_temperature/value=750
@@ -536,6 +528,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Maeda2008
                 AuxKernels/temperature_1/value=573.15
                 AuxKernels/temperature_2/value=773.15
@@ -549,6 +542,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Maeda2008
                 AuxKernels/set_temperature/value=773.15
                 Outputs/file_base=pbli_solubility_maeda2008_reference_point_out'
@@ -560,6 +554,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
@@ -573,6 +568,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Edao2011Hydrogen
                 AuxKernels/set_temperature/value=723
                 Outputs/file_base=pbli_solubility_edao2011hydrogen_reference_point_out'
@@ -584,6 +580,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/temperature_1/value=573
                 AuxKernels/temperature_2/value=723
@@ -597,6 +594,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Edao2011Deuterium
                 AuxKernels/set_temperature/value=723
                 Outputs/file_base=pbli_solubility_edao2011deuterium_reference_point_out'
@@ -608,6 +606,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
@@ -621,6 +620,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okitsu2012Hydrogen
                 AuxKernels/set_temperature/value=873
                 Outputs/file_base=pbli_solubility_okitsu2012hydrogen_reference_point_out'
@@ -632,6 +632,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
@@ -645,6 +646,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okitsu2012Deuterium
                 AuxKernels/set_temperature/value=873
                 Outputs/file_base=pbli_solubility_okitsu2012deuterium_reference_point_out'
@@ -656,6 +658,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
@@ -669,6 +672,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okada2012Hydrogen
                 AuxKernels/set_temperature/value=873
                 Outputs/file_base=pbli_solubility_okada2012hydrogen_reference_point_out'
@@ -680,6 +684,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/temperature_1/value=773
                 AuxKernels/temperature_2/value=873
@@ -693,6 +698,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Okada2012Deuterium
                 AuxKernels/set_temperature/value=873
                 Outputs/file_base=pbli_solubility_okada2012deuterium_reference_point_out'
@@ -704,6 +710,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Alberro2015
                 AuxKernels/temperature_1/value=523
                 AuxKernels/temperature_2/value=722.5
@@ -717,6 +724,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Alberro2015
                 AuxKernels/set_temperature/value=722.5
                 Outputs/file_base=pbli_solubility_alberro2015_reference_point_out'
@@ -728,6 +736,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Penalva2024
                 Materials/pbli_property/lithium_atomic_fraction=0.157
                 AuxKernels/temperature_1/value=514.15
@@ -742,6 +751,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Penalva2024
                 Materials/pbli_property/lithium_atomic_fraction=0.157
                 AuxKernels/set_temperature/value=683.15
@@ -754,6 +764,7 @@
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fukada2013MixingRule
                 Materials/pbli_property/lithium_sieverts_constant=1e22
                 Materials/pbli_property/lead_sieverts_constant=1e20
@@ -769,6 +780,7 @@
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fukada2013MixingRule
                 Materials/pbli_property/lithium_sieverts_constant=1e22
                 Materials/pbli_property/lead_sieverts_constant=1e20
@@ -776,18 +788,6 @@
                 Outputs/file_base=pbli_solubility_fukada2013mixingrule_reference_point_out'
     csvdiff = pbli_solubility_fukada2013mixingrule_reference_point_out.csv
     requirement = 'The system shall reproduce an independently calculated Fukada2013MixingRule PbLi hydrogen isotope solubility reference point at 700 K and expose both regular and AD material properties.'
-  []
-
-  [pbli_density_ad_jacobian]
-    type = PetscJacobianTester
-    input = pbli_ad_property_base.i
-    # The density residual is large (about 1e7 g/m^3) compared with its derivative, so the
-    # finite-difference roundoff exceeds 1e-6. The analytic derivative is checked in the unit tests.
-    ratio_tol = 1e-5
-    cli_args = 'Materials/pbli_property/type=DensityPbLi
-                Materials/pbli_property/model=LinearExpansion
-                Variables/temperature/initial_condition=700'
-    requirement = 'The system shall propagate automatic-differentiation derivatives for the LinearExpansion PbLi density material property.'
   []
 
   [pbli_diffusivity_ad_jacobian]
@@ -807,6 +807,7 @@
     # 1e-6. The analytic derivative is checked to 1e-12 in the unit tests.
     ratio_tol = 1e-5
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+                Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Tritium
                 Variables/temperature/initial_condition=700'
     requirement = 'The system shall propagate automatic-differentiation derivatives for the Reiter1991Tritium PbLi hydrogen isotope solubility material property.'
@@ -847,7 +848,7 @@
   [pbli_solubility_out_of_range_warning]
     type = RunApp
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=500'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=500'
     expect_out = "TritiumSolubilityPbLi : In pbli_property: model 'Katsuta1985' is being used outside its documented validity range"
     requirement = 'The system shall continue the run and report a solution warning when the Katsuta1985 PbLi hydrogen solubility model is used outside its documented temperature range with the warning validity action.'
   []
@@ -855,17 +856,9 @@
   [pbli_solubility_out_of_range_ignore]
     type = RunApp
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=ignore AuxKernels/set_temperature/value=500'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=ignore AuxKernels/set_temperature/value=500'
     absent_out = "outside its documented validity range"
     requirement = 'The system shall not report any message when the Katsuta1985 PbLi hydrogen solubility model is used outside its documented temperature range with the ignore validity action.'
-  []
-
-  [pbli_density_out_of_range_ignore]
-    type = RunApp
-    input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=DensityPbLi Materials/pbli_property/model=LinearExpansion Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=2000'
-    absent_out = "outside its documented validity range"
-    requirement = 'The system shall not report a validity message for the LinearExpansion PbLi density model, which has no documented temperature range.'
   []
 
   [pbli_diffusivity_composition_error]
@@ -897,7 +890,7 @@
     type = RunApp
     allow_warnings = true
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Penalva2024 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=700'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Penalva2024 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=700'
     expect_out = "because lithium atomic fraction 0.1700 is outside \[0.1570, 0.1570\]"
     requirement = 'The system shall report a warning when the Penalva2024 PbLi solubility model is used with the default lithium atomic fraction, which is outside its documented single-composition range.'
   []
@@ -937,7 +930,7 @@
   [pbli_solubility_scaled_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Reiter1991Tritium
                 Materials/pbli_property/prefactor_scaling=0.5
                 Materials/pbli_property/activation_energy_scaling=0.9
@@ -958,7 +951,7 @@
   [pbli_solubility_mixing_rule_missing_constants_error]
     type = RunException
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Fukada2013MixingRule'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Fukada2013MixingRule'
     expect_err = "The Fukada2013MixingRule model requires this parameter"
     requirement = 'The system shall return an error when the Fukada2013MixingRule PbLi solubility model is used without the Sieverts constants of pure lithium and lead.'
   []
@@ -966,7 +959,7 @@
   [pbli_solubility_mixing_rule_pure_lead_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fukada2013MixingRule
                 Materials/pbli_property/lithium_atomic_fraction=0
                 Materials/pbli_property/lithium_sieverts_constant=1e22
@@ -1028,7 +1021,7 @@
   [pbli_solubility_pressure_error]
     type = RunException
     input = pbli_single_point_pressure_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
     expect_err = "because pressure 2.00e\+05 Pa is outside \[1.48e\+04, 1.06e\+05\] Pa"
     requirement = 'The system shall return a specific error message when a PbLi hydrogen isotope solubility model is used with a pressure outside its documented pressure range, given in atm for the Katsuta1985 model.'
   []
@@ -1036,8 +1029,16 @@
   [pbli_solubility_pressure_warning]
     type = RunApp
     input = pbli_single_point_pressure_base.i
-    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=warning AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
     expect_out = "TritiumSolubilityPbLi : In pbli_property: model 'Katsuta1985' is being used outside its documented pressure range"
     requirement = 'The system shall continue the run and report a solution warning when a PbLi hydrogen isotope solubility model is used with a pressure outside its documented pressure range with the warning validity action.'
+  []
+
+  [pbli_solubility_atom_fraction_missing_fp_error]
+    type = RunException
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/model=Katsuta1985 AuxKernels/set_temperature/value=650'
+    expect_err = "needs the PbLi density to convert it to a concentration"
+    requirement = 'The system shall return an error when a PbLi solubility model published as an atom fraction is used without fluid properties providing the PbLi density.'
   []
 []

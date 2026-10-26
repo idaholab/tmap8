@@ -1,7 +1,8 @@
 # PbLi single-point material property regression base with a pressure field
 # Unit system: temperature in K; property units depend on the selected material type
 # and pressure in Pa
-# (density in g/m^3, diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2)
+# (diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2), density from
+# LeadLithiumFluidProperties in kg/m^3
 
 [Mesh]
   type = GeneratedMesh
@@ -32,6 +33,12 @@
     variable = pressure
     value = 5000
     execute_on = INITIAL
+  []
+[]
+
+[FluidProperties]
+  [pbli_fp]
+    type = LeadLithiumFluidProperties
   []
 []
 

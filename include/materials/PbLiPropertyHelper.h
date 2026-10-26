@@ -19,15 +19,16 @@
 #include <string>
 
 /**
- * Shared data and helper functions for the PbLi property materials (DensityPbLi,
- * TritiumDiffusivityPbLi and TritiumSolubilityPbLi).
+ * Shared data and helper functions for the PbLi property materials (TritiumDiffusivityPbLi and
+ * TritiumSolubilityPbLi).
  *
  * Each literature model is described by a plain data struct holding its correlation coefficients,
  * the hydrogen isotope it was measured for, and its documented validity range.
  *
- * The code is unit-agnostic. The coefficients are stored in the units g/m$^3$ (density), g/mol
- * (molar masses), m$^2$/s, J/mol, K and atoms m$^{-3}$ Pa$^{-1/2}$, after the conversions
- * documented in the model data.
+ * The code is unit-agnostic. The coefficients are stored in the units g/mol (molar masses),
+ * m$^2$/s, J/mol, K, Pa and atoms m$^{-3}$ Pa$^{-1/2}$, after the conversions documented in the
+ * model data. The PbLi density is not provided here: it comes from MOOSE's
+ * LeadLithiumFluidProperties.
  */
 namespace PbLiPropertyHelper
 {
@@ -47,9 +48,6 @@ const Real lead_molar_mass = 207.2;
 /// Lithium atomic fraction range of the eutectic Pb-17Li used by most correlations (-)
 const Real eutectic_min_lithium_fraction = 0.157;
 const Real eutectic_max_lithium_fraction = 0.17;
-
-/// Density models available for PbLi
-CreateMooseEnumClass(DensityModel, LinearExpansion);
 
 /**
  * Tritium diffusivity models available for PbLi.
@@ -221,17 +219,6 @@ isotopeMessage(const std::string & object_name,
          metadata.validity_note;
 }
 
-/// Linear density model: rho = reference_density (1 - expansion_coefficient T)
-struct DensityModelData
-{
-  /// Citation, validity range and notes
-  ModelMetadata metadata;
-  /// Density extrapolated to 0 K, rho_0 (g/m$^3$)
-  Real reference_density;
-  /// Volumetric thermal expansion coefficient (1/K)
-  Real expansion_coefficient;
-};
-
 /// Arrhenius diffusivity model: D = prefactor * exp(-activation_energy / (R T))
 struct DiffusivityModelData
 {
@@ -244,31 +231,6 @@ struct DiffusivityModelData
   /// Hydrogen isotope the correlation was measured for
   Isotope isotope;
 };
-
-/**
- * Look up the coefficients and validity range of a density model.
- * @param model the density model
- * @return the model data
- */
-inline DensityModelData
-densityModelData(const DensityModel model)
-{
-  // No default case: the compiler warns if a model is added to the enum without data
-  switch (model)
-  {
-    case DensityModel::LinearExpansion:
-      // rho = 1.052e7 (1 - 1.13e-4 T) g/m^3 is numerically equivalent to the
-      // rho = 10520 - 1.19 T kg/m^3 form of Mas de les Valls et al. (2008) to within 0.1 % over
-      // 500-900 K.
-      return {pbliMetadata("Linear PbLi density correlation",
-                           no_min_temperature,
-                           no_max_temperature,
-                           "No temperature range is documented."),
-              1.052e7,
-              1.13e-4};
-  }
-  mooseError("Unsupported PbLi density model.");
-}
 
 /**
  * Look up the coefficients and validity range of a diffusivity model, as published.
@@ -453,18 +415,6 @@ diffusivityModelDataForIsotope(const DiffusivityModel model,
 }
 
 /**
- * Compute the density rho = rho_0 (1 - beta T).
- * @param data the model data
- * @param temperature the temperature (K); may be a regular or AD type
- */
-template <typename T>
-inline T
-computeDensity(const DensityModelData & data, const T & temperature)
-{
-  return data.reference_density * (1.0 - data.expansion_coefficient * temperature);
-}
-
-/**
  * Compute the diffusivity D = D_0 exp(-E_a / (R T)).
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
@@ -527,18 +477,19 @@ averageAtomicMass(const Real lithium_fraction)
   return lithium_fraction * lithium_molar_mass + (1.0 - lithium_fraction) * lead_molar_mass;
 }
 
+/// Conversion from the kg of the MOOSE fluid properties to the g of the molar masses (g/kg)
+const Real g_per_kg = 1000.0;
+
 /**
- * Number density of metal atoms in PbLi, N(T) = rho(T) N_A / M, with rho(T) from the default
- * density model (atoms/m^3).
- * @param temperature the temperature (K); may be a regular or AD type
+ * Number density of metal atoms in PbLi, N = rho N_A / M (atoms/m^3).
+ * @param density the mass density (g/m^3); may be a regular or AD type
  * @param lithium_fraction the lithium atomic fraction (-)
  */
 template <typename T>
 inline T
-pbliAtomDensity(const T & temperature, const Real lithium_fraction)
+atomDensity(const T & density, const Real lithium_fraction)
 {
-  return computeDensity(densityModelData(DensityModel::LinearExpansion), temperature) *
-         avogadro_number / averageAtomicMass(lithium_fraction);
+  return density * avogadro_number / averageAtomicMass(lithium_fraction);
 }
 
 /**
@@ -773,15 +724,16 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
 /**
  * Compute the Sieverts solubility K_s = prefactor exp(-E_a / (R T)), converted from the basis of
  * the published fit to atoms m^-3 Pa^-1/2 such that C = K_s sqrt(P) with C in atoms/m^3 and P in Pa.
- * Mole-based fits are multiplied by the Avogadro number, and atom-fraction fits by the temperature
- * dependent atom density N(T), assuming that the atom fraction is much smaller than 1.
+ * Mole-based fits are multiplied by the Avogadro number, and atom-fraction fits by the atom density
+ * N (see atomDensity()), assuming that the atom fraction is much smaller than 1.
  * @param data the model data
  * @param temperature the temperature (K); may be a regular or AD type
- * @param lithium_fraction the lithium atomic fraction (-), used by atom-fraction fits
+ * @param atom_density the number density of metal atoms (atoms/m^3), only used by atom-fraction
+ *                     fits
  */
 template <typename T>
 inline T
-computeSolubility(const SolubilityModelData & data, const T & temperature, const Real lithium_fraction)
+computeSolubility(const SolubilityModelData & data, const T & temperature, const T & atom_density)
 {
   using std::exp;
   const T arrhenius =
@@ -794,7 +746,7 @@ computeSolubility(const SolubilityModelData & data, const T & temperature, const
     case SolubilityBasis::MolesPerVolume:
       return arrhenius * avogadro_number;
     case SolubilityBasis::AtomFraction:
-      return arrhenius * pbliAtomDensity(temperature, lithium_fraction);
+      return arrhenius * atom_density;
   }
   mooseError("Unsupported PbLi solubility basis.");
 }

@@ -1,11 +1,11 @@
 [Tests]
-  design = 'DensityPbLi.md TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
+  design = 'TritiumDiffusivityPbLi.md TritiumSolubilityPbLi.md'
   issues = '#484'
 
   [option_strings]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.optionStrings
-    requirement = 'The system shall expose the PbLi density model, diffusivity model, solubility model and hydrogen isotope options with the names used in input files.'
+    requirement = 'The system shall expose the PbLi diffusivity model, solubility model and hydrogen isotope options with the names used in input files.'
   []
   [validity_ranges]
     type = GoogleTest
@@ -32,11 +32,6 @@
     unit_test = PbLiPropertyHelperTest.pressureValidity
     requirement = 'The system shall identify whether a pressure is inside the documented pressure range of a PbLi model, including at its bounds, for a single-pressure range, and for a model without a pressure range, and return a message that names the object, model, pressure and range otherwise.'
   []
-  [density_values]
-    type = GoogleTest
-    unit_test = PbLiPropertyHelperTest.densityValues
-    requirement = 'The system shall reproduce independently calculated values of the PbLi density and decrease the density as the temperature increases.'
-  []
   [diffusivity_values]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.diffusivityValues
@@ -50,12 +45,12 @@
   [atom_density]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.atomDensity
-    requirement = 'The system shall compute the number density of metal atoms in PbLi from the temperature-dependent density and the lithium atomic fraction.'
+    requirement = 'The system shall compute the number density of metal atoms in PbLi from the mass density and the lithium atomic fraction.'
   []
   [solubility_values]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.solubilityValues
-    requirement = 'The system shall convert PbLi solubility correlations published as atom fractions and as molar concentrations to atoms m$^{-3}$ Pa$^{-1/2}$ and reproduce independently calculated values.'
+    requirement = 'The system shall convert PbLi solubility correlations published as atom fractions and as molar concentrations to atoms m$^{-3}$ Pa$^{-1/2}$, using the PbLi density of the MOOSE fluid properties, and reproduce independently calculated values.'
   []
   [mixing_rule_limits]
     type = GoogleTest
@@ -70,6 +65,6 @@
   [ad_derivative]
     type = GoogleTest
     unit_test = PbLiPropertyHelperTest.adDerivativeMatchesAnalytic
-    requirement = 'The system shall compute automatic differentiation derivatives of the PbLi density, diffusivity and solubility with respect to temperature that match the analytic derivatives.'
+    requirement = 'The system shall compute automatic differentiation derivatives of the PbLi diffusivity and solubility with respect to temperature that match the analytic derivatives.'
   []
 []

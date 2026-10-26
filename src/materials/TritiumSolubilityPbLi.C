@@ -8,6 +8,8 @@
 
 #include "TritiumSolubilityPbLi.h"
 
+#include "SinglePhaseFluidProperties.h"
+
 registerMooseObject("TMAP8App", TritiumSolubilityPbLi);
 
 namespace
@@ -43,8 +45,16 @@ TritiumSolubilityPbLi::validParams()
                         "Lithium atomic fraction of the PbLi (-). It is checked against the "
                         "documented composition range of the model, converts atom-fraction "
                         "correlations to concentrations, and weights the mixing rule.");
+  params.addParam<UserObjectName>(
+      "fp",
+      "The fluid properties providing the PbLi density, e.g. LeadLithiumFluidProperties. The "
+      "density, in kg/m^3, is needed to convert the correlations published as atom fractions to "
+      "concentrations. It is required by these models only, and unused by the others.");
   params.addCoupledVar("pressure",
-                       "The gas pressure in Pa. It is only used to check the documented pressure range of the selected model, and the check is skipped if it is not provided.");
+                       "The gas pressure in Pa, at which the density is evaluated and the "
+                       "documented pressure range of the selected model is checked. The standard "
+                       "atmosphere is used to evaluate the density if it is not provided, and the "
+                       "pressure range is then not checked.");
   params.addParam<Real>("lithium_sieverts_constant",
                         std::numeric_limits<Real>::quiet_NaN(),
                         "Sieverts constant of pure liquid lithium in atoms m^-3 Pa^-1/2. Required "
@@ -65,6 +75,7 @@ TritiumSolubilityPbLi::TritiumSolubilityPbLi(const InputParameters & parameters)
                                  model, solubilityInputs(parameters));
                            }),
     _lithium_fraction(getParam<Real>("lithium_atomic_fraction")),
+    _fp(isParamValid("fp") ? &getUserObject<SinglePhaseFluidProperties>("fp") : nullptr),
     _pressure(isCoupled("pressure") ? &adCoupledValue("pressure") : nullptr),
     _solubility(declareProperty<Real>(getParam<MaterialPropertyName>("property_name"))),
     _ad_solubility(declareADProperty<Real>(getParam<MaterialPropertyName>("ad_property_name")))
@@ -78,6 +89,13 @@ TritiumSolubilityPbLi::TritiumSolubilityPbLi(const InputParameters & parameters)
         paramError(name, "The Sieverts constant must be positive.");
     }
 
+  if (_model_data.basis == PbLiPropertyHelper::SolubilityBasis::AtomFraction && !_fp)
+    paramError("fp",
+               "The ",
+               _model_name,
+               " model is published as an atom fraction and needs the PbLi density to convert it "
+               "to a concentration. Provide the fluid properties, e.g. LeadLithiumFluidProperties.");
+
   checkCompositionValidity(_lithium_fraction, "lithium_atomic_fraction");
 }
 
@@ -88,8 +106,18 @@ TritiumSolubilityPbLi::computeQpProperties()
   if (_pressure)
     checkPressureValidity(MetaPhysicL::raw_value((*_pressure)[_qp]));
 
+  // Number density of metal atoms from the PbLi density of the fluid properties (kg/m^3 to g/m^3)
+  ADReal atom_density = 0.0;
+  if (_fp)
+  {
+    const ADReal pressure = _pressure ? (*_pressure)[_qp] : ADReal(PhysicalConstants::atm_to_Pa);
+    const ADReal density =
+        _fp->rho_from_p_T(pressure, _temperature[_qp]) * PbLiPropertyHelper::g_per_kg;
+    atom_density = PbLiPropertyHelper::atomDensity(density, _lithium_fraction);
+  }
+
   const auto ad_value =
-      PbLiPropertyHelper::computeSolubility(_model_data, _temperature[_qp], _lithium_fraction);
+      PbLiPropertyHelper::computeSolubility(_model_data, _temperature[_qp], atom_density);
   _solubility[_qp] = MetaPhysicL::raw_value(ad_value);
   _ad_solubility[_qp] = ad_value;
 }

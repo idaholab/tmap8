@@ -12,10 +12,13 @@
 
 #include "PbLiPropertyHelper.h"
 
+class SinglePhaseFluidProperties;
+
 /**
  * Computes the hydrogen isotope solubility in PbLi from literature correlations, converted to
  * atoms m$^{-3}$ Pa$^{-1/2}$. The solubility is provided as both a regular and an AD material
- * property.
+ * property. The PbLi density needed to convert atom-fraction correlations comes from the fluid
+ * properties of MOOSE (LeadLithiumFluidProperties).
  */
 class TritiumSolubilityPbLi
   : public ValidatedModelMaterial<PbLiPropertyHelper::SolubilityModel,
@@ -31,6 +34,8 @@ protected:
 
   /// Lithium atomic fraction of the PbLi (-)
   const Real _lithium_fraction;
+  /// Fluid properties providing the PbLi density, null if the model does not need it
+  const SinglePhaseFluidProperties * const _fp;
   /// Pressure (Pa), if provided, used to check the documented pressure range
   const ADVariableValue * const _pressure;
   /// Regular solubility material property
