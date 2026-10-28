@@ -17,24 +17,24 @@ hydrogen isotopes, temperature and pressure ranges, and compositions.
 The implemented diffusivity models are summarized in [pbli_diffusivity_models_table] and
 plotted in [pbli_diffusivity_models_figure].
 
-!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models, in m$^2$/s. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md). The composition is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li). "No documented range" means that the source does not document a range for that quantity, so it is not checked.
-| Enum | Expression used in TMAP8 | Temperature range (K) | Pressure range (Pa) | Composition $x_{Li}$ | Measured isotope | Reference | Notes |
-| :- | :- | :- | :- | :- | :- | :- | :- |
-| `Fauvet1988` | $D = 1.5\times10^{-9}$ | 718.15-728.15 | $1\times10^{3}$-$1\times10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent. |
-| `Reiter1991` | $D = 4.03\times10^{-8}\exp(-19.5\times10^3/RT)$ | 508-700 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Isotope-averaged fit for eutectic Pb-17Li; see Reiter1991Hydrogen_DelaporteMathurin and Reiter1991Deuterium_DelaporteMathurin for the isotope-specific fits. |
-| `Reiter1991Hydrogen_DelaporteMathurin` | $D = 7.48\times10^{-8}\exp(-22.956\times10^3/RT)$ | 524-690 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 16 digitized hydrogen data points. |
-| `Reiter1991Deuterium_DelaporteMathurin` | $D = 1.38\times10^{-8}\exp(-13.609\times10^3/RT)$ | 524-691 | $1\times10^{3}$-$1\times10^{5}$ | 0.157-0.17 | deuterium | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 6 digitized deuterium data points. |
-| `Shibuya1987` | $D = 2.62\times10^{-9}\exp(-6.63\times10^3/RT)$ | 573.15-773.15 | no documented range | 0.157-0.17 | tritium | [!cite](Shibuya1987PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium, isothermal release from neutron-irradiated Li17Pb83. Arrhenius fit of the three published values. |
-| `Terai1992` | $D = 2.5\times10^{-7}\exp(-27\times10^3/RT)$ | 573.15-973.15 | $3\times10^{3}$ | 0.157-0.17 | tritium | [!cite](Terai1992PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium diffusivity fit in Pb-17Li under neutron irradiation. |
-| `Maeda2008` | $D = 1.8\times10^{-8}\exp(-11.59\times10^3/RT)$ | 573.15-973.15 | no documented range | 0.157-0.17 | hydrogen | [!cite](Maeda2008) | Hydrogen fit from unsteady permeation through molten Li-Pb. Surface resistance affected the data below 673 K. |
-| `Edao2011Hydrogen` | $D = 8.18\times10^{-8}\exp(-15.8\times10^3/RT)$ | 573-873 | no documented range | 0.157-0.17 | hydrogen | [!cite](Edao2011PbLi) | Hydrogen, transient permeation through Li17Pb83. |
-| `Edao2011Deuterium` | $D = 5.73\times10^{-8}\exp(-13.6\times10^3/RT)$ | 573-873 | no documented range | 0.157-0.17 | deuterium | [!cite](Edao2011PbLi) | Deuterium, transient permeation through Li17Pb83. |
-| `Okitsu2012Hydrogen` | $D = 2\times10^{-8}\exp(-11.2\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | hydrogen | [!cite](Okitsu2012PbLi) | Hydrogen in two-component (H + D) permeation through Li17Pb83. |
-| `Okitsu2012Deuterium` | $D = 4.8\times10^{-8}\exp(-20.3\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | deuterium | [!cite](Okitsu2012PbLi) | Deuterium in two-component (H + D) permeation through Li17Pb83. |
-| `Okada2012Hydrogen` | $D = 4.68\times10^{-8}\exp(-17.6\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | hydrogen | [!cite](Okada2012PbLi) | Hydrogen, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
-| `Okada2012Deuterium` | $D = 2.64\times10^{-8}\exp(-15.6\times10^3/RT)$ | 773-973 | no documented range | 0.157-0.17 | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
+!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models, in m$^2$/s. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md). All models assume the eutectic composition, with a lithium atomic fraction $x_{Li}$ between 0.157 and 0.17 (Pb-17Li). Quantities marked with \* do not have a documented range.
+| Enum | Expression used in TMAP8 | Temperature range (K) | Pressure range (Pa) | Measured isotope | Reference | Notes |
+| :- | :- | :- | :- | :- | :- | :- |
+| `Fauvet1988` | $D = 1.5\times10^{-9}$ | 718.15-728.15 | $10^{3}$-$10^{4}$ | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent. |
+| `Reiter1991` | $D = 4.03\times10^{-8}\exp(-19.5\times10^3/RT)$ | 508-700 | $10^{3}$-$10^{5}$ | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Isotope-averaged fit for eutectic Pb-17Li; see Reiter1991Hydrogen_HTM and Reiter1991Deuterium_HTM for the isotope-specific fits. |
+| `Reiter1991Hydrogen_HTM` | $D = 7.48\times10^{-8}\exp(-22.956\times10^3/RT)$ | 524-690 | $10^{3}$-$10^{5}$ | hydrogen | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 16 digitized hydrogen data points. |
+| `Reiter1991Deuterium_HTM` | $D = 1.38\times10^{-8}\exp(-13.609\times10^3/RT)$ | 524-691 | $10^{3}$-$10^{5}$ | deuterium | [!cite](Reiter1991PbLi), [!cite](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023) | Arrhenius fit of Reiter's 6 digitized deuterium data points. |
+| `Shibuya1987` | $D = 2.62\times10^{-9}\exp(-6.63\times10^3/RT)$ | 573.15-773.15 | \* | tritium | [!cite](Shibuya1987PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium, isothermal release from neutron-irradiated Li17Pb83. Arrhenius fit of the three published values. |
+| `Terai1992` | $D = 2.5\times10^{-7}\exp(-27\times10^3/RT)$ | 573.15-973.15 | $3\times10^{3}$ | tritium | [!cite](Terai1992PbLi), [!cite](MasDeLesValls2008PbLi) | Tritium diffusivity fit in Pb-17Li under neutron irradiation. |
+| `Maeda2008` | $D = 1.8\times10^{-8}\exp(-11.59\times10^3/RT)$ | 573.15-973.15 | \* | hydrogen | [!cite](Maeda2008) | Hydrogen fit from unsteady permeation through molten Li-Pb. Surface resistance affected the data below 673 K. |
+| `Edao2011Hydrogen` | $D = 8.18\times10^{-8}\exp(-15.8\times10^3/RT)$ | 573-873 | \* | hydrogen | [!cite](Edao2011PbLi) | Hydrogen, transient permeation through Li17Pb83. |
+| `Edao2011Deuterium` | $D = 5.73\times10^{-8}\exp(-13.6\times10^3/RT)$ | 573-873 | \* | deuterium | [!cite](Edao2011PbLi) | Deuterium, transient permeation through Li17Pb83. |
+| `Okitsu2012Hydrogen` | $D = 2\times10^{-8}\exp(-11.2\times10^3/RT)$ | 773-973 | \* | hydrogen | [!cite](Okitsu2012PbLi) | Hydrogen in two-component (H + D) permeation through Li17Pb83. |
+| `Okitsu2012Deuterium` | $D = 4.8\times10^{-8}\exp(-20.3\times10^3/RT)$ | 773-973 | \* | deuterium | [!cite](Okitsu2012PbLi) | Deuterium in two-component (H + D) permeation through Li17Pb83. |
+| `Okada2012Hydrogen` | $D = 4.68\times10^{-8}\exp(-17.6\times10^3/RT)$ | 773-973 | \* | hydrogen | [!cite](Okada2012PbLi) | Hydrogen, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
+| `Okada2012Deuterium` | $D = 2.64\times10^{-8}\exp(-15.6\times10^3/RT)$ | 773-973 | \* | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
 
-Models whose name ends with `_DelaporteMathurin` are Arrhenius fits of the data points of
+Models whose name ends with `_HTM` are Arrhenius fits of the data points of
 [!cite](Reiter1991PbLi) digitized in the h-transport-materials database
 [!citep](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023). `Reiter1991` is the
 isotope-averaged expression usually quoted for [!cite](Reiter1991PbLi).
