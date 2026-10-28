@@ -25,8 +25,8 @@ namespace
 const std::vector<DiffusivityModel> all_diffusivity_models = {
     DiffusivityModel::Fauvet1988,
     DiffusivityModel::Reiter1991,
-    DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin,
-    DiffusivityModel::Reiter1991Deuterium_DelaporteMathurin,
+    DiffusivityModel::Reiter1991Hydrogen_HTM,
+    DiffusivityModel::Reiter1991Deuterium_HTM,
     DiffusivityModel::Shibuya1987,
     DiffusivityModel::Terai1992,
     DiffusivityModel::Maeda2008,
@@ -96,8 +96,8 @@ relativeError(const Real value, const Real reference)
 TEST(PbLiPropertyHelperTest, optionStrings)
 {
   EXPECT_EQ(getDiffusivityModelOptions(),
-            "Fauvet1988 Reiter1991 Reiter1991Hydrogen_DelaporteMathurin "
-            "Reiter1991Deuterium_DelaporteMathurin "
+            "Fauvet1988 Reiter1991 Reiter1991Hydrogen_HTM "
+            "Reiter1991Deuterium_HTM "
             "Shibuya1987 Terai1992 Maeda2008 Edao2011Hydrogen Edao2011Deuterium Okitsu2012Hydrogen "
             "Okitsu2012Deuterium "
             "Okada2012Hydrogen Okada2012Deuterium");
@@ -256,7 +256,7 @@ TEST(PbLiPropertyHelperTest, diffusivityValues)
   check(DiffusivityModel::Maeda2008, 650.0, 2.1081760666882994e-09);
   check(DiffusivityModel::Edao2011Hydrogen, 700.0, 5.417087842613871e-09);
   check(DiffusivityModel::Shibuya1987, 673.15, 8.013847337257099e-10);
-  check(DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin, 600.0, 7.50660030379591e-10);
+  check(DiffusivityModel::Reiter1991Hydrogen_HTM, 600.0, 7.50660030379591e-10);
   check(DiffusivityModel::Okada2012Deuterium, 850.0, 2.903777724542236e-09);
   // Fauvet1988 is a single datum, treated as temperature independent
   check(DiffusivityModel::Fauvet1988, 723.15, 1.5e-9);

@@ -56,8 +56,8 @@ const Real eutectic_max_lithium_fraction = 0.17;
 CreateMooseEnumClass(DiffusivityModel,
                      Fauvet1988,
                      Reiter1991,
-                     Reiter1991Hydrogen_DelaporteMathurin,
-                     Reiter1991Deuterium_DelaporteMathurin,
+                     Reiter1991Hydrogen_HTM,
+                     Reiter1991Deuterium_HTM,
                      Shibuya1987,
                      Terai1992,
                      Maeda2008,
@@ -264,15 +264,15 @@ diffusivityModelData(const DiffusivityModel model)
                       508.0,
                       700.0,
                       "Isotope-averaged fit for eutectic Pb-17Li; see "
-                      "Reiter1991Hydrogen_DelaporteMathurin and "
-                      "Reiter1991Deuterium_DelaporteMathurin for the isotope-specific fits."),
+                      "Reiter1991Hydrogen_HTM and "
+                      "Reiter1991Deuterium_HTM for the isotope-specific fits."),
                   1.0e3,
                   1.0e5),
               4.03e-8,
               19500.0,
               Isotope::H};
 
-    case DiffusivityModel::Reiter1991Hydrogen_DelaporteMathurin:
+    case DiffusivityModel::Reiter1991Hydrogen_HTM:
       // Fit of 16 digitized H data points from Reiter1991
       // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit diverge by
       // up to ~25 % at the ends of the range.
@@ -287,7 +287,7 @@ diffusivityModelData(const DiffusivityModel model)
               22956.0,
               Isotope::H};
 
-    case DiffusivityModel::Reiter1991Deuterium_DelaporteMathurin:
+    case DiffusivityModel::Reiter1991Deuterium_HTM:
       // Fit of 6 digitized D data points
       // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and
       // ~0.8 at 773 K, i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of
