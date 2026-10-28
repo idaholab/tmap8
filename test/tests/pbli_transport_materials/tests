@@ -50,52 +50,52 @@
     requirement = 'The system shall reproduce an independently calculated Reiter1991 PbLi hydrogen isotope diffusivity reference point at 604 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991hydrogen_delaportemathurin_csv]
+  [pbli_diffusivity_reiter1991hydrogen_htm_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991Hydrogen_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Hydrogen_HTM
                 AuxKernels/temperature_1/value=524
                 AuxKernels/temperature_2/value=607
                 AuxKernels/temperature_3/value=690
-                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_delaportemathurin_out'
-    csvdiff = pbli_diffusivity_reiter1991hydrogen_delaportemathurin_out.csv
-    requirement = 'The system shall compute the Reiter1991Hydrogen_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_htm_out'
+    csvdiff = pbli_diffusivity_reiter1991hydrogen_htm_out.csv
+    requirement = 'The system shall compute the Reiter1991Hydrogen_HTM PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point]
+  [pbli_diffusivity_reiter1991hydrogen_htm_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991Hydrogen_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Hydrogen_HTM
                 AuxKernels/set_temperature/value=607
-                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point_out'
-    csvdiff = pbli_diffusivity_reiter1991hydrogen_delaportemathurin_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991Hydrogen_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991hydrogen_htm_reference_point_out'
+    csvdiff = pbli_diffusivity_reiter1991hydrogen_htm_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Hydrogen_HTM PbLi hydrogen isotope diffusivity reference point at 607 K and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991deuterium_delaportemathurin_csv]
+  [pbli_diffusivity_reiter1991deuterium_htm_csv]
     type = CSVDiff
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991Deuterium_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Deuterium_HTM
                 AuxKernels/temperature_1/value=524
                 AuxKernels/temperature_2/value=607.5
                 AuxKernels/temperature_3/value=691
-                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_delaportemathurin_out'
-    csvdiff = pbli_diffusivity_reiter1991deuterium_delaportemathurin_out.csv
-    requirement = 'The system shall compute the Reiter1991Deuterium_DelaporteMathurin PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_htm_out'
+    csvdiff = pbli_diffusivity_reiter1991deuterium_htm_out.csv
+    requirement = 'The system shall compute the Reiter1991Deuterium_HTM PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
   []
 
-  [pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point]
+  [pbli_diffusivity_reiter1991deuterium_htm_reference_point]
     type = CSVDiff
     input = pbli_single_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
-                Materials/pbli_property/model=Reiter1991Deuterium_DelaporteMathurin
+                Materials/pbli_property/model=Reiter1991Deuterium_HTM
                 AuxKernels/set_temperature/value=607.5
-                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point_out'
-    csvdiff = pbli_diffusivity_reiter1991deuterium_delaportemathurin_reference_point_out.csv
-    requirement = 'The system shall reproduce an independently calculated Reiter1991Deuterium_DelaporteMathurin PbLi hydrogen isotope diffusivity reference point at 607.5 K and expose both regular and AD material properties.'
+                Outputs/file_base=pbli_diffusivity_reiter1991deuterium_htm_reference_point_out'
+    csvdiff = pbli_diffusivity_reiter1991deuterium_htm_reference_point_out.csv
+    requirement = 'The system shall reproduce an independently calculated Reiter1991Deuterium_HTM PbLi hydrogen isotope diffusivity reference point at 607.5 K and expose both regular and AD material properties.'
   []
 
   [pbli_diffusivity_shibuya1987_csv]
