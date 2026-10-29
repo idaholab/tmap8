@@ -23,6 +23,23 @@ If parameters are to be made available to external control objects, there is sti
 
 !listing test/tests/fuel_cycle_Abdou/fuel_cycle_abdou_generic.i link=false block=Postprocessors
 
+## Supported functor types
+
+Because the system is zero-dimensional, all functor parameters are evaluated at a single spatial location set by [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point), which defaults to the origin. The functors may be any of the following:
+
+- [Postprocessors](/syntax/Postprocessors) and constant values,
+- [Functions](/syntax/Functions), which are evaluated at [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point) and at the time matching the selected solution state,
+- scalar variables,
+- field variables (finite element or finite volume) and [FunctorMaterials](/syntax/FunctorMaterials). These require [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point) to lie inside the mesh, in a subdomain where the functor is defined.
+
+The kernel checks these requirements at initial setup. If [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point) lies outside the mesh, or in a subdomain outside the block restriction of an element-dependent functor, the simulation stops with an error that names the functor and the parameter it was supplied to.
+
+In parallel, element-dependent functors are evaluated once per residual and Jacobian evaluation on the process that owns the element containing [!param](/ScalarKernels/FuelCycleSystemScalarKernel/evaluation_point), and the values are broadcast to all processes. Simulations with replicated or distributed meshes therefore give the same result as serial runs.
+
+The following input shows each of these functor types defined so that it reproduces the same sink term. Each one is selected in turn through `other_sinks` in the test suite.
+
+!listing test/tests/fuel_cycle_Abdou/ss_kernel_functors.i link=false
+
 As a reminder, the system of variables should be defined with the [!param](/Variables/family) attribute set to `SCALAR` for each variable.
 
 !listing test/tests/fuel_cycle_Abdou/fuel_cycle_abdou_generic.i link=false block=Variables/T_01_BZ
