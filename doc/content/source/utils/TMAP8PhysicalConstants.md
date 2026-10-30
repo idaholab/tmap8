@@ -15,3 +15,4 @@ This object lists physical constants to use consistent values across TMAP8. It c
 | $t_{T_{\frac{1}{2}}}$ | tritium_half_life | Tritium half-life                   | 3.88800e+8       | s         | [!cite](Lucas2000-qu)     |
 | $\lambda_{T}$ | tritium_decay_const  | Tritium decay constant                   | 1.782785958230312e-09 | 1/s  | [!cite](Lucas2000-qu)     |
 |          | curie_to_bq            | Conversion coefficient from curies to becquerels  | 3.7e10     |  Bq/Ci  | [!cite](IAEA2015BPTC)     |
+|          | atm_to_Pa              | Conversion coefficient from standard atmospheres to pascals | 101325 | Pa/atm | [!cite](CODATA2021552941) |

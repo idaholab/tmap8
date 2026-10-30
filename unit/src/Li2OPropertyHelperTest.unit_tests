@@ -1,0 +1,65 @@
+[Tests]
+  design = 'TritiumDiffusivityLi2O.md TritiumSolubilityLi2O.md'
+  issues = '#419 #455'
+
+  [option_strings]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.optionStrings
+    requirement = 'The system shall expose the Li$_2$O diffusivity model, solubility model and validity action options with the names used in input files.'
+  []
+  [diffusivity_ranges]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.diffusivityRanges
+    requirement = 'The system shall store the documented temperature validity range of each Li$_2$O tritium diffusivity model.'
+  []
+  [solubility_ranges]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.solubilityRanges
+    requirement = 'The system shall store the documented temperature validity range of each Li$_2$O hydrogen isotope solubility model.'
+  []
+  [is_in_range]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.isInRange
+    requirement = 'The system shall identify whether a temperature is inside the documented validity range of every Li$_2$O model, including at its bounds and just outside them.'
+  []
+  [validity_message]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.validityMessage
+    requirement = 'The system shall return no message for a temperature inside the validity range of a Li$_2$O model and, outside it, a message that names the object, model, temperature, range and literature source.'
+  []
+  [warning_message]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.warningMessage
+    requirement = 'The system shall generate a warning message that names the object, model, validity range and literature source of a Li$_2$O model used outside its range.'
+  []
+  [diffusivity_values]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.diffusivityValues
+    requirement = 'The system shall reproduce independently calculated values of each Li$_2$O tritium diffusivity model.'
+  []
+  [lattice_parameter]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.latticeParameterMatchesFarley
+    requirement = 'The system shall compute the temperature-dependent atom density of Li$_2$O from a lattice parameter that reproduces the measured lattice constants of Farley et al. (1991), and shall decrease the atom density as the temperature increases.'
+  []
+  [solubility_constants]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.convertedSolubilityConstants
+    requirement = 'The system shall convert the published O\'Hira et al. (1989) Li$_2$O solubility fits to the pre-exponential factor and activation energy used by TMAP8 while retaining the published coefficients.'
+  []
+  [solubility_paper_form]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.solubilityMatchesPaperForm
+    requirement = 'The system shall compute a Li$_2$O hydrogen isotope concentration that matches the one obtained directly from the definition of the Sieverts\' constant of O\'Hira et al. (1989) over each validity range and a range of pressures.'
+  []
+  [monotonic_finite]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.monotonicAndFiniteOverTemperatureSweep
+    requirement = 'The system shall compute positive, finite Li$_2$O diffusivities and solubilities that increase with temperature for every model, inside and outside its validity range.'
+  []
+  [ad_derivative]
+    type = GoogleTest
+    unit_test = Li2OPropertyHelperTest.adDerivativeMatchesAnalytic
+    requirement = 'The system shall compute automatic differentiation derivatives of the Li$_2$O diffusivity and solubility with respect to temperature that match the analytic derivatives, including the temperature dependence of the atom density.'
+  []
+[]
