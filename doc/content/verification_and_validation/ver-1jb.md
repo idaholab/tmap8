@@ -10,9 +10,14 @@ This page presents ver-1jb, based on the case published in the TMAP7 verificatio
 ## General Case Description
 
 This verification case is an extension of[ver-1ja](ver-1ja.md), which tests radioactive decay capabilities of TMAP8 on their own.
-In ver-1jb, tritium decay is coupled with trapping, which itself was verified in several TMAP8 verification cases including [ver-1d](ver-1d.md).
+In ver-1jb, tritium decay is coupled with trapping, which itself was verified in several TMAP8 verification cases including [ver-1d](ver-1d.md). This TMAP8 case is published in [!cite](Simon2027).
 Similarly to [ver-1ja](ver-1ja.md), the model assumes pre-charging of an $l=1.5$-m-long slab (with an assumed width and thickness of 1 m) with tritium. Further complexity is added to the problem by introducing mobile tritium and trapping sites whose locations follow a normal distribution centered at the mid-plane of the slab with a standard deviation of $l/4$.
-The peak atomic fraction of traps is $C_{trap} = 0.001$, and the trap energy is $E=4.2$ eV. The material density used to calculate the number of traps is based on tungsten and is defined as 6.34 $\times 10^{28}$ atoms/m$^3$. The traps are initially filled with trapped tritium to 50% of trap concentration.
+The peak atomic fraction of traps is $C_{trap} = 0.001$, and the trap energy is $E=4.2$ eV. The material density used to calculate the number of traps is based on tungsten and is defined as 6.34 $\times 10^{28}$ atoms/m$^3$. The traps are initially filled with trapped tritium to 50% of trap concentration. The case is illustrated in [ver-1jb_schematic].
+
+!media figures/ver-1jb_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1jb_schematic
+    caption=Schematic of the ver-1jb case: mobile and trapped tritium decay to helium in a slab with zero-flux boundaries.
 
 The evolution of the mobile tritium, trapped tritium, and helium concentrations, i.e.,
 $C_M$, $C_T$, and $C_{He}$, respectively, is governed by

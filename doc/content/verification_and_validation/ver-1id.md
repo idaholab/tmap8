@@ -8,7 +8,12 @@ The [theory_manual.md] page describes the `surfdep` model and other surface mode
 
 ## General Case Description
 
-This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ic](ver-1ic.md). The configuration and modeling parameters are the same as in [ver-1ic](ver-1ic.md), except that, in the current case, the reaction has a high barrier energy. The case is simulated in [!file](/ver-1ic.i), but $E_x$ is set to 0.20 eV instead of 0.05 eV.
+This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ic](ver-1ic.md). This TMAP8 case is published in [!cite](Simon2027). The configuration and modeling parameters are the same as in [ver-1ic](ver-1ic.md), except that, in the current case, the reaction has a high barrier energy. The case is simulated in [!file](/ver-1ic.i), but $E_x$ is set to 0.20 eV instead of 0.05 eV. The surface reaction considered is illustrated in [ver-1id_schematic].
+
+!media figures/ver-1i_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1id_schematic
+    caption=Schematic of the ver-1id case (the same configuration is used for ver-1ia to ver-1if): gas species A$_2$ and B$_2$ in a gas enclosure react on a reactive surface to form AB.
 
 ## Analytical solution
 

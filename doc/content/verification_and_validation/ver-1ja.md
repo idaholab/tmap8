@@ -11,11 +11,16 @@ This page presents ver-1ja.
 
 !style halign=left
 This verification case tests the first-order radioactive decay capabilities of TMAP8
-and is based on the case published in the TMAP7 V&V suite [!citep](ambrosek2008verification).
+and is based on the case published in the TMAP7 V&V suite [!citep](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 The model assumes pre-charging of a slab with tritium.
 The tritium (T) is uniformly distributed over the thickness of the slab with an initial concentration of $C_T^0 = 1.5 \times 10^{5}$ atoms/m$^3$.
 The tritium decays to $^3\text{He}$ with a half-life of $t_{1/2} = 12.3232$ years.
-The concentrations of the two species are calculated.
+The concentrations of the two species are calculated. The case is illustrated in [ver-1ja_schematic].
+
+!media figures/ver-1ja_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ja_schematic
+    caption=Schematic of the ver-1ja case: tritium (T), uniformly distributed in a slab with zero-flux boundaries, decays to helium (He).
 
 The evolution of the tritium and helium concentration, $C_T$ and $C_{He}$, respectively,
 are governed by

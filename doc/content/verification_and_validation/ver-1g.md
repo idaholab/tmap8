@@ -22,7 +22,12 @@ where $C_A$ and $C_B$ are the concentrations of A and B, respectively. The react
 R = -\frac{d[C_A]}{dt} = -\frac{d[C_B]}{dt} = \frac{d[C_{AB}]}{dt} = K C_A C_B
 \end{equation}
 
-where $C_{AB}$ is the concentration of species AB.
+where $C_{AB}$ is the concentration of species AB. The reaction is illustrated in [ver-1g_schematic].
+
+!media figures/ver-1g_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1g_schematic
+    caption=Schematic of the ver-1g case: species A and B react to form AB in a well-mixed enclosure.
 
 ## Analytical solution
 

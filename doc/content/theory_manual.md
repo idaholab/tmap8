@@ -207,8 +207,8 @@ However, when the kinetics of the dissociation and recombination processes are m
 In that case, it is reasonable to assume that the surface reactions are at a quasi-steady state and set the surface concentrations to their equilibrium values.
 
 In TMAP4 and TMAP7, this is coined the `lawdep` condition.
-While TMAP8 does not use this terminology, it supports this quasi-steady-state assumption through the [InterfaceSorption.md] and/or [EquilibriumBC.md] capabilities, which enable both Sievert's and Henry's law.
-Sievert's law applies when diatomic gases dissociate into individual atoms during dissolution and thermodynamic equilibrium is reached.
+While TMAP8 does not use this terminology, it supports this quasi-steady-state assumption through the [InterfaceSorption.md] and/or [EquilibriumBC.md] capabilities, which enable both Sieverts' and Henry's law.
+Sieverts' law applies when diatomic gases dissociate into individual atoms during dissolution and thermodynamic equilibrium is reached.
 Henry's law applies when no dissociation and recombination reactions take place at the interface and equilibrium is reached.
 
 !alert note title=InterfaceKernels vs. Boundary Conditions

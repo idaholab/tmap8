@@ -438,6 +438,7 @@ temperature_rate = '${units ${fparse 50 / 60} K/s}'
   line_search = 'none'
   automatic_scaling = true
   nl_rel_tol = 1e-10
+  nl_abs_tol = 1e-9
   nl_max_its = 34
   [TimeStepper]
     type = IterationAdaptiveDT

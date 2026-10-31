@@ -6,7 +6,7 @@
 
 This validation problem is taken from [!cite](ambrosek2008verification), which utilized experimental data from [!cite](kizu2001co).
 Kizu et al. describe permeation experiments in which H$_2$ and D$_2$ permeate through thin Pd membranes.
-This case is part of the validation suite of TMAP7 as val-2e [!citep](ambrosek2008verification).
+This case is part of the validation suite of TMAP7 as val-2e [!citep](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 
 The experimental equipment has two vacuum chambers separated by a Pd membrane.
 The membrane area is 1.8 $\times 10^{-4}$ m$^2$ and has thicknesses of either 0.025 mm or 0.05 mm, depending on the test.

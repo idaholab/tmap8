@@ -5,7 +5,7 @@ For a list of publications that have used and expanded TMAP8, please refer to th
 
 ## TMAP8
 
-For all publications that use TMAP8, please cite the following.
+For all publications that use TMAP8, please cite the following papers:
 
 ```tex
 @article{Simon2025,
@@ -19,6 +19,18 @@ For all publications that use TMAP8, please cite the following.
     month = {May},
     issn = {0920-3796},
     doi = {10.1016/j.fusengdes.2025.114874}
+}
+
+@article{Simon2027,
+    author = {Pierre-Clément A. Simon and Casey T. Icenhour and Lin Yang and Lee Kadz and Chaitanya Vivek Bhave and Gyanender Singh and Guillaume Giudicelli and Alexander D Lindsay and Paul Humrickhouse and Pattrick Calderoni and Masashi Shimada},
+    title = {Advanced tritium transport modeling and verification, validation, and benchmarking from component level to fuel cycle scale using {TMAP8}},
+    journal = {Fusion Engineering and Design},
+    publisher = {Elsevier},
+    volume = {234},
+    pages = {116089},
+    year = {2027},
+    issn = {0920-3796},
+    doi = {10.1016/j.fusengdes.2026.116089}
 }
 ```
 

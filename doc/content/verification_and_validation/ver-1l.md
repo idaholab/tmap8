@@ -7,7 +7,12 @@
 This verification case considers tritium diffusion through a semi-infinite layer under the influence of a temperature gradient. The two transport driving forces are Fickian diffusion (which was verified in other verification cases, including [ver-1b](ver-1b.md) and [ver-1dd](ver-1dd.md)), and the Soret effect (also known as thermodiffusion or thermophoresis).
 The Soret effect describes the phenomenon where species migration occurs in response to a temperature gradient. This coupling of thermal and mass transport can be particularly important in fusion applications where significant temperature gradients exist across material structures.
 
-In this problem, tritium diffuses through a material layer subjected to a constant linear temperature gradient. The left boundary maintains a constant tritium concentration, while the right boundary is impermeable. The combined effects of concentration-driven diffusion and temperature-driven thermodiffusion are verified against an analytical solution. For simplicity, no trapping or solubility effects are included in this case.
+In this problem, tritium diffuses through a material layer subjected to a constant linear temperature gradient. The left boundary maintains a constant tritium concentration, while the right boundary is impermeable. The combined effects of concentration-driven diffusion and temperature-driven thermodiffusion are verified against an analytical solution. For simplicity, no trapping or solubility effects are included in this case. This TMAP8 case is published in [!cite](Simon2027). The geometry and boundary conditions of this case are shown in [ver-1l_schematic].
+
+!media figures/ver-1l_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1l_schematic
+    caption=Schematic of the ver-1l case: a slab with a fixed concentration on the left boundary, an impermeable right boundary, and a linear temperature gradient.
 
 ## Case Set up
 

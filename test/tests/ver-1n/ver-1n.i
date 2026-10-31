@@ -20,7 +20,7 @@ diffusion_pre_PCC = '${units ${fparse sqrt(3) * 1.41e-6} m^2/s -> mum^2/s}' # De
 diffusion_energy_PCC = '${units ${fparse 0.74 * eV_to_J * N_a} J/mol}'
 solubility_pre_PCC = '${units ${fparse 1.06 * N_a / 1e18} at/mum^3/Pa^0.5}' # at/m^3/Pa^0.5 -> at/mum^3/Pa^0.5
 solubility_energy_PCC = '${units 7726.21 J/mol}'
-solubility_order = .5 # Here, we use Sievert's law
+solubility_order = .5 # Here, we use Sieverts' law
 charge_number = 1
 V_current = '${units 20 V}'
 

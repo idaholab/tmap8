@@ -8,7 +8,7 @@ The [theory_manual.md] page describes the `ratedep` model and other surface mode
 
 ## General Case Description
 
-This verification problem is taken from [!cite](ambrosek2008verification).
+This verification problem is taken from [!cite](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 When two species react on a surface to form a third, it is possible to predict the rate at which equilibration between the species will occur.
 For example, the reaction between two isotopic species, A$_2$ and B$_2$, is described as
 
@@ -24,7 +24,12 @@ and the partial pressure of A$_2$, B$_2$, and AB in equilibrium of the reaction 
 \frac{P_{AB}}{\sqrt{P_{A_2}} \sqrt{P_{B_2}}} = K_{eq},
 \end{equation}
 
-where $P_i$ is the partial pressure of corresponding gas $i$ and $K_{eq}$ is the equilibrium constant.
+where $P_i$ is the partial pressure of corresponding gas $i$ and $K_{eq}$ is the equilibrium constant. The surface reaction considered is illustrated in [ver-1ia_schematic].
+
+!media figures/ver-1i_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ia_schematic
+    caption=Schematic of the ver-1ia case (the same configuration is used for ver-1ia to ver-1if): gas species A$_2$ and B$_2$ in a gas enclosure react on a reactive surface to form AB.
 
 Assuming that the molecular species have the same mass and chemical properties such that there is no enthalpy change associated with this reaction and only configurational entropy $s_f$ is driving the reaction, then
 

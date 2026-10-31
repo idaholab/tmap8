@@ -91,7 +91,7 @@
     value = 1
     boundary_material = flux_recombination_surface
   []
-  # Sieverts boundary conditions
+  # Sieverts' boundary conditions
   [left_concentration_sieverts]
     type = ADDirichletBC
     value = '${sieverts_boundary_hat}'

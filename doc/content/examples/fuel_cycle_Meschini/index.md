@@ -2,7 +2,7 @@
 
 ## General Case Description
 
-In this case, TMAP8 reproduces the fuel cycle model from [!cite](meschini2023modeling), which constitutes a benchmark.
+In this case, TMAP8 reproduces the fuel cycle model from [!cite](meschini2023modeling), which constitutes a benchmark. This TMAP8 case is published in [!cite](Simon2027).
 The model uses a simplified approach by assigning residence times to simulate tritium flow through each system in a fusion power plant, avoiding the complex, high-fidelity description of the fuel cycle. This approach helps minimize computational cost and understand the challenges and potential solutions for optimizing tritium inventory management and accelerating fusion energy development.
 To increase the fidelity of the simulation, TMAP8 enables performing component level simulation in parallel to provide model parameters in the fuel cycle using the multi-app system.
 
@@ -118,7 +118,7 @@ where $TBE$, the tritium burn efficiency, is defined as:
 \text{TBE} = \eta_f f_b
 \end{equation}
 
-Compared to the [previous fuel cycle model](examples/fuel_cycle_Abdou/index.md), this model from [!cite](meschini2023modeling) includes both direct internal recycling (DIR in [eqn:t8] and [eqn:t10]) in the vacuum pump and FCU systems. This direct internal recycling introduces an additional shortcut between the storage system and exhaust gas, reducing the tritium inventory in the fuel cycle. In addition, the tritium permeation system can separate tritium from gas mixture extracted from the BB, enhancing the tritium recycling process. Apart for these component updates, [!cite](meschini2023modeling) uses $\text{TBE}$, representing the production of fueling efficiency and burn fraction from [!cite](Abdou2021), to explain the fueling process in a fusion reaction under equilibrium conditions. More details about the definition and impact of $\text{TBE}$ can be found in [!cite](meschini2023modeling).
+Compared to the [previous fuel cycle model](examples/fuel_cycle_Abdou/index.md), this model from [!cite](meschini2023modeling) includes both direct internal recycling (DIR in [eqn:t8] and [eqn:t10]) in the vacuum pump and FCU systems. This direct internal recycling introduces an additional shortcut between the storage system and exhaust gas, reducing the tritium inventory in the fuel cycle. In addition, the tritium permeation system can separate tritium from the gas mixture extracted from the BB, enhancing the tritium recycling process. Apart from these component updates, [!cite](meschini2023modeling) uses $\text{TBE}$, representing the production of fueling efficiency and burn fraction from [!cite](Abdou2021), to explain the fueling process in a fusion reaction under equilibrium conditions. More details about the definition and impact of $\text{TBE}$ can be found in [!cite](meschini2023modeling).
 
 
 ## Case and Model Parameters
@@ -146,7 +146,7 @@ We use the ScalarKernels in MOOSE to calculate the ODEs from 11 systems. All the
 
 [fuel_cycle_three_years] shows the temporal evolution during 3 years of tritium inventory across key systems, including BB, tritium extraction, vacuum pump, and storage systems.
 During the simulation, an `initial_refinement_time` of 20 days is used to reduce computational costs. At times before the `initial_refinement_time`, the simulation uses a time step small enough to refine the period of activity and inactivity representing the availability factor. At times after the `initial_refinement_time`, the simulation uses an averaged value of activity over the period. This approximation enables increasing the time interval while maintaining reasonable accuracy (the cyclic behavior observed at times before the `initial_refinement_time` disappears, but the average value remains correct).
-In addition, the model is benchmarked by comparing the the TMAP8 simulation results with MATLAB calculations from [!cite](meschini2023modeling) during the first 20 days. [fuel_cycle_comparison] shows excellent agreement in the temporal evolution of tritium inventory across the four key systems. The close match properly benchmarks our implementation in TMAP8 using MOOSE's [`ScalarKernel`](/syntax/ScalarKernels) system to solve the coupled ODEs describing tritium transfer between systems.
+In addition, the model is benchmarked by comparing the TMAP8 simulation results with MATLAB calculations from [!cite](meschini2023modeling) during the first 20 days. [fuel_cycle_comparison] shows excellent agreement in the temporal evolution of tritium inventory across the four key systems. The close match properly benchmarks our implementation in TMAP8 using MOOSE's [`ScalarKernel`](/syntax/ScalarKernels) system to solve the coupled ODEs describing tritium transfer between systems.
 
 !media comparison_fuel_cycle_benchmark.py
        image_name=fuel_cycle_three_years.png
