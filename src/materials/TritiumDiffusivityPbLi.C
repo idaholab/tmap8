@@ -44,12 +44,12 @@ TritiumDiffusivityPbLi::validParams()
                         "factor sqrt(m_measured / m_requested). If false and the isotopes differ, "
                         "the 'validity_action' applies.");
   params.addParam<Real>("lithium_atomic_fraction",
-                        0.17,
+                        PbLiPropertyHelper::default_lithium_fraction,
                         "Lithium atomic fraction of the PbLi (-), checked against the documented "
                         "composition range of the model.");
   params.addCoupledVar(
       "pressure",
-      "The gas pressure in Pa. It is only used to check the documented pressure range of the "
+      "The hydrogen isotope partial pressure in Pa. It is only used to check the documented pressure range of the "
       "selected model, and the check is skipped if it is not provided.");
   return params;
 }

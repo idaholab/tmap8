@@ -139,24 +139,56 @@ TEST(PbLiPropertyHelperTest, validityRanges)
   EXPECT_DOUBLE_EQ(penalva.max_composition, 0.157);
 }
 
-/// Every model must accept its bounds and midpoint, and reject values just outside. Models without
-/// a documented temperature range accept every temperature.
-TEST(PbLiPropertyHelperTest, isInRange)
+/// Every model must stay silent inside its documented temperature, pressure and composition ranges,
+/// including at their bounds, and must return a message just outside them. Models without a
+/// documented range never return a message.
+TEST(PbLiPropertyHelperTest, rangesReturnMessages)
 {
   std::vector<ModelMetadata> all_metadata;
   for (const auto model : all_diffusivity_models)
     all_metadata.push_back(diffusivityModelData(model).metadata);
   for (const auto model : all_solubility_models)
-    if (model != SolubilityModel::Fukada2013MixingRule)
-      all_metadata.push_back(solubilityModelData(model).metadata);
+    all_metadata.push_back(solubilityModelData(model, mixingRuleInputs()).metadata);
 
   for (const auto & m : all_metadata)
   {
-    EXPECT_TRUE(isInRange(m, m.min_temperature)) << m.citation;
-    EXPECT_TRUE(isInRange(m, m.max_temperature)) << m.citation;
-    EXPECT_TRUE(isInRange(m, 0.5 * (m.min_temperature + m.max_temperature))) << m.citation;
-    EXPECT_FALSE(isInRange(m, m.min_temperature - 1.0)) << m.citation;
-    EXPECT_FALSE(isInRange(m, m.max_temperature + 1.0)) << m.citation;
+    const auto temperature_message = [&m](const Real temperature)
+    { return validityMessage("mat", "model", temperature, m); };
+
+    // Temperature
+    EXPECT_EQ(temperature_message(m.min_temperature), "") << m.citation;
+    EXPECT_EQ(temperature_message(m.max_temperature), "") << m.citation;
+    EXPECT_EQ(temperature_message(0.5 * (m.min_temperature + m.max_temperature)), "")
+        << m.citation;
+    if (m.min_temperature > 1.0)
+      EXPECT_NE(temperature_message(m.min_temperature - 1.0), "") << m.citation;
+    if (m.max_temperature < 1e10)
+      EXPECT_NE(temperature_message(m.max_temperature + 1.0), "") << m.citation;
+
+    // Pressure
+    if (m.has_pressure_range)
+    {
+      const auto pressure_message = [&m](const Real pressure)
+      { return pressureMessage("mat", "model", pressure, m); };
+      EXPECT_EQ(pressure_message(m.min_pressure), "") << m.citation;
+      EXPECT_EQ(pressure_message(m.max_pressure), "") << m.citation;
+      EXPECT_NE(pressure_message(1.01 * m.max_pressure), "") << m.citation;
+      if (m.min_pressure > 0.0)
+        EXPECT_NE(pressure_message(0.99 * m.min_pressure), "") << m.citation;
+    }
+
+    // Composition
+    if (m.has_composition_range)
+    {
+      const auto composition_message = [&m](const Real composition)
+      { return compositionMessage("mat", "model", composition, m); };
+      EXPECT_EQ(composition_message(m.min_composition), "") << m.citation;
+      EXPECT_EQ(composition_message(m.max_composition), "") << m.citation;
+      if (m.max_composition < 1.0)
+        EXPECT_NE(composition_message(m.max_composition + 0.01), "") << m.citation;
+      if (m.min_composition > 0.0)
+        EXPECT_NE(composition_message(m.min_composition - 0.01), "") << m.citation;
+    }
   }
 }
 
@@ -300,6 +332,12 @@ TEST(PbLiPropertyHelperTest, atomDensity)
   EXPECT_LT(relativeError(averageAtomicMass(0.17), 0.17 * 6.941 + 0.83 * 207.2), 1e-14);
   EXPECT_LT(relativeError(atomDensity(mooseDensity(700.0), 0.17), 3.369010920451353e+28), 1e-9);
   EXPECT_LT(relativeError(atomDensity(mooseDensity(700.0), 0.157), 3.3191087530749322e+28), 1e-9);
+
+  // User-provided molar masses replace the defaults: 0.157 * 7 + 0.843 * 207 = 175.6 g/mol
+  EXPECT_LT(relativeError(averageAtomicMass(0.157, 7.0, 207.0), 0.157 * 7.0 + 0.843 * 207.0), 1e-14);
+  EXPECT_LT(relativeError(atomDensity(mooseDensity(600.0), 0.157, 7.0, 207.0),
+                          mooseDensity(600.0) * 6.02214076e23 / (0.157 * 7.0 + 0.843 * 207.0)),
+            1e-14);
 }
 
 /// Solubilities against independently calculated values, in atoms m^-3 Pa^-1/2

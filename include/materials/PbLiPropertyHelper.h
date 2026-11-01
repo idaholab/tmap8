@@ -15,7 +15,6 @@
 
 #include <cmath>
 #include <limits>
-#include <sstream>
 #include <string>
 
 /**
@@ -37,20 +36,21 @@ const Real ideal_gas_constant = PhysicalConstants::ideal_gas_constant;
 /// Avogadro number (1/mol), from TMAP8PhysicalConstants
 const Real avogadro_number = PhysicalConstants::avogadro_number;
 
-/// Conversion factor from eV/particle to J/mol, derived from PhysicalConstants
-const Real eV_to_J_per_mol = PhysicalConstants::eV_to_J * PhysicalConstants::avogadro_number;
+/// Default molar mass of lithium (g/mol), the default of the 'lithium_molar_mass' parameter
+const Real default_lithium_molar_mass = 6.941;
+/// Default molar mass of lead (g/mol), the default of the 'lead_molar_mass' parameter
+const Real default_lead_molar_mass = 207.2;
 
-/// Molar mass of lithium (g/mol)
-const Real lithium_molar_mass = 6.941;
-/// Molar mass of lead (g/mol)
-const Real lead_molar_mass = 207.2;
+/// Default lithium atomic fraction of the PbLi (-), the default of the 'lithium_atomic_fraction'
+/// parameter, i.e. the eutectic Pb-17Li
+const Real default_lithium_fraction = 0.17;
 
 /// Lithium atomic fraction range of the eutectic Pb-17Li used by most correlations (-)
 const Real eutectic_min_lithium_fraction = 0.157;
 const Real eutectic_max_lithium_fraction = 0.17;
 
 /**
- * Tritium diffusivity models available for PbLi.
+ * Hydrogen isotope diffusivity models available for PbLi.
  * Reiter1991 is the isotope-averaged fit usually quoted in reviews.
  */
 CreateMooseEnumClass(DiffusivityModel,
@@ -274,10 +274,10 @@ diffusivityModelData(const DiffusivityModel model)
 
     case DiffusivityModel::Reiter1991Hydrogen_HTM:
       // Fit of 16 digitized H data points from Reiter1991
-      // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit diverge by
-      // up to ~25 % at the ends of the range.
+      // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit differ by
+      // about 15-20 % at the lower end of the range.
       return {withPressureRange(
-                  pbliMetadata("Reiter (1991), H data fitted by Delaporte-Mathurin et al. (2023)",
+                  pbliMetadata("Reiter (1991), H data digitized in h-transport-materials and fitted in TMAP8",
                                524.0,
                                690.0,
                                "Arrhenius fit of Reiter's 16 digitized hydrogen data points."),
@@ -289,11 +289,11 @@ diffusivityModelData(const DiffusivityModel model)
 
     case DiffusivityModel::Reiter1991Deuterium_HTM:
       // Fit of 6 digitized D data points
-      // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and
-      // ~0.8 at 773 K, i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of
-      // the raw data (factor ~2) is larger than the isotope effect.
+      // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and ~0.8 at 773 K (extrapolated),
+      // i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of the raw data
+      // (factor ~2) is larger than the isotope effect.
       return {withPressureRange(
-                  pbliMetadata("Reiter (1991), D data fitted by Delaporte-Mathurin et al. (2023)",
+                  pbliMetadata("Reiter (1991), D data digitized in h-transport-materials and fitted in TMAP8",
                                524.0,
                                691.0,
                                "Arrhenius fit of Reiter's 6 digitized deuterium data points."),
@@ -343,7 +343,7 @@ diffusivityModelData(const DiffusivityModel model)
               Isotope::H};
 
     case DiffusivityModel::Edao2011Hydrogen:
-      // Fit of 3 H points from Edao2011Hydrogen
+      // Fit of 3 H points from Edao et al. (2011)
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
                            873.0,
@@ -353,7 +353,7 @@ diffusivityModelData(const DiffusivityModel model)
               Isotope::H};
 
     case DiffusivityModel::Edao2011Deuterium:
-      // Fit of 4  D points from Edao et al. (2011)
+      // Fit of 4 D points from Edao et al. (2011)
       return {pbliMetadata("Edao et al. (2011)",
                            573.0,
                            873.0,
@@ -363,11 +363,13 @@ diffusivityModelData(const DiffusivityModel model)
               Isotope::D};
 
     case DiffusivityModel::Okitsu2012Hydrogen:
-      // Fit over 5 temperatures in Okitsu et al. (2012)
+      // Fit over 5 temperatures in Okitsu et al. (2012). The pre-exponential factor corrects a typo of
+      // the paper, as noted in the h-transport-materials database.
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
                            973.0,
-                           "Hydrogen in two-component (H + D) permeation through Li17Pb83."),
+                           "Hydrogen in two-component (H + D) permeation through Li17Pb83. The "
+                           "pre-exponential factor corrects a typo in the paper."),
               2.0e-8,
               11200.0,
               Isotope::H};
@@ -475,7 +477,11 @@ struct SolubilityModelData
 struct SolubilityInputs
 {
   /// Lithium atomic fraction of the PbLi, x_Li (-)
-  Real lithium_fraction = 0.17;
+  Real lithium_fraction = default_lithium_fraction;
+  /// Molar mass of lithium (g/mol)
+  Real lithium_molar_mass = default_lithium_molar_mass;
+  /// Molar mass of lead (g/mol)
+  Real lead_molar_mass = default_lead_molar_mass;
   /// Sieverts constant of pure liquid lithium for the mixing rule (atoms m$^{-3}$ Pa$^{-1/2}$)
   Real lithium_sieverts_constant = std::numeric_limits<Real>::quiet_NaN();
   /// Sieverts constant of pure liquid lead for the mixing rule (atoms m$^{-3}$ Pa$^{-1/2}$)
@@ -485,9 +491,13 @@ struct SolubilityInputs
 /**
  * Atomic mass of PbLi averaged over the metal atoms, M = x_Li M_Li + (1 - x_Li) M_Pb (g/mol)
  * @param lithium_fraction the lithium atomic fraction (-)
+ * @param lithium_molar_mass the molar mass of lithium (g/mol)
+ * @param lead_molar_mass the molar mass of lead (g/mol)
  */
 inline Real
-averageAtomicMass(const Real lithium_fraction)
+averageAtomicMass(const Real lithium_fraction,
+                  const Real lithium_molar_mass = default_lithium_molar_mass,
+                  const Real lead_molar_mass = default_lead_molar_mass)
 {
   return lithium_fraction * lithium_molar_mass + (1.0 - lithium_fraction) * lead_molar_mass;
 }
@@ -499,12 +509,18 @@ const Real g_per_kg = 1000.0;
  * Number density of metal atoms in PbLi, N = rho N_A / M (atoms/m^3).
  * @param density the mass density (g/m^3); may be a regular or AD type
  * @param lithium_fraction the lithium atomic fraction (-)
+ * @param lithium_molar_mass the molar mass of lithium (g/mol)
+ * @param lead_molar_mass the molar mass of lead (g/mol)
  */
 template <typename T>
 inline T
-atomDensity(const T & density, const Real lithium_fraction)
+atomDensity(const T & density,
+            const Real lithium_fraction,
+            const Real lithium_molar_mass = default_lithium_molar_mass,
+            const Real lead_molar_mass = default_lead_molar_mass)
 {
-  return density * avogadro_number / averageAtomicMass(lithium_fraction);
+  return density * avogadro_number /
+         averageAtomicMass(lithium_fraction, lithium_molar_mass, lead_molar_mass);
 }
 
 /**
@@ -519,8 +535,8 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
   switch (model)
   {
     case SolubilityModel::Katsuta1985:
-      //  Sieverts constant sqrt(P)/x_H = 2.9e3 sqrt(atm), temperature
-      //  independent over 573-723 K and 0.146-1.05 atm, i.e. 1.083e-6 atom fraction Pa^-1/2.
+      // Sieverts constant sqrt(P)/x_H = 2.9e3 sqrt(atm), temperature
+      // independent over 573-723 K and 0.146-1.05 atm, i.e. 1.083e-6 atom fraction Pa^-1/2.
       return {withPressureRange(
                   pbliMetadata(
                       "Katsuta et al. (1985), also summarized by Mas de les Valls et al. (2008)",
@@ -593,9 +609,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               Isotope::D};
 
     case SolubilityModel::Aiello2006:
-      // SOLE absorption device, Pb-15.8Li, measured values 1e-2 to 7e-2).
-      // This is the "high solubility" bound used in EU WCLL/HCLL analyses, ~2 orders of
-      // magnitude above Reiter1991Tritium.
+      // SOLE absorption device, Pb-15.8Li, measured values 1e-2 to 7e-2 mol m^-3 Pa^-1/2.
       return {
           withPressureRange(pbliMetadata("Aiello et al. (2006)",
                                          600.0,
@@ -611,7 +625,7 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
           Isotope::H};
 
     case SolubilityModel::Maeda2008:
-      // Maeda 2008 unstead permeation measurements
+      // Maeda 2008 unsteady permeation measurements
       return {pbliMetadata("Maeda et al. (2008)",
                            573.15,
                            973.15,
@@ -690,8 +704,9 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
                       "Wu (1983), as summarized by Mas de les Valls et al. (2008)",
                       850.0,
                       1040.0,
-                      "Deuterium, temperature independent value from . Wu (1983) provides other "
-                      "models for different compositions, which are not yet included here."),
+                      "Deuterium, temperature independent value from Wu (1983). Wu (1983) "
+                      "provides other models for different compositions, which are not yet "
+                      "included here."),
                   1.0e-1,
                   1.0e0),
               SolubilityBasis::AtomFraction,
@@ -705,8 +720,8 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
                       "Chan and Veleckis (1984), as summarized by Mas de les Valls et al. (2008)",
                       573.0,
                       773.0,
-                      "Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. more "
-                      "compositions are available in Chan and Veleckis (1984)"),
+                      "Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. More "
+                      "compositions are available in Chan and Veleckis (1984)."),
                   0.0,
                   1.0e4),
               SolubilityBasis::AtomFraction,
@@ -753,8 +768,8 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
       return {pbliMetadata("Penalva et al. (2024)",
                            514.15,
                            852.15,
-                           "Certified Pb-15.7Li data averaged over 241-579 C, treated as "
-                           "temperature independent.",
+                           "Certified Pb-15.7Li data averaged over 514.15-852.15 K, "
+                           "treated as temperature independent.",
                            0.157,
                            0.157),
               SolubilityBasis::MolesPerVolume,
