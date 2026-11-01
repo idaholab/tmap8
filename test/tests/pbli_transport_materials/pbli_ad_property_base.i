@@ -15,6 +15,12 @@
   []
 []
 
+[AuxVariables]
+  [pressure]
+    initial_condition = 5e4
+  []
+[]
+
 [FluidProperties]
   [pbli_fp]
     type = LeadLithiumFluidProperties

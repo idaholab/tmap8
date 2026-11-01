@@ -202,6 +202,7 @@ python/MooseDocs/test/output
 !**/doc/content/**/*.woff
 !**/doc/content/**/*.woff2
 doc/content/source/materials/figures/li2o_*.png
+doc/content/source/materials/figures/pbli_*.png
 !python/MooseDocs/test/gold/**/*.json
 !python/MooseDocs/test/gold/**/*.html
 !python/MooseDocs/test/gold/**/*.tex

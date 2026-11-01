@@ -4,55 +4,56 @@
 
 ## Overview
 
-`TritiumSolubilityPbLi` provides the Sieverts solubility $K_s$ of hydrogen isotopes, tritium by
-default, in liquid PbLi, derived from multiple sources in the literature. For convenience and use in
-a variety of simulation configurations, this class creates both a Real- and AD-Real-valued material
-property from the same Material object. The solubility is expressed with Sieverts' law,
+`TritiumSolubilityPbLi` provides the Sieverts solubility $K_s$ of hydrogen isotopes in liquid PbLi,
+derived from multiple sources in the literature. For convenience and use in a variety of simulation
+configurations, this class creates both a Real- and AD-Real-valued material property from the same
+Material object. The solubility is expressed with Sieverts' law,
 
 !equation
 C = K_s P^{1/2},
 
 where $C$ is the concentration of hydrogen isotope in PbLi in atoms/m$^3$, $P$ is the partial
-pressure of the gas in Pa, and $K_s$ is the solubility in atoms m$^{-3}$ Pa$^{-1/2}$ provided by
-the selected literature model. The literature correlations are published in different bases
-(atom fractions or molar concentrations), and are converted to this form as described below.
+pressure of the hydrogen isotope gas in Pa, and $K_s$ is the solubility in atoms m$^{-3}$
+Pa$^{-1/2}$ provided by the selected literature model. The literature correlations are published in
+different bases (atom fractions or molar concentrations), and are converted to this form as
+described below.
 The solubility has the Arrhenius form
 
 !equation
-K_s = K_0\, B \exp\left(-\frac{E_a}{RT}\right),
+K_s = K_0 \exp\left(-\frac{E_a}{RT}\right),
 
-where $K_0$ is the pre-exponential factor in the basis of the published fit, $B$ converts it to
-atoms m$^{-3}$ Pa$^{-1/2}$, $E_a$ is the activation energy in J/mol, $R$ is the ideal gas constant
-(its value is provided by [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md)), and $T$ is
-the temperature in K. The activation energy is zero for the models that are temperature
-independent.
+where $K_0$ is the pre-exponential factor, $E_a$ is the activation energy in J/mol, $R$ is the ideal
+gas constant (its value is provided by [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md)),
+and $T$ is the temperature in K. This expression is in the basis of the published fit, and its
+result is then converted to atoms m$^{-3}$ Pa$^{-1/2}$ as described in
+[#conversion]. The activation energy is zero for the models that are temperature independent.
 
 ## Implemented Models
 
 The implemented solubility models are summarized in [pbli_solubility_models_table] and plotted in
 [pbli_solubility_models_figure].
 
-!table id=pbli_solubility_models_table caption=Implemented PbLi hydrogen isotope solubility models, with the expression and the unit in which each correlation was published. All models are converted to atoms m$^{-3}$ Pa$^{-1/2}$, the unit of the solubility used in TMAP8, as described below. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md). The composition is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li). Quantities marked with \* do not have a documented range.
+!table id=pbli_solubility_models_table caption=Implemented PbLi hydrogen isotope solubility models, with the expression and the unit in which each correlation was published. All models are converted to atoms m$^{-3}$ Pa$^{-1/2}$, the unit of the solubility used in TMAP8, as described below. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md), with the activation energy in J/mol and the temperature in K. Molar concentrations are in moles of hydrogen isotope atoms (not H$_2$ molecules). The composition is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li). Quantities marked with \* do not have a documented range.
 | Enum | Expression in the published basis | Published unit | Temperature range (K) | Pressure range (Pa) | Composition $x_{Li}$ | Measured isotope | Reference | Notes |
 | :- | :- | :- | :- | :- | :- | :- | :- | :- |
-| `Katsuta1985` | $X/\sqrt{P} = 1.08\times10^{-6}$ | atom fraction Pa$^{-1/2}$ | 573-723 | $1.48\times10^{4}$-$1.06\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Katsuta1985PbLi), [!cite](MasDeLesValls2008PbLi) | Hydrogen in Li17Pb83, hot extraction, no temperature dependence. |
+| `Katsuta1985` | $X/\sqrt{P} = 1.08\times10^{-6}$ | atom fraction Pa$^{-1/2}$ | 573-723 | $1.48\times10^{4}$-$1.06\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Katsuta1985PbLi), [!cite](MasdeLesValls2008) | Hydrogen in Li17Pb83, hot extraction, no temperature dependence. |
 | `Fauvet1988` | $X/\sqrt{P} = 2.7\times10^{-8}$ | atom fraction Pa$^{-1/2}$ | 718.15-728.15 | $10^{3}$-$10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent. |
-| `Reiter1991Tritium` | $X/\sqrt{P} = 2.32\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | tritium | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Published tritium fit for eutectic Pb-17Li. |
-| `Reiter1991Hydrogen` | $X/\sqrt{P} = 2.44\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Published hydrogen fit for eutectic Pb-17Li. |
-| `Reiter1991Deuterium` | $X/\sqrt{P} = 2.36\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | deuterium | [!cite](Reiter1991PbLi), [!cite](MasDeLesValls2008PbLi) | Published deuterium fit for eutectic Pb-17Li. |
+| `Reiter1991Tritium` | $X/\sqrt{P} = 2.32\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | tritium | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published tritium fit for eutectic Pb-17Li. |
+| `Reiter1991Hydrogen` | $X/\sqrt{P} = 2.44\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published hydrogen fit for eutectic Pb-17Li. |
+| `Reiter1991Deuterium` | $X/\sqrt{P} = 2.36\times10^{-8}\exp(-1.35\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | deuterium | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published deuterium fit for eutectic Pb-17Li. |
 | `Aiello2006` | $K_s = 2.37\times10^{-1}\exp(-12.844\times10^3/RT)$ | mol m$^{-3}$ Pa$^{-1/2}$ | 600-900 | $10^{3}$-$10^{5}$ | 0.158 | hydrogen | [!cite](AIELLO2006639) | Hydrogen absorption in Pb-15.8Li with the SOLE device. |
 | `Maeda2008` | $X/\sqrt{P} = 2.1\times10^{-6}\exp(-18.7\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 573.15-973.15 | \* | 0.157-0.17 | hydrogen | [!cite](Maeda2008) | Hydrogen fit from unsteady permeation through molten Li-Pb. |
 | `Edao2011Hydrogen` | $X/\sqrt{P} = 2.73\times10^{-7}\exp(-4.18\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 573-873 | \* | 0.157-0.17 | hydrogen | [!cite](Edao2011PbLi) | Hydrogen, transient permeation through Li17Pb83. |
 | `Edao2011Deuterium` | $X/\sqrt{P} = 4.21\times10^{-7}\exp(-3.1\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 573-873 | \* | 0.157-0.17 | deuterium | [!cite](Edao2011PbLi) | Deuterium, transient permeation through Li17Pb83. |
-| `Okitsu2012Hydrogen` | $X/\sqrt{P} = 8.6\times10^{-5}\exp(-53.8\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | hydrogen | [!cite](Okitsu2012PbLi) | Hydrogen in two-component (H + D) permeation through Li17Pb83. |
+| `Okitsu2012Hydrogen` | $X/\sqrt{P} = 8.6\times10^{-5}\exp(-53.8\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | hydrogen | [!cite](Okitsu2012PbLi) | Hydrogen in two-component (H + D) permeation through Li17Pb83. The pre-exponential factor corrects a typo in the paper. |
 | `Okitsu2012Deuterium` | $X/\sqrt{P} = 1.1\times10^{-4}\exp(-55.2\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | deuterium | [!cite](Okitsu2012PbLi) | Deuterium in two-component (H + D) permeation through Li17Pb83. |
 | `Okada2012Hydrogen` | $X/\sqrt{P} = 1.41\times10^{-4}\exp(-57.4\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | hydrogen | [!cite](Okada2012PbLi) | Hydrogen, permeation through Li-Pb. Same data as Okitsu et al. (2012), but different fit. |
 | `Okada2012Deuterium` | $X/\sqrt{P} = 1.65\times10^{-4}\exp(-57.6\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb. Same data as Okitsu et al. (2012), but different fit. |
-| `Wu1983` | $X/\sqrt{P} = 6.33\times10^{-7}$ | atom fraction Pa$^{-1/2}$ | 850-1040 | $10^{-1}$-$10^{0}$ | 0.157-0.17 | deuterium | [!cite](Wu1983PbLi), [!cite](MasDeLesValls2008PbLi) | Deuterium, temperature independent value from . Wu (1983) provides other models for different compositions, which are not yet included here. |
-| `Chan1984` | $X/\sqrt{P} = 4.7\times10^{-7}\exp(-9\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 573-773 | up to $10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Chan1984PbLi), [!cite](MasDeLesValls2008PbLi) | Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. more compositions are available in Chan and Veleckis (1984) |
+| `Wu1983` | $X/\sqrt{P} = 6.33\times10^{-7}$ | atom fraction Pa$^{-1/2}$ | 850-1040 | $10^{-1}$-$10^{0}$ | 0.157-0.17 | deuterium | [!cite](Wu1983PbLi), [!cite](MasdeLesValls2008) | Deuterium, temperature independent value from Wu (1983). Wu (1983) provides other models for different compositions, which are not yet included here. |
+| `Chan1984` | $X/\sqrt{P} = 4.7\times10^{-7}\exp(-9\times10^3/RT)$ | atom fraction Pa$^{-1/2}$ | 573-773 | up to $10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Chan1984PbLi), [!cite](MasdeLesValls2008) | Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. More compositions are available in Chan and Veleckis (1984). |
 | `Fukada2013MixingRule` | $\ln K_s = x_{Li}\ln K_{Li} + (1-x_{Li})\ln K_{Pb}$ | atoms m$^{-3}$ Pa$^{-1/2}$ | \* | \* | 0-1 | hydrogen | [!cite](S.Fukada2013MG201203) | Logarithmic mixing rule using user-provided Sieverts constants of pure liquid lithium and lead. |
 | `Alberro2015` | $K_s = 8.64\times10^{-3}\exp(-0.9\times10^3/RT)$ | mol m$^{-3}$ Pa$^{-1/2}$ | 523-922 | $10^{0}$-$10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Alberro2015PbLi) | Hydrogen solubility in eutectic PbLi. |
-| `Penalva2024` | $K_s = 1.95\times10^{-2}$ | mol m$^{-3}$ Pa$^{-1/2}$ | 514.15-852.15 | \* | 0.157 | hydrogen | [!cite](Penalva2024PbLi) | Certified Pb-15.7Li data averaged over 241-579 C, treated as temperature independent. |
+| `Penalva2024` | $K_s = 1.95\times10^{-2}$ | mol m$^{-3}$ Pa$^{-1/2}$ | 514.15-852.15 | \* | 0.157 | hydrogen | [!cite](Penalva2024PbLi) | Certified Pb-15.7Li data averaged over 514.15-852.15 K, treated as temperature independent. |
 
 Models whose name contains `Reiter1991` and an isotope are the isotope-specific fits published in
 [!cite](Reiter1991PbLi). The `Okitsu2012*` and `Okada2012*` models are two different fits of the same
@@ -70,7 +71,7 @@ remains to be resolved.
        id=pbli_solubility_models_figure
        caption=Comparison of the implemented PbLi hydrogen isotope solubility correlations from [pbli_solubility_models_table], each drawn over its documented temperature range. The models published as atom fractions are plotted at a lithium atomic fraction of 0.17. `Fukada2013MixingRule` is omitted because it depends on user-provided Sieverts constants.
 
-## Conversion to Atoms m$^{-3}$ Pa$^{-1/2}$
+## Conversion to Atoms m$^{-3}$ Pa$^{-1/2}$ id=conversion
 
 Mole-based fits are multiplied by the Avogadro number $N_A$ (taken from
 [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md)). Fits published as the atom fraction
@@ -81,16 +82,30 @@ N = \frac{\rho N_A}{\bar{M}},
 \qquad
 \bar{M} = x_{Li} M_{Li} + (1 - x_{Li}) M_{Pb},
 
-where $\bar{M}$ is the mean atomic mass of the metal atoms, $M_{Li} = 6.941$ g/mol,
-$M_{Pb} = 207.2$ g/mol, and $x_{Li}$ is the
+where $\bar{M}$ is the mean atomic mass of the metal atoms, $M_{Li}$ and $M_{Pb}$ are the molar
+masses of lithium and lead in g/mol, set with the
+[!param](/Materials/TritiumSolubilityPbLi/lithium_molar_mass) and
+[!param](/Materials/TritiumSolubilityPbLi/lead_molar_mass) parameters (default 6.941 and 207.2
+g/mol), and $x_{Li}$ is the
 [!param](/Materials/TritiumSolubilityPbLi/lithium_atomic_fraction) parameter. The density $\rho$
 is not defined in this class: it is evaluated with the fluid properties given in the
 [!param](/Materials/TritiumSolubilityPbLi/fp) parameter, which must be a
 [LeadLithiumFluidProperties](LeadLithiumFluidProperties.md optional=True) object. These fluid
-properties provide $\rho = 10520.35 - 1.19051\,T$ kg/m$^3$ [!citep](MasDeLesValls2008PbLi) for
-508-880 K, which is converted to g/m$^3$ to be consistent with the molar masses. MOOSE flags an
-invalid solution if the temperature is outside this range. The parameter is required by the models
-published as atom fractions, and unused by the others.
+properties provide $\rho = 10520.35 - 1.19051\,T$ kg/m$^3$ [!citep](MasdeLesValls2008) for
+508-880 K, which is converted to g/m$^3$ to be consistent with the molar masses. The parameter is required by
+the models published as atom fractions, and the density is not evaluated for the others, even if
+the parameter is provided.
+
+!alert note title=Density temperature range and composition
+The density correlation of the fluid properties is valid for 508-880 K, and MOOSE flags an invalid
+solution if the temperature is outside this range. This warning is not controlled by the
+`validity_action` parameter, so it also appears with `validity_action = ignore`. It affects the
+atom-fraction models documented above 880 K, for which the density is extrapolated:
+`Wu1983` (up to 1040 K), `Maeda2008` (up to 973.15 K), `Okitsu2012Hydrogen`,
+`Okitsu2012Deuterium`, `Okada2012Hydrogen` and `Okada2012Deuterium` (up to 973 K).
+In addition, the correlation of [!citep](MasdeLesValls2008) was established for Pb-16Li, and it is
+used here for any lithium atomic fraction, while the mean atomic mass $\bar{M}$ does depend on
+$x_{Li}$.
 
 This gives $C = N X$, which assumes that the atom fraction is much smaller than 1 ($X \ll 1$), as is
 the case for the dilute solutions considered here. The temperature dependence of $N$ is a modeling
@@ -106,9 +121,9 @@ $X/\sqrt{P} = 1/(2.9\times10^3\sqrt{101325})$ with the pressure in Pa.
 ## Isotope
 
 Each model records the hydrogen isotope it was measured for (see [pbli_solubility_models_table]).
-No isotope scaling is applied to the solubility: [!cite](S.Fukada2013MG201203) observed no isotope
-effect in the solubility between H and D, and this is assumed to extend to T. The measured
-isotope is therefore documentation only.
+The solubility materials have no isotope parameter, and no isotope scaling is applied:
+[!cite](S.Fukada2013MG201203) observed no isotope effect in the solubility between H and D, and this
+is assumed to extend to T. The measured isotope is therefore only recorded for documentation.
 
 ## Mixing Rule
 
@@ -129,7 +144,7 @@ pressure range. It reduces to $K_{Pb}$ for $x_{Li} = 0$ and to $K_{Li}$ for $x_{
 ## Pressure
 
 The [!param](/Materials/TritiumSolubilityPbLi/pressure) parameter is an optional variable
-providing the gas pressure in Pa. Besides setting the pressure at which the density is evaluated
+providing the hydrogen isotope partial pressure in Pa. Besides setting the pressure at which the density is evaluated
 (see above), it is used to check the pressure against the documented pressure range of the selected
 model ([pbli_solubility_models_table]), at every evaluation, with the `validity_action` behavior
 described below. The check is skipped if no pressure is provided, and for the models without a
@@ -143,9 +158,10 @@ The pre-exponential factor and the activation energy of the selected model can b
 explore the sensitivity of a simulation to the uncertainty of a correlation. The properties become
 
 !equation
-K_s = f_{A}\, K_0\, B \exp\left(-\frac{f_{E} E_a}{RT}\right),
+K_s = f_{A}\, K_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
 
-where $f_A$ is `prefactor_scaling` and $f_E$ is `activation_energy_scaling`. Both default to 1, which
+before the conversion to atoms m$^{-3}$ Pa$^{-1/2}$, where $f_A$ is `prefactor_scaling` and $f_E$ is
+`activation_energy_scaling`. Both default to 1, which
 gives the model as published. `prefactor_scaling` must not be negative (a value of 0 sets the
 property to zero), while `activation_energy_scaling` may take any value, including a negative one.
 For the mixing rule, `prefactor_scaling` multiplies the mixed Sieverts constant.
@@ -158,8 +174,9 @@ The [!param](/Materials/TritiumSolubilityPbLi/validity_action) parameter sets wh
 model is evaluated outside its documented validity range, for the temperature and the pressure
 (checked at every evaluation) and the lithium atomic fraction (checked once, at construction). The
 ranges are listed in [pbli_solubility_models_table]. Note that `Penalva2024` is documented for
-Pb-15.7Li only, so the default $x_{Li} = 0.17$ triggers a composition warning unless
-`lithium_atomic_fraction = 0.157` is set.
+Pb-15.7Li only and `Aiello2006` for Pb-15.8Li only, so the default $x_{Li} = 0.17$ triggers a
+composition warning unless `lithium_atomic_fraction = 0.157` (`Penalva2024`) or
+`lithium_atomic_fraction = 0.158` (`Aiello2006`) is set.
 
 - `ignore`: nothing happens and the model is silently extrapolated.
 - `warning` (default): the simulation continues. Each out-of-range temperature or pressure evaluation is recorded in MOOSE's
@@ -171,7 +188,7 @@ Pb-15.7Li only, so the default $x_{Li} = 0.17$ triggers a composition warning un
   and the documented range.
 
 Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
-`warning` or `error` is recommended unless the extrapolation is intentional.
+`warning` or `error` is advisable unless the extrapolation is intentional.
 
 !syntax parameters /Materials/TritiumSolubilityPbLi
 
