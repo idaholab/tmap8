@@ -12,10 +12,10 @@
     unit_test = PbLiPropertyHelperTest.validityRanges
     requirement = 'The system shall store the documented temperature and lithium atomic fraction validity ranges of the PbLi diffusivity and solubility models.'
   []
-  [is_in_range]
+  [ranges_return_messages]
     type = GoogleTest
-    unit_test = PbLiPropertyHelperTest.isInRange
-    requirement = 'The system shall identify whether a temperature is inside the documented validity range of every PbLi model, including at its bounds and just outside them, and accept every temperature for a model without a documented range.'
+    unit_test = PbLiPropertyHelperTest.rangesReturnMessages
+    requirement = 'The system shall return no message inside the documented temperature, pressure and composition ranges of every PbLi model, including at their bounds, and a message just outside them, and never return a message for a model without a documented range.'
   []
   [composition_range]
     type = GoogleTest

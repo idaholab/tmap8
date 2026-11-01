@@ -301,10 +301,12 @@ def parse_density():
     MOOSE's LeadLithiumFluidProperties. Returns (a, b) in kg/m^3 and kg/m^3/K.
     """
     text = DENSITY_SOURCE.read_text()
-    start = text.index(
-        "LeadLithiumFluidProperties::rho_from_p_T(Real /*p*/, Real T) const"
+    # Match the function whatever the names of its arguments
+    match = re.search(
+        r"LeadLithiumFluidProperties::rho_from_p_T\([^)]*\)\s*const\s*\{[^}]*?"
+        r"return\s+([0-9.]+)\s*-\s*([0-9.]+)\s*\*\s*\w+\s*;",
+        text,
     )
-    match = re.search(r"return\s+([0-9.]+)\s*-\s*([0-9.]+)\s*\*\s*T\s*;", text[start:])
     if match is None:
         raise ValueError(f"Could not find the density correlation in {DENSITY_SOURCE}")
     return float(match.group(1)), float(match.group(2))
@@ -312,8 +314,8 @@ def parse_density():
 
 R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
 AVOGADRO = parse_constant(CONSTANTS_HEADER, "avogadro_number")  # 1/mol
-LITHIUM_MOLAR_MASS = parse_constant(HELPER_HEADER, "lithium_molar_mass")  # g/mol
-LEAD_MOLAR_MASS = parse_constant(HELPER_HEADER, "lead_molar_mass")  # g/mol
+LITHIUM_MOLAR_MASS = parse_constant(HELPER_HEADER, "default_lithium_molar_mass")  # g/mol
+LEAD_MOLAR_MASS = parse_constant(HELPER_HEADER, "default_lead_molar_mass")  # g/mol
 G_PER_KG = parse_constant(HELPER_HEADER, "g_per_kg")  # g/kg
 DENSITY_INTERCEPT, DENSITY_SLOPE = parse_density()  # kg/m^3, kg/m^3/K
 DIFFUSIVITY_MODELS, SOLUBILITY_MODELS = build_models()

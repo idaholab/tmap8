@@ -33,7 +33,11 @@ protected:
 
   /// Lithium atomic fraction of the PbLi (-)
   const Real _lithium_fraction;
-  /// Fluid properties providing the PbLi density, null if the model does not need it
+  /// Molar mass of lithium (g/mol)
+  const Real _lithium_molar_mass;
+  /// Molar mass of lead (g/mol)
+  const Real _lead_molar_mass;
+  /// Fluid properties providing the PbLi density, only evaluated by the atom-fraction models
   const SinglePhaseFluidProperties * const _fp;
   /// Pressure (Pa), if provided, used to check the documented pressure range
   const ADVariableValue * const _pressure;
