@@ -1,7 +1,6 @@
 # PbLi single-point material property regression base with a pressure field
-# Unit system: temperature in K; property units depend on the selected material type
-# and pressure in Pa
-# (diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2), density from
+# Unit system: temperature in K, pressure in Pa; property units depend on the selected material
+# type (diffusivity in m^2/s, solubility in atoms m^-3 Pa^-1/2), density from
 # LeadLithiumFluidProperties in kg/m^3
 
 [Mesh]
