@@ -118,7 +118,7 @@ TEST(PbLiPropertyHelperTest, validityRanges)
     EXPECT_DOUBLE_EQ(m.min_temperature, min_t);
     EXPECT_DOUBLE_EQ(m.max_temperature, max_t);
   };
-  check(diffusivityModelData(DiffusivityModel::Fauvet1988).metadata, 718.15, 728.15);
+  check(diffusivityModelData(DiffusivityModel::Fauvet1988).metadata, 723.15, 723.15);
   check(diffusivityModelData(DiffusivityModel::Reiter1991).metadata, 508.0, 700.0);
   check(diffusivityModelData(DiffusivityModel::Terai1992).metadata, 573.15, 973.15);
   check(diffusivityModelData(DiffusivityModel::Maeda2008).metadata, 573.15, 973.15);
@@ -141,7 +141,8 @@ TEST(PbLiPropertyHelperTest, validityRanges)
 
 /// Every model must stay silent inside its documented temperature, pressure and composition ranges,
 /// including at their bounds, and must return a message just outside them. Models without a
-/// documented range never return a message.
+/// documented range, and the temperature of models documented for a single temperature, are never
+/// checked.
 TEST(PbLiPropertyHelperTest, rangesReturnMessages)
 {
   std::vector<ModelMetadata> all_metadata;
@@ -160,10 +161,19 @@ TEST(PbLiPropertyHelperTest, rangesReturnMessages)
     EXPECT_EQ(temperature_message(m.max_temperature), "") << m.citation;
     EXPECT_EQ(temperature_message(0.5 * (m.min_temperature + m.max_temperature)), "")
         << m.citation;
-    if (m.min_temperature > 1.0)
-      EXPECT_NE(temperature_message(m.min_temperature - 1.0), "") << m.citation;
-    if (m.max_temperature < 1e10)
-      EXPECT_NE(temperature_message(m.max_temperature + 1.0), "") << m.citation;
+    if (!m.check_temperature)
+    {
+      // Models documented for a single temperature are never checked
+      EXPECT_EQ(temperature_message(m.min_temperature - 100.0), "") << m.citation;
+      EXPECT_EQ(temperature_message(m.max_temperature + 100.0), "") << m.citation;
+    }
+    else
+    {
+      if (m.min_temperature > 1.0)
+        EXPECT_NE(temperature_message(m.min_temperature - 1.0), "") << m.citation;
+      if (m.max_temperature < 1e10)
+        EXPECT_NE(temperature_message(m.max_temperature + 1.0), "") << m.citation;
+    }
 
     // Pressure
     if (m.has_pressure_range)
@@ -233,10 +243,10 @@ TEST(PbLiPropertyHelperTest, pressureRanges)
   check(diffusivityModelData(DiffusivityModel::Reiter1991).metadata, 1e3, 1e5);
   check(diffusivityModelData(DiffusivityModel::Terai1992).metadata, 3e3, 3e3);
   check(solubilityModelData(SolubilityModel::Fauvet1988).metadata, 1e3, 1e4);
-  check(solubilityModelData(SolubilityModel::Katsuta1985).metadata, 0.146 * atm, 1.05 * atm);
+  check(solubilityModelData(SolubilityModel::Katsuta1985).metadata, 0.1 * atm, 1.0 * atm);
   check(solubilityModelData(SolubilityModel::Reiter1991Tritium).metadata, 1e3, 1e5);
   check(solubilityModelData(SolubilityModel::Aiello2006).metadata, 1e3, 1e5);
-  check(solubilityModelData(SolubilityModel::Wu1983).metadata, 0.1, 1.0);
+  check(solubilityModelData(SolubilityModel::Wu1983).metadata, 1.0, 100.0);
   check(solubilityModelData(SolubilityModel::Chan1984).metadata, 0.0, 1e4);
   check(solubilityModelData(SolubilityModel::Alberro2015).metadata, 1.0, 1e5);
 
@@ -290,7 +300,9 @@ TEST(PbLiPropertyHelperTest, diffusivityValues)
   check(DiffusivityModel::Shibuya1987, 673.15, 8.013847337257099e-10);
   check(DiffusivityModel::Reiter1991Hydrogen_HTM, 600.0, 7.50660030379591e-10);
   check(DiffusivityModel::Okada2012Deuterium, 850.0, 2.903777724542236e-09);
-  // Fauvet1988 is a single datum, treated as temperature independent
+  // Fauvet1988 is a single datum, treated as temperature independent and never checked
+  EXPECT_FALSE(diffusivityModelData(DiffusivityModel::Fauvet1988).metadata.check_temperature);
+  EXPECT_FALSE(solubilityModelData(SolubilityModel::Fauvet1988).metadata.check_temperature);
   check(DiffusivityModel::Fauvet1988, 723.15, 1.5e-9);
   check(DiffusivityModel::Fauvet1988, 900.0, 1.5e-9);
 }
@@ -311,6 +323,17 @@ TEST(PbLiPropertyHelperTest, isotopeScaling)
       diffusivityModelDataForIsotope(DiffusivityModel::Maeda2008, Isotope::T, false);
   EXPECT_EQ(unscaled.isotope, Isotope::H);
   EXPECT_DOUBLE_EQ(unscaled.prefactor, 1.8e-8);
+
+  // An isotope-independent model is returned as published for any isotope, scaled or not
+  EXPECT_TRUE(diffusivityModelData(DiffusivityModel::Reiter1991).isotope_independent);
+  EXPECT_FALSE(diffusivityModelData(DiffusivityModel::Terai1992).isotope_independent);
+  for (const auto scaling : {false, true})
+    for (const auto isotope : {Isotope::H, Isotope::D, Isotope::T})
+    {
+      const auto averaged = diffusivityModelDataForIsotope(DiffusivityModel::Reiter1991, isotope, scaling);
+      EXPECT_EQ(averaged.isotope, isotope);
+      EXPECT_DOUBLE_EQ(averaged.prefactor, 4.03e-8);
+    }
 
   const auto scaled = diffusivityModelDataForIsotope(DiffusivityModel::Maeda2008, Isotope::T, true);
   EXPECT_EQ(scaled.isotope, Isotope::T);

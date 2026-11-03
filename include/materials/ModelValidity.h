@@ -49,6 +49,9 @@ struct ModelMetadata
   Real max_pressure = std::numeric_limits<Real>::max();
   /// Whether the documented pressure range restricts the model
   bool has_pressure_range = false;
+  /// Whether the temperature is checked against the documented range, e.g. false for a model that
+  /// is documented for a single temperature but is treated as temperature independent
+  bool check_temperature = true;
 };
 
 /**
@@ -59,7 +62,8 @@ struct ModelMetadata
 inline bool
 isInRange(const ModelMetadata & metadata, const Real temperature)
 {
-  return temperature >= metadata.min_temperature && temperature <= metadata.max_temperature;
+  return !metadata.check_temperature ||
+         (temperature >= metadata.min_temperature && temperature <= metadata.max_temperature);
 }
 
 /**

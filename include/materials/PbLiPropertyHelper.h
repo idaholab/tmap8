@@ -137,6 +137,18 @@ withPressureRange(ModelMetadata metadata, const Real min_pressure, const Real ma
   return metadata;
 }
 
+/**
+ * Deactivate the temperature check of a model that is documented for a single temperature. The
+ * documented temperature is kept in the metadata for the documentation and the figures.
+ * @param metadata the metadata of the model
+ */
+inline ModelMetadata
+withoutTemperatureCheck(ModelMetadata metadata)
+{
+  metadata.check_temperature = false;
+  return metadata;
+}
+
 /// Temperature bounds used for models without a documented temperature range
 const Real no_min_temperature = 0.0;
 const Real no_max_temperature = std::numeric_limits<Real>::max();
@@ -230,6 +242,9 @@ struct DiffusivityModelData
   Real activation_energy;
   /// Hydrogen isotope the correlation was measured for
   Isotope isotope;
+  /// Whether the correlation is an average over several isotopes, such that it applies to every
+  /// isotope as published: it is never scaled and never raises an isotope mismatch
+  bool isotope_independent = false;
 };
 
 /**
@@ -243,12 +258,13 @@ diffusivityModelData(const DiffusivityModel model)
   switch (model)
   {
     case DiffusivityModel::Fauvet1988:
-      // single value 1.5e-9 m^2/s at 723 K
+      // single value 1.5e-9 m^2/s at 450 C = 723.15 K. The temperature is not checked.
       return {withPressureRange(
-                  pbliMetadata("Fauvet and Sannier (1988)",
-                               718.15,
-                               728.15,
-                               "Single datum at 723 K, treated as temperature independent."),
+                  withoutTemperatureCheck(pbliMetadata(
+                      "Fauvet and Sannier (1988)",
+                      723.15,
+                      723.15,
+                      "Single datum at 723.15 K, treated as temperature independent.")),
                   1.0e3,
                   1.0e4),
               1.5e-9,
@@ -256,21 +272,22 @@ diffusivityModelData(const DiffusivityModel model)
               Isotope::H};
 
     case DiffusivityModel::Reiter1991:
-      // This is the expression usually quoted for Reiter.
-      // It is therefore best regarded as an isotope-averaged fit.
+      // This is the expression usually quoted for Reiter. It is an average of the D and T data, so
+      // it is flagged isotope-independent: the isotope below is only nominal.
       return {withPressureRange(
                   pbliMetadata(
                       "Reiter et al. (1991), also summarized by Mas de les Valls et al. (2008)",
                       508.0,
                       700.0,
-                      "Isotope-averaged fit for eutectic Pb-17Li; see "
+                      "Isotope-averaged fit (D and T) for eutectic Pb-17Li; see "
                       "Reiter1991Hydrogen_HTM and "
                       "Reiter1991Deuterium_HTM for the isotope-specific fits."),
                   1.0e3,
                   1.0e5),
               4.03e-8,
               19500.0,
-              Isotope::H};
+              Isotope::T,
+              /*isotope_independent=*/true};
 
     case DiffusivityModel::Reiter1991Hydrogen_HTM:
       // Fit of 16 digitized H data points from Reiter1991
@@ -306,13 +323,15 @@ diffusivityModelData(const DiffusivityModel model)
     case DiffusivityModel::Shibuya1987:
       // three values only: 6.6e-10, 7.8e-10 and 9.5e-10 m^2/s at 573, 673 and 773 K
       // (tritium release from neutron-irradiated Li17Pb83). The Arrhenius form is a least-squares
-      // fit of those three points.
+      // fit of those three points. The prefactor listed in Mas de les Valls et al. (2008) has a typo
+      // (exponent of -3 instead of -9).
       return {
           pbliMetadata("Shibuya et al. (1987), also summarized by Mas de les Valls et al. (2008)",
                        573.15,
                        773.15,
                        "Tritium, isothermal release from neutron-irradiated Li17Pb83. Arrhenius "
-                       "fit of the three published values."),
+                       "fit of the three published values. The prefactor listed in Mas de les "
+                       "Valls et al. (2008) has a typo (exponent of -3 instead of -9)."),
           2.62e-9,
           6630.0,
           Isotope::T};
@@ -411,7 +430,8 @@ diffusivityModelData(const DiffusivityModel model)
 
 /**
  * Look up the diffusivity model data for a requested isotope. With isotope scaling the prefactor
- * is multiplied by the classical scaling factor, sqrt(m_measured / m_requested).
+ * is multiplied by the classical scaling factor, sqrt(m_measured / m_requested). Isotope-independent
+ * models are returned as published for any requested isotope.
  * @param model the diffusivity model
  * @param requested the requested isotope
  * @param isotope_scaling whether to scale the prefactor to the requested isotope
@@ -423,6 +443,11 @@ diffusivityModelDataForIsotope(const DiffusivityModel model,
                                const bool isotope_scaling)
 {
   auto data = diffusivityModelData(model);
+  if (data.isotope_independent)
+  {
+    data.isotope = requested;
+    return data;
+  }
   if (isotope_scaling)
   {
     data.prefactor *= isotopeScalingFactor(data.isotope, requested);
@@ -536,29 +561,30 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
   {
     case SolubilityModel::Katsuta1985:
       // Sieverts constant sqrt(P)/x_H = 2.9e3 sqrt(atm), temperature
-      // independent over 573-723 K and 0.146-1.05 atm, i.e. 1.083e-6 atom fraction Pa^-1/2.
+      // independent over 573-723 K and 0.1-1 atm, i.e. 1.083e-6 atom fraction Pa^-1/2.
       return {withPressureRange(
                   pbliMetadata(
                       "Katsuta et al. (1985), also summarized by Mas de les Valls et al. (2008)",
                       573.0,
                       723.0,
                       "Hydrogen in Li17Pb83, hot extraction, no temperature dependence."),
-                  0.146 * PhysicalConstants::atm_to_Pa,
-                  1.05 * PhysicalConstants::atm_to_Pa),
+                  0.1 * PhysicalConstants::atm_to_Pa,
+                  1.0 * PhysicalConstants::atm_to_Pa),
               SolubilityBasis::AtomFraction,
               1.0 / (2.9e3 * std::sqrt(PhysicalConstants::atm_to_Pa)),
               0.0,
               Isotope::H};
 
     case SolubilityModel::Fauvet1988:
-      // from Fauvet and Sannier (1988) (2.7 +/- 0.2)e-8 atom fraction Pa^-1/2 at 723 K
+      // from Fauvet and Sannier (1988) (2.7 +/- 0.2)e-8 atom fraction Pa^-1/2 at 450 C = 723.15 K.
+      // The temperature is not checked.
       return {
           withPressureRange(
-              pbliMetadata(
+              withoutTemperatureCheck(pbliMetadata(
                   "Fauvet and Sannier (1988), also summarized by Mas de les Valls et al. (2008)",
-                  718.15,
-                  728.15,
-                  "Single datum at 723 K, treated as temperature independent."),
+                  723.15,
+                  723.15,
+                  "Single datum at 723.15 K, treated as temperature independent.")),
               1.0e3,
               1.0e4),
           SolubilityBasis::AtomFraction,
@@ -707,8 +733,8 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
                       "Deuterium, temperature independent value from Wu (1983). Wu (1983) "
                       "provides other models for different compositions, which are not yet "
                       "included here."),
-                  1.0e-1,
-                  1.0e0),
+                  1.0,
+                  1.0e2),
               SolubilityBasis::AtomFraction,
               6.33e-7,
               0.0,
