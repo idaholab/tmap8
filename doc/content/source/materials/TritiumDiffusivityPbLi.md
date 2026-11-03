@@ -5,20 +5,63 @@
 ## Overview
 
 `TritiumDiffusivityPbLi` computes the diffusivity $D$ of hydrogen isotopes, tritium by default, in
-liquid PbLi. This diffusivity is presented as both a regular Real- and AD-Real-valued material
-property for use in a variety of simulation configurations. The property fits are implemented as
-published in the literature, except where the Notes column of [pbli_diffusivity_models_table]
-states otherwise, and stored in the implementation directly in units of m$^2$/s.
-To select the model of diffusivity to use, the [!param](/Materials/TritiumDiffusivityPbLi/model)
+liquid PbLi. This diffusivity is presented as both a regular and AD material
+property.
+The property fits are implemented as published in the literature, except where the notes column of
+[pbli_diffusivity_models_table] states otherwise.
+
+The diffusivity is computed as
+
+!equation
+D = f_{A}\, f_{iso}\, D_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
+
+where $D_0$ is the pre-exponential factor in m$^2$/s,
+$E_a$ is the activation energy in J/mol,
+$R$ is the ideal gas constant in J/mol/K from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md),
+and $T$ is teh temperature in K.
+The $f_i$ parameters are scaling parameters described below.
+
+To select the model of diffusivity to use (i.e., $D_0$ and $E_a$),
+the [!param](/Materials/TritiumDiffusivityPbLi/model)
 parameter +must+ be provided, as the available PbLi correlations were measured for different
 hydrogen isotopes, temperature and pressure ranges, and compositions.
+The different options are documented in [pbli_diffusivity_models_table].
+
+## Hydrogen Isotope and Isotope Scaling
+
+The [!param](/Materials/TritiumDiffusivityPbLi/isotope) parameter selects the hydrogen isotope
+(`H`, `D` or `T`, default `T`) the diffusivity is requested for. Each model records the isotope it
+was measured for (see [pbli_diffusivity_models_table]). If the two differ, the
+`validity_action` applies, with a message naming both isotopes. Since the default isotope is `T`,
+this includes every model that was not measured for tritium, unless
+[!param](/Materials/TritiumDiffusivityPbLi/isotope_scaling) ($f_{iso}$) is `true`.
+With isotope scaling, the pre-exponential factor is multiplied by the classical mass factor
+
+!equation
+\frac{D_{requested}}{D_{measured}} = \sqrt{\frac{m_{measured}}{m_{requested}}},
+
+where $m$ is the mass number of the isotope (1, 2 and 3 for H, D and T). This is the ratio predicted
+by classical rate theory. [!cite](S.Fukada2013MG201203) reports a hydrogen diffusivity 1.4 times
+larger than that of deuterium, "near to a value predicted from the classical theory" ($\sqrt{2}
+\approx 1.41$). Isotope scaling composes with the parameter scaling described below.
+
+## Scaling the Model Parameters
+
+The pre-exponential factor and the activation energy of the selected model can be scaled with the
+[!param](/Materials/TritiumDiffusivityPbLi/prefactor_scaling) ($f_A$) and
+[!param](/Materials/TritiumDiffusivityPbLi/activation_energy_scaling) ($f_E$) parameters,
+for example to explore the sensitivity of a simulation to the uncertainty of a correlation.
+`prefactor_scaling` must not be negative (a value of 0 sets the property to zero), while
+`activation_energy_scaling` may take any value, including a negative one.
+Scaling does not change the documented validity range of the model, so the
+`validity_action` still refers to the range of the unscaled correlation.
 
 ## Implemented Models
 
 The implemented diffusivity models are summarized in [pbli_diffusivity_models_table] and
 plotted in [pbli_diffusivity_models_figure].
 
-!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models, in m$^2$/s. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md), with the activation energy in J/mol and the temperature in K. All models assume the eutectic composition, with a lithium atomic fraction $x_{Li}$ between 0.157 and 0.17 (Pb-17Li). Quantities marked with \* do not have a documented range.
+!table id=pbli_diffusivity_models_table caption=Implemented PbLi hydrogen isotope diffusivity models, in m$^2$/s ($D_0$ in m$^2$/s, $E_a$ in J/mol). All models assume the eutectic composition, with a lithium atomic fraction $x_{Li}$ between 0.157 and 0.17 (Pb-17Li). Quantities marked with \* do not have a documented range.
 | Enum | Expression used in TMAP8 | Temperature range (K) | Pressure range (Pa) | Measured isotope | Reference | Notes |
 | :- | :- | :- | :- | :- | :- | :- |
 | `Fauvet1988` | $D = 1.5\times10^{-9}$ | 718.15-728.15 | $10^{3}$-$10^{4}$ | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent. |
@@ -36,80 +79,37 @@ plotted in [pbli_diffusivity_models_figure].
 | `Okada2012Deuterium` | $D = 2.64\times10^{-8}\exp(-15.6\times10^3/RT)$ | 773-973 | \* | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb, 5 data points. Same data as Okitsu et al. (2012), but different fit. |
 
 Models whose name ends with `_HTM` are Arrhenius fits of the data points of
-[!cite](Reiter1991PbLi) digitized in the h-transport-materials database
-[!citep](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023). `Reiter1991` is the
-isotope-averaged expression usually quoted for [!cite](Reiter1991PbLi).
+[!cite](Reiter1991PbLi) from the h-transport-materials database
+[!citep](delaporte-mathurin_remdelaportemathurinh-transport-materials_2023).
+`Reiter1991` is the isotope-averaged expression usually quoted for [!cite](Reiter1991PbLi).
 `Shibuya1987` is a fit of the three values published in [!cite](Shibuya1987PbLi), which are shown
-together with the fit in [pbli_diffusivity_models_figure]. The `Okitsu2012*` and `Okada2012*`
-models are two different fits of the same permeation data, from [!cite](Okitsu2012PbLi) and
-[!cite](Okada2012PbLi).
+together with the fit in [pbli_diffusivity_models_figure].
+The `Okitsu2012*` and `Okada2012*` models are two different fits of the same permeation data,
+from [!cite](Okitsu2012PbLi) and [!cite](Okada2012PbLi).
 
 !media plot_pbli_review_models.py
        image_name=pbli_diffusivity_models.png
        style=width:80%;margin-bottom:2%;margin-left:auto;margin-right:auto
        id=pbli_diffusivity_models_figure
-       caption=Comparison of the implemented PbLi hydrogen isotope diffusivity correlations from [pbli_diffusivity_models_table], each drawn over its documented temperature range. The circles are the three values of `Shibuya1987` published in [!cite](Shibuya1987PbLi) (6.6e-10, 7.8e-10 and 9.5e-10 m$^2$/s at 573, 673 and 773 K).
-
-## Hydrogen Isotope and Isotope Scaling
-
-The [!param](/Materials/TritiumDiffusivityPbLi/isotope) parameter selects the hydrogen isotope
-(`H`, `D` or `T`, default `T`) the diffusivity is requested for. Each model records the isotope it
-was measured for (see [pbli_diffusivity_models_table]). If the two differ, the
-`validity_action` applies, with a message naming both isotopes. Since the default isotope is `T`,
-this includes every model that was not measured for tritium, unless
-[!param](/Materials/TritiumDiffusivityPbLi/isotope_scaling) is `true`. With isotope scaling, the
-pre-exponential factor is multiplied by the classical mass factor
-
-!equation
-\frac{D_{requested}}{D_{measured}} = \sqrt{\frac{m_{measured}}{m_{requested}}},
-
-where $m$ is the mass number of the isotope (1, 2 and 3 for H, D and T). This is the ratio predicted
-by classical rate theory. [!cite](S.Fukada2013MG201203) reports a hydrogen diffusivity 1.4 times
-larger than that of deuterium, "near to a value predicted from the classical theory" ($\sqrt{2}
-\approx 1.41$). Isotope scaling composes with the parameter scaling described below.
+       caption=Comparison of the implemented PbLi hydrogen isotope diffusivity models from [pbli_diffusivity_models_table], each drawn over its documented temperature range. The data points are the three values of `Shibuya1987` published in [!cite](Shibuya1987PbLi) (6.6e-10, 7.8e-10 and 9.5e-10 m$^2$/s at 573, 673 and 773 K).
 
 ## Composition
 
 The [!param](/Materials/TritiumDiffusivityPbLi/lithium_atomic_fraction) parameter (default 0.17) is
-the lithium atomic fraction of the PbLi. It does not enter the diffusivity expressions, but it is
+the lithium atomic fraction of the PbLi. It does not affect the diffusivity expressions, but it is
 checked once, at the start of the simulation, against the documented composition range of the
 selected model with the `validity_action` behavior described below.
 
 ## Pressure
 
 The [!param](/Materials/TritiumDiffusivityPbLi/pressure) parameter is an optional variable
-providing the hydrogen isotope partial pressure in Pa. It does not enter the diffusivity expressions: it is only used to
-check the pressure against the documented pressure range of the selected model
+providing the hydrogen isotope partial pressure in Pa.
+It does not affect the diffusivity expressions:
+it is only used to check the pressure against the documented pressure range of the selected model
 ([pbli_diffusivity_models_table]), at every evaluation, with the `validity_action` behavior
 described below. The check is skipped if no pressure is provided, and for the models without a
 documented pressure range. For example, `Terai1992` is documented for a single pressure of
 $3\times10^3$ Pa.
-
-## Scaling the Model Parameters
-
-The pre-exponential factor and the activation energy of the selected model can be scaled with the
-[!param](/Materials/TritiumDiffusivityPbLi/prefactor_scaling) and
-[!param](/Materials/TritiumDiffusivityPbLi/activation_energy_scaling) parameters, for example to explore the
-sensitivity of a simulation to the uncertainty of a correlation. The properties become
-
-!equation
-D = f_{A}\, f_{iso}\, D_0 \exp\left(-\frac{f_{E} E_a}{RT}\right),
-
-where $D_0$ is the pre-exponential factor of the selected model, $f_A$ is `prefactor_scaling`,
-$f_E$ is `activation_energy_scaling`, $f_{iso}$ is the isotope scaling factor (1 unless
-`isotope_scaling` is `true`), and $E_a$ is the activation energy of the selected model in J/mol.
-Both scaling parameters default to 1, which gives the model as published.
-`prefactor_scaling` must not be negative (a value of 0 sets the property to zero), while
-`activation_energy_scaling` may take any value, including a negative one.
-Scaling does not change the documented validity range of the model, so the
-`validity_action` still refers to the range of the unscaled correlation.
-
-## Example Input File
-
-The following block computes the diffusivity of the `Terai1992` model from a temperature variable,
-and provides both the regular and the AD material property.
-
-!listing test/tests/pbli_transport_materials/pbli_single_point_property_base.i block=Materials/pbli_property
 
 ## Behavior when outside of range of validity
 
@@ -128,6 +128,13 @@ evaluation), and the lithium atomic fraction and the isotope (both checked once,
 
 Extrapolating a correlation beyond the conditions it was fit to can give unphysical values, so
 `warning` or `error` is advisable unless the extrapolation is intentional.
+
+## Example Input File
+
+The following block computes the diffusivity of the `Terai1992` model from a temperature variable,
+and provides both the regular and the AD material property.
+
+!listing test/tests/pbli_transport_materials/pbli_single_point_property_base.i block=Materials/pbli_property
 
 !syntax parameters /Materials/TritiumDiffusivityPbLi
 
