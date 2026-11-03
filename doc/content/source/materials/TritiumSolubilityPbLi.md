@@ -111,7 +111,7 @@ Models whose name contains `Reiter1991` and an isotope are the isotope-specific 
 permeation data, from [!cite](Okitsu2012PbLi) and [!cite](Okada2012PbLi). `Fukada2013MixingRule`
 is the only model without a documented temperature range, since it depends on user-provided
 constants (see below).
-An additional solubility model from Schumacher [!citep](Schumacher1990PbLi) is available, but is not included here:
+An additional solubility model from Schumacher [!citep](Schumacher1990684) is available, but is not included here:
 the references reporting it conflict, and this remains to be resolved.
 
 !media plot_pbli_review_models.py
