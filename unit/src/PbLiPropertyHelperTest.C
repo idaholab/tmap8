@@ -159,8 +159,7 @@ TEST(PbLiPropertyHelperTest, rangesReturnMessages)
     // Temperature
     EXPECT_EQ(temperature_message(m.min_temperature), "") << m.citation;
     EXPECT_EQ(temperature_message(m.max_temperature), "") << m.citation;
-    EXPECT_EQ(temperature_message(0.5 * (m.min_temperature + m.max_temperature)), "")
-        << m.citation;
+    EXPECT_EQ(temperature_message(0.5 * (m.min_temperature + m.max_temperature)), "") << m.citation;
     if (!m.check_temperature)
     {
       // Models documented for a single temperature are never checked
@@ -330,7 +329,8 @@ TEST(PbLiPropertyHelperTest, isotopeScaling)
   for (const auto scaling : {false, true})
     for (const auto isotope : {Isotope::H, Isotope::D, Isotope::T})
     {
-      const auto averaged = diffusivityModelDataForIsotope(DiffusivityModel::Reiter1991, isotope, scaling);
+      const auto averaged =
+          diffusivityModelDataForIsotope(DiffusivityModel::Reiter1991, isotope, scaling);
       EXPECT_EQ(averaged.isotope, isotope);
       EXPECT_DOUBLE_EQ(averaged.prefactor, 4.03e-8);
     }
@@ -357,7 +357,8 @@ TEST(PbLiPropertyHelperTest, atomDensity)
   EXPECT_LT(relativeError(atomDensity(mooseDensity(700.0), 0.157), 3.3191087530749322e+28), 1e-9);
 
   // User-provided molar masses replace the defaults: 0.157 * 7 + 0.843 * 207 = 175.6 g/mol
-  EXPECT_LT(relativeError(averageAtomicMass(0.157, 7.0, 207.0), 0.157 * 7.0 + 0.843 * 207.0), 1e-14);
+  EXPECT_LT(relativeError(averageAtomicMass(0.157, 7.0, 207.0), 0.157 * 7.0 + 0.843 * 207.0),
+            1e-14);
   EXPECT_LT(relativeError(atomDensity(mooseDensity(600.0), 0.157, 7.0, 207.0),
                           mooseDensity(600.0) * 6.02214076e23 / (0.157 * 7.0 + 0.843 * 207.0)),
             1e-14);
