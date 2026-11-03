@@ -34,8 +34,8 @@
 - Before committing, copy the current session's `.jsonl` file into `doc/content/agent/<issue-number>/`. For Claude Code sessions the file is the most recently modified `.jsonl` under `~/.claude/projects/<repo-slug>/`; for Codex sessions check the equivalent Codex session directory. Do not remove old session files already in that directory — append the new one alongside them.
 
 ## Committing
-- Commit at minimum after: every input file that successfully runs, every test that passes or fails, and every new class added
-- If a test or run failed, commit the failure state first (include the full error message in the commit body), then commit the fix separately
+- Commit at minimum after: every input file that successfully runs, every test that passes, and every new class added
+- Keep every commit passing, so that `git bisect` can test each one. If a change makes a test fail, commit the change and its fix (for example, a regold) together. Include the full error message of the failure in that commit body.
 - Every commit must reference the associated GitHub issue (e.g. `Refs #<issue-number>` or `Closes #<issue-number>` as appropriate) in the commit message
 - **Every commit must include an updated copy of the session `.jsonl`** — before staging, copy the current session file from `~/.claude/projects/<repo-slug>/<session-id>.jsonl` to `doc/content/agent/<issue-number>/` and stage it; this is a critical SQA requirement. Do not remove session files already present in that directory — if multiple Claude/Codex sessions contribute to the same branch and issue, all session files must be kept.
 - Every commit must include these trailers:
