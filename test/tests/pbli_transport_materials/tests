@@ -851,8 +851,11 @@
 
   [pbli_figures]
     type = RunCommand
-    command = 'python3 ../../../doc/content/source/materials/figures/plot_pbli_review_models.py'
+    command = 'python3 plot_pbli_review_models.py'
     required_python_packages = 'matplotlib numpy'
+    # The script reads the coefficients from the headers and sources of the repository, which are
+    # not available when the tests are relocated
+    capabilities = 'installation_type=in_tree'
     requirement = 'The system shall generate the figures comparing the PbLi diffusivity and solubility models of the documentation from the coefficients of the implementation.'
   []
 
