@@ -259,17 +259,17 @@ diffusivityModelData(const DiffusivityModel model)
   {
     case DiffusivityModel::Fauvet1988:
       // single value 1.5e-9 m^2/s at 450 C = 723.15 K. The temperature is not checked.
-      return {withPressureRange(
-                  withoutTemperatureCheck(pbliMetadata(
-                      "Fauvet and Sannier (1988)",
-                      723.15,
-                      723.15,
-                      "Single datum at 723.15 K, treated as temperature independent.")),
-                  1.0e3,
-                  1.0e4),
-              1.5e-9,
-              0.0,
-              Isotope::H};
+      return {
+          withPressureRange(withoutTemperatureCheck(pbliMetadata(
+                                "Fauvet and Sannier (1988)",
+                                723.15,
+                                723.15,
+                                "Single datum at 723.15 K, treated as temperature independent.")),
+                            1.0e3,
+                            1.0e4),
+          1.5e-9,
+          0.0,
+          Isotope::H};
 
     case DiffusivityModel::Reiter1991:
       // This is the expression usually quoted for Reiter. It is an average of the D and T data, so
@@ -293,38 +293,42 @@ diffusivityModelData(const DiffusivityModel model)
       // Fit of 16 digitized H data points from Reiter1991
       // DISCREPANCY: E differs from the averaged 19500 J/mol, so H and the averaged fit differ by
       // about 15-20 % at the lower end of the range.
-      return {withPressureRange(
-                  pbliMetadata("Reiter (1991), H data digitized in h-transport-materials and fitted in TMAP8",
-                               524.0,
-                               690.0,
-                               "Arrhenius fit of Reiter's 16 digitized hydrogen data points."),
-                  1.0e3,
-                  1.0e5),
-              7.48e-8,
-              22956.0,
-              Isotope::H};
+      return {
+          withPressureRange(
+              pbliMetadata(
+                  "Reiter (1991), H data digitized in h-transport-materials and fitted in TMAP8",
+                  524.0,
+                  690.0,
+                  "Arrhenius fit of Reiter's 16 digitized hydrogen data points."),
+              1.0e3,
+              1.0e5),
+          7.48e-8,
+          22956.0,
+          Isotope::H};
 
     case DiffusivityModel::Reiter1991Deuterium_HTM:
       // Fit of 6 digitized D data points
       // DISCREPANCY: D_D/D_H from these fits is ~1.3 at 573 K and ~0.8 at 773 K (extrapolated),
       // i.e. no consistent classical sqrt(m_H/m_D) = 0.71 trend; the scatter of the raw data
       // (factor ~2) is larger than the isotope effect.
-      return {withPressureRange(
-                  pbliMetadata("Reiter (1991), D data digitized in h-transport-materials and fitted in TMAP8",
-                               524.0,
-                               691.0,
-                               "Arrhenius fit of Reiter's 6 digitized deuterium data points."),
-                  1.0e3,
-                  1.0e5),
-              1.38e-8,
-              13609.0,
-              Isotope::D};
+      return {
+          withPressureRange(
+              pbliMetadata(
+                  "Reiter (1991), D data digitized in h-transport-materials and fitted in TMAP8",
+                  524.0,
+                  691.0,
+                  "Arrhenius fit of Reiter's 6 digitized deuterium data points."),
+              1.0e3,
+              1.0e5),
+          1.38e-8,
+          13609.0,
+          Isotope::D};
 
     case DiffusivityModel::Shibuya1987:
       // three values only: 6.6e-10, 7.8e-10 and 9.5e-10 m^2/s at 573, 673 and 773 K
       // (tritium release from neutron-irradiated Li17Pb83). The Arrhenius form is a least-squares
-      // fit of those three points. The prefactor listed in Mas de les Valls et al. (2008) has a typo
-      // (exponent of -3 instead of -9).
+      // fit of those three points. The prefactor listed in Mas de les Valls et al. (2008) has a
+      // typo (exponent of -3 instead of -9).
       return {
           pbliMetadata("Shibuya et al. (1987), also summarized by Mas de les Valls et al. (2008)",
                        573.15,
@@ -382,8 +386,8 @@ diffusivityModelData(const DiffusivityModel model)
               Isotope::D};
 
     case DiffusivityModel::Okitsu2012Hydrogen:
-      // Fit over 5 temperatures in Okitsu et al. (2012). The pre-exponential factor corrects a typo of
-      // the paper, as noted in the h-transport-materials database.
+      // Fit over 5 temperatures in Okitsu et al. (2012). The pre-exponential factor corrects a typo
+      // of the paper, as noted in the h-transport-materials database.
       return {pbliMetadata("Okitsu et al. (2012)",
                            773.0,
                            973.0,
@@ -430,8 +434,8 @@ diffusivityModelData(const DiffusivityModel model)
 
 /**
  * Look up the diffusivity model data for a requested isotope. With isotope scaling the prefactor
- * is multiplied by the classical scaling factor, sqrt(m_measured / m_requested). Isotope-independent
- * models are returned as published for any requested isotope.
+ * is multiplied by the classical scaling factor, sqrt(m_measured / m_requested).
+ * Isotope-independent models are returned as published for any requested isotope.
  * @param model the diffusivity model
  * @param requested the requested isotope
  * @param isotope_scaling whether to scale the prefactor to the requested isotope
@@ -725,20 +729,20 @@ solubilityModelData(const SolubilityModel model, const SolubilityInputs & inputs
               Isotope::D};
 
     case SolubilityModel::Wu1983:
-      return {withPressureRange(
-                  pbliMetadata(
-                      "Wu (1983), as summarized by Mas de les Valls et al. (2008)",
-                      850.0,
-                      1040.0,
-                      "Deuterium, temperature independent value from Wu (1983). Wu (1983) "
-                      "provides other models for different compositions, which are not yet "
-                      "included here."),
-                  1.0,
-                  1.0e2),
-              SolubilityBasis::AtomFraction,
-              6.33e-7,
-              0.0,
-              Isotope::D};
+      return {
+          withPressureRange(
+              pbliMetadata("Wu (1983), as summarized by Mas de les Valls et al. (2008)",
+                           850.0,
+                           1040.0,
+                           "Deuterium, temperature independent value from Wu (1983). Wu (1983) "
+                           "provides other models for different compositions, which are not yet "
+                           "included here."),
+              1.0,
+              1.0e2),
+          SolubilityBasis::AtomFraction,
+          6.33e-7,
+          0.0,
+          Isotope::D};
 
     case SolubilityModel::Chan1984:
       return {withPressureRange(
