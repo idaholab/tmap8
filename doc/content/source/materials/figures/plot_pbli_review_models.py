@@ -278,9 +278,11 @@ def build_models():
             "prefactor": evaluate_number(fields[0], names),
             "activation_j_mol": evaluate_number(fields[1], names),
             "composition": composition,
-            "label": f"{name}, isotope-averaged"
-            if isotope_independent
-            else model_label(name, isotope),
+            "label": (
+                f"{name}, isotope-averaged"
+                if isotope_independent
+                else model_label(name, isotope)
+            ),
         }
 
     solubility = {}
@@ -322,7 +324,9 @@ def parse_density():
 
 R = parse_constant(CONSTANTS_HEADER, "ideal_gas_constant")  # J/mol/K
 AVOGADRO = parse_constant(CONSTANTS_HEADER, "avogadro_number")  # 1/mol
-LITHIUM_MOLAR_MASS = parse_constant(HELPER_HEADER, "default_lithium_molar_mass")  # g/mol
+LITHIUM_MOLAR_MASS = parse_constant(
+    HELPER_HEADER, "default_lithium_molar_mass"
+)  # g/mol
 LEAD_MOLAR_MASS = parse_constant(HELPER_HEADER, "default_lead_molar_mass")  # g/mol
 G_PER_KG = parse_constant(HELPER_HEADER, "g_per_kg")  # g/kg
 DENSITY_INTERCEPT, DENSITY_SLOPE = parse_density()  # kg/m^3, kg/m^3/K
