@@ -175,8 +175,11 @@ def split_top_level(text: str) -> list:
     return parts
 
 
-def match_parenthesis(text: str, start: int) -> int:
-    """Return the index of the parenthesis closing the one at `start`, ignoring strings."""
+def match_bracket(text: str, start: int) -> int:
+    """
+    Return the index of the bracket closing the parenthesis or brace at `start`, ignoring string
+    literals.
+    """
     depth, in_string, escaped = 0, False, False
     for index in range(start, len(text)):
         char = text[index]
@@ -190,24 +193,27 @@ def match_parenthesis(text: str, start: int) -> int:
             continue
         if char == '"':
             in_string = True
-        elif char == "(":
+        elif char in "({":
             depth += 1
-        elif char == ")":
+        elif char in ")}":
             depth -= 1
             if depth == 0:
                 return index
-    raise ValueError("Unbalanced parentheses in the helper header")
+    raise ValueError("Unbalanced brackets in the helper header")
 
 
 def parse_model_cases(header: Path, function: str, names: dict) -> dict:
     """
     Read the cases of a `<function>(const <Kind>Model model)` switch in PbLiPropertyHelper.h.
 
-    Each case returns `{pbliMetadata(citation, min_T, max_T, note[, min_x, max_x]), <fields...>}`.
-    Returns {model name: (min_T, max_T, [the raw fields], (min_x, max_x))}.
+    Each case returns `{<metadata>, <fields...>}`, where the metadata is
+    `pbliMetadata(citation, min_T, max_T, note[, min_x, max_x])`, possibly wrapped in
+    `withPressureRange(...)` and `withoutTemperatureCheck(...)`.
+    Returns {model name: (min_T, max_T, [the raw fields], (min_x, max_x), checks_temperature)}.
     Comments are dropped, and the string literals in pbliMetadata are skipped.
     """
-    text = re.sub(r"//[^\n]*", "", header.read_text())
+    text = re.sub(r"/\*.*?\*/", "", header.read_text(), flags=re.S)
+    text = re.sub(r"//[^\n]*", "", text)
     start = text.index(function + "(")
     end = text.index("mooseError(", start)
     body = text[start:end]
@@ -215,22 +221,18 @@ def parse_model_cases(header: Path, function: str, names: dict) -> dict:
     cases = {}
     for chunk in re.split(r"\bcase\s+\w+Model::", body)[1:]:
         name = chunk.split(":", 1)[0].strip()
-        call = chunk.index("pbliMetadata(")
+        returned = re.search(r"\breturn\s*\{", chunk)
+        open_brace = returned.end() - 1
+        close_brace = match_bracket(chunk, open_brace)
+        top_level = split_top_level(chunk[open_brace + 1 : close_brace])
+        metadata_expression, fields = top_level[0], [f for f in top_level[1:] if f]
+
+        call = metadata_expression.index("pbliMetadata(")
         open_index = call + len("pbliMetadata")
-        close_index = match_parenthesis(chunk, open_index)
-        metadata = split_top_level(chunk[open_index + 1 : close_index])
+        close_index = match_bracket(metadata_expression, open_index)
+        metadata = split_top_level(metadata_expression[open_index + 1 : close_index])
         min_t = evaluate_number(metadata[1], names)
         max_t = evaluate_number(metadata[2], names)
-        rest_start = close_index + 1
-        # Models with a documented pressure range wrap the metadata:
-        # withPressureRange(pbliMetadata(...), min_pressure, max_pressure)
-        wrapper = "withPressureRange("
-        if chunk[:call].rstrip().endswith(wrapper):
-            wrapper_open = chunk[:call].rindex(wrapper) + len(wrapper) - 1
-            rest_start = match_parenthesis(chunk, wrapper_open) + 1
-        rest = chunk[rest_start:]
-        rest = rest[: rest.index("}")] if "}" in rest else rest
-        fields = [f for f in split_top_level(rest.lstrip(" ,\n")) if f]
         if len(metadata) > 5:
             composition = (
                 evaluate_number(metadata[4], names),
@@ -241,7 +243,8 @@ def parse_model_cases(header: Path, function: str, names: dict) -> dict:
                 parse_constant(HELPER_HEADER, "eutectic_min_lithium_fraction"),
                 parse_constant(HELPER_HEADER, "eutectic_max_lithium_fraction"),
             )
-        cases[name] = (min_t, max_t, fields, composition)
+        checks_temperature = "withoutTemperatureCheck(" not in metadata_expression
+        cases[name] = (min_t, max_t, fields, composition, checks_temperature)
     return cases
 
 
@@ -263,21 +266,25 @@ def build_models():
     names = header_names()
 
     diffusivity = {}
-    for name, (t_min, t_max, fields, composition) in parse_model_cases(
+    for name, (t_min, t_max, fields, composition, checks_t) in parse_model_cases(
         HELPER_HEADER, "diffusivityModelData", names
     ).items():
-        # fields: prefactor, activation energy, Isotope::X
+        # fields: prefactor, activation energy, Isotope::X[, isotope_independent]
         isotope = fields[2].split("::")[-1]
+        isotope_independent = len(fields) > 3 and fields[3].strip() == "true"
         diffusivity[name] = {
             "temp_range_k": (t_min, t_max),
+            "single_point": not checks_t,
             "prefactor": evaluate_number(fields[0], names),
             "activation_j_mol": evaluate_number(fields[1], names),
             "composition": composition,
-            "label": model_label(name, isotope),
+            "label": f"{name}, isotope-averaged"
+            if isotope_independent
+            else model_label(name, isotope),
         }
 
     solubility = {}
-    for name, (t_min, t_max, fields, composition) in parse_model_cases(
+    for name, (t_min, t_max, fields, composition, checks_t) in parse_model_cases(
         HELPER_HEADER, "solubilityModelData", names
     ).items():
         if name in NOT_PLOTTED:
@@ -286,6 +293,7 @@ def build_models():
         isotope = fields[3].split("::")[-1]
         solubility[name] = {
             "temp_range_k": (t_min, t_max),
+            "single_point": not checks_t,
             "basis": fields[0].split("::")[-1],
             "prefactor": evaluate_number(fields[1], names),
             "activation_j_mol": evaluate_number(fields[2], names),
@@ -427,6 +435,7 @@ def plot_models(
     """
     Plot one curve per model. raw_data optionally maps a model name to a dictionary with the
     published 'temperature_k' and 'values' of that model, drawn as markers of the color of the curve.
+    Models documented for a single temperature are drawn as a filled triangle.
     """
     raw_data = raw_data or {}
     fig = plt.figure(figsize=figsize)
@@ -436,17 +445,32 @@ def plot_models(
     line_styles = ["-", "--", "-.", ":"]
     for index, (name, model) in enumerate(models.items()):
         t_min, t_max = model["temp_range_k"]
-        temperature = np.linspace(t_min, t_max, 250)
-        values = value_function(name, model, temperature)
         color = colors[index % len(colors)]
-        (line,) = ax.plot(
-            inverse_temperature_axis(temperature),
-            values,
-            linewidth=2.0,
-            color=color,
-            linestyle=line_styles[(index // len(colors)) % len(line_styles)],
-            label=model["label"],
-        )
+        if model["single_point"]:
+            # Model documented for a single temperature: filled triangle at that temperature
+            temperature = np.array([t_min])
+            values = value_function(name, model, temperature)
+            (line,) = ax.plot(
+                inverse_temperature_axis(temperature),
+                values,
+                linestyle="none",
+                marker="^",
+                markersize=9,
+                color=color,
+                label=model["label"],
+                zorder=3,
+            )
+        else:
+            temperature = np.linspace(t_min, t_max, 250)
+            values = value_function(name, model, temperature)
+            (line,) = ax.plot(
+                inverse_temperature_axis(temperature),
+                values,
+                linewidth=2.0,
+                color=color,
+                linestyle=line_styles[(index // len(colors)) % len(line_styles)],
+                label=model["label"],
+            )
         line_info.append(
             {
                 "handle": line,

@@ -7,12 +7,12 @@
     input = pbli_three_point_property_base.i
     cli_args = 'Materials/pbli_property/type=TritiumDiffusivityPbLi
                 Materials/pbli_property/model=Fauvet1988
-                AuxKernels/temperature_1/value=718.15
+                AuxKernels/temperature_1/value=600
                 AuxKernels/temperature_2/value=723.15
-                AuxKernels/temperature_3/value=728.15
+                AuxKernels/temperature_3/value=850
                 Outputs/file_base=pbli_diffusivity_fauvet1988_out'
     csvdiff = pbli_diffusivity_fauvet1988_out.csv
-    requirement = 'The system shall compute the Fauvet1988 PbLi hydrogen isotope diffusivity model across its documented temperature range and expose both regular and AD material properties.'
+    requirement = 'The system shall compute the Fauvet1988 PbLi hydrogen isotope diffusivity model, which is documented for a single temperature of 723.15 K and treated as temperature independent, at three temperatures including 723.15 K and expose both regular and AD material properties.'
   []
 
 
@@ -235,12 +235,12 @@
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi
                 Materials/pbli_property/fp=pbli_fp
                 Materials/pbli_property/model=Fauvet1988
-                AuxKernels/temperature_1/value=718.15
+                AuxKernels/temperature_1/value=600
                 AuxKernels/temperature_2/value=723.15
-                AuxKernels/temperature_3/value=728.15
+                AuxKernels/temperature_3/value=850
                 Outputs/file_base=pbli_solubility_fauvet1988_out'
     csvdiff = pbli_solubility_fauvet1988_out.csv
-    requirement = 'The system shall compute the Fauvet1988 PbLi hydrogen isotope solubility model across its documented temperature range and expose both regular and AD material properties.'
+    requirement = 'The system shall compute the Fauvet1988 PbLi hydrogen isotope solubility model, which is documented for a single temperature of 723.15 K and treated as temperature independent, at three temperatures including 723.15 K and expose both regular and AD material properties.'
   []
 
 
@@ -690,7 +690,7 @@
     type = RunException
     input = pbli_single_point_pressure_base.i
     cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Katsuta1985 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=650 AuxKernels/set_pressure/value=2e5'
-    expect_err = "because pressure 2.00e\+05 Pa is outside \[1.48e\+04, 1.06e\+05\] Pa"
+    expect_err = "because pressure 2.00e\+05 Pa is outside \[1.01e\+04, 1.01e\+05\] Pa"
     requirement = 'The system shall return a specific error message when a PbLi hydrogen isotope solubility model is used with a pressure outside its documented pressure range, converted to Pa when the range is published in another unit.'
   []
 
@@ -854,5 +854,34 @@
     command = 'python3 ../../../doc/content/source/materials/figures/plot_pbli_review_models.py'
     required_python_packages = 'matplotlib numpy'
     requirement = 'The system shall generate the figures comparing the PbLi diffusivity and solubility models of the documentation from the coefficients of the implementation.'
+  []
+
+  [pbli_fauvet1988_temperature_not_checked]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/isotope=H Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=900'
+    absent_out = "outside its documented"
+    requirement = 'The system shall not check the temperature of the Fauvet1988 PbLi diffusivity model, which is documented for a single temperature, even with the error validity action.'
+  []
+
+  [pbli_solubility_fauvet1988_temperature_not_checked]
+    type = RunApp
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/type=TritiumSolubilityPbLi Materials/pbli_property/fp=pbli_fp Materials/pbli_property/model=Fauvet1988 Materials/pbli_property/validity_action=error AuxKernels/set_temperature/value=800'
+    absent_out = "outside its documented"
+    requirement = 'The system shall not check the temperature of the Fauvet1988 PbLi solubility model, which is documented for a single temperature, even with the error validity action.'
+  []
+
+  [pbli_diffusivity_isotope_independent]
+    type = CSVDiff
+    input = pbli_single_point_property_base.i
+    cli_args = 'Materials/pbli_property/model=Reiter1991
+                Materials/pbli_property/isotope=D
+                Materials/pbli_property/isotope_scaling=true
+                Materials/pbli_property/validity_action=error
+                AuxKernels/set_temperature/value=604
+                Outputs/file_base=pbli_diffusivity_isotope_independent_out'
+    csvdiff = pbli_diffusivity_isotope_independent_out.csv
+    requirement = 'The system shall use an isotope-averaged PbLi diffusivity model, Reiter1991, as published for any requested hydrogen isotope, without isotope scaling and without an isotope mismatch with the error validity action, and reproduce an independently calculated reference point at 604 K.'
   []
 []

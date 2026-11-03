@@ -58,7 +58,7 @@ where $\bar{M}$ is the mean atomic mass of the metal atoms, $M_{Li}$ and $M_{Pb}
 masses of lithium and lead in g/mol, set with the
 [!param](/Materials/TritiumSolubilityPbLi/lithium_molar_mass) and
 [!param](/Materials/TritiumSolubilityPbLi/lead_molar_mass) parameters (default 6.941 and 207.2
-g/mol), and $x_{Li}$ is the
+g/mol, the standard atomic weights of [!cite](Wieser2009AtomicWeights)), and $x_{Li}$ is the
 [!param](/Materials/TritiumSolubilityPbLi/lithium_atomic_fraction) parameter. The density $\rho$
 is not defined in this class: it is evaluated with the fluid properties given in the
 [!param](/Materials/TritiumSolubilityPbLi/fp) parameter, which must be a
@@ -87,8 +87,8 @@ The implemented solubility models are summarized in [pbli_solubility_models_tabl
 !table id=pbli_solubility_models_table caption=Implemented PbLi hydrogen isotope solubility models, with the expression and the unit in which each correlation was published. All models are converted to atoms/m$^{3}$/Pa$^{1/2}$. All Arrhenius expressions use the ideal gas constant value from [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md), with the activation energy in J/mol and the temperature in K. Molar concentrations are in moles of hydrogen isotope atoms (not H$_2$ molecules). The composition is the lithium atomic fraction $x_{Li}$ (0.157 to 0.17 corresponds to the eutectic Pb-17Li). Quantities marked with \* do not have a documented range.
 | Enum | Expression in the published basis | Published unit | Temperature range (K) | Pressure range (Pa) | Composition $x_{Li}$ | Measured isotope | Reference | Notes |
 | :- | :- | :- | :- | :- | :- | :- | :- | :- |
-| `Katsuta1985` | $X/\sqrt{P} = 1.08\times10^{-6}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 573-723 | $1.48\times10^{4}$-$1.06\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Katsuta1985PbLi), [!cite](MasdeLesValls2008) | Hydrogen in Li17Pb83, hot extraction, no temperature dependence. |
-| `Fauvet1988` | $X/\sqrt{P} = 2.7\times10^{-8}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 718.15-728.15 | $10^{3}$-$10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723 K, treated as temperature independent. |
+| `Katsuta1985` | $X/\sqrt{P} = 1.08\times10^{-6}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 573-723 | $1.01\times10^{4}$-$1.01\times10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Katsuta1985PbLi), [!cite](MasdeLesValls2008) | Hydrogen in Li17Pb83, hot extraction, no temperature dependence. |
+| `Fauvet1988` | $X/\sqrt{P} = 2.7\times10^{-8}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 723.15 (single point) | $10^{3}$-$10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Fauvet1988PbLi) | Single datum at 723.15 K (450 C), treated as temperature independent. The temperature is not checked against any range. |
 | `Reiter1991Tritium` | $X/\sqrt{P} = 2.32\times10^{-8}\exp(-1.35\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | tritium | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published tritium fit for eutectic Pb-17Li. |
 | `Reiter1991Hydrogen` | $X/\sqrt{P} = 2.44\times10^{-8}\exp(-1.35\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published hydrogen fit for eutectic Pb-17Li. |
 | `Reiter1991Deuterium` | $X/\sqrt{P} = 2.36\times10^{-8}\exp(-1.35\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 508-700 | $10^{3}$-$10^{5}$ | 0.157-0.17 | deuterium | [!cite](Reiter1991PbLi), [!cite](MasdeLesValls2008) | Published deuterium fit for eutectic Pb-17Li. |
@@ -100,7 +100,7 @@ The implemented solubility models are summarized in [pbli_solubility_models_tabl
 | `Okitsu2012Deuterium` | $X/\sqrt{P} = 1.1\times10^{-4}\exp(-55.2\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | deuterium | [!cite](Okitsu2012PbLi) | Deuterium in two-component (H + D) permeation through Li17Pb83. |
 | `Okada2012Hydrogen` | $X/\sqrt{P} = 1.41\times10^{-4}\exp(-57.4\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | hydrogen | [!cite](Okada2012PbLi) | Hydrogen, permeation through Li-Pb. Same data as Okitsu et al. (2012), but different fit. |
 | `Okada2012Deuterium` | $X/\sqrt{P} = 1.65\times10^{-4}\exp(-57.6\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 773-973 | \* | 0.157-0.17 | deuterium | [!cite](Okada2012PbLi) | Deuterium, permeation through Li-Pb. Same data as Okitsu et al. (2012), but different fit. |
-| `Wu1983` | $X/\sqrt{P} = 6.33\times10^{-7}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 850-1040 | $10^{-1}$-$10^{0}$ | 0.157-0.17 | deuterium | [!cite](Wu1983PbLi), [!cite](MasdeLesValls2008) | Deuterium, temperature independent value from Wu (1983). Wu (1983) provides other models for different compositions, which are not yet included here. |
+| `Wu1983` | $X/\sqrt{P} = 6.33\times10^{-7}$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 850-1040 | $10^{0}$-$10^{2}$ | 0.157-0.17 | deuterium | [!cite](Wu1983PbLi), [!cite](MasdeLesValls2008) | Deuterium, temperature independent value from Wu (1983). Wu (1983) provides other models for different compositions, which are not yet included here. |
 | `Chan1984` | $X/\sqrt{P} = 4.7\times10^{-7}\exp(-9\times10^3/RT)$ | at. frac. $\cdot$ Pa$^{-1/2}$ | 573-773 | up to $10^{4}$ | 0.157-0.17 | hydrogen | [!cite](Chan1984PbLi), [!cite](MasdeLesValls2008) | Hydrogen; extrapolation of Li-rich alloy data to Pb-17Li. More compositions are available in Chan and Veleckis (1984). |
 | `Fukada2013MixingRule` | $\ln K_s = x_{Li}\ln K_{Li} + (1-x_{Li})\ln K_{Pb}$ | atoms $\cdot$ m$^{-3}$ $\cdot$ Pa$^{-1/2}$ | \* | \* | 0-1 | hydrogen | [!cite](S.Fukada2013MG201203) | Logarithmic mixing rule using user-provided Sieverts constants of pure liquid lithium and lead. |
 | `Alberro2015` | $K_s = 8.64\times10^{-3}\exp(-0.9\times10^3/RT)$ | mol $\cdot$ m$^{-3}$ $\cdot$ Pa$^{-1/2}$ | 523-922 | $10^{0}$-$10^{5}$ | 0.157-0.17 | hydrogen | [!cite](Alberro2015PbLi) | Hydrogen solubility in eutectic PbLi. |
@@ -111,7 +111,7 @@ Models whose name contains `Reiter1991` and an isotope are the isotope-specific 
 permeation data, from [!cite](Okitsu2012PbLi) and [!cite](Okada2012PbLi). `Fukada2013MixingRule`
 is the only model without a documented temperature range, since it depends on user-provided
 constants (see below).
-An additional solubility model from Schumacher is available, but is not included here:
+An additional solubility model from Schumacher [!citep](Schumacher1990PbLi) is available, but is not included here:
 the references reporting it conflict, and this remains to be resolved.
 
 !media plot_pbli_review_models.py
@@ -152,7 +152,7 @@ providing the hydrogen isotope partial pressure in Pa. Besides setting the press
 (see above), it is used to check the pressure against the documented pressure range of the selected
 model ([pbli_solubility_models_table]), at every evaluation, with the `validity_action` behavior
 described below. The check is skipped if no pressure is provided, and for the models without a
-documented pressure range. The range of `Katsuta1985` was published in atm and is converted to Pa.
+documented pressure range. The range of `Katsuta1985` was published as 0.1-1 atm and is converted to 10,132.5-101,325 Pa. The temperature of `Fauvet1988`, documented for a single temperature, is never checked.
 
 ## Behavior when outside of range of validity
 
