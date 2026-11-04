@@ -69,7 +69,7 @@ template <bool is_ad>
 FuelCycleSystemScalarKernelTempl<is_ad>::FuelCycleSystemScalarKernelTempl(
     const InputParameters & parameters)
   : Base(parameters),
-    FunctorInterface(this),
+    TmpFunctorInterface(this),
     _n_inputs(ScalarCoupleable::isCoupledScalar("inputs")
                   ? ScalarCoupleable::coupledScalarComponents("inputs")
                   : 0),
