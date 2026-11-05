@@ -8,7 +8,12 @@ The [theory_manual.md] page describes the `lawdep` model and other surface model
 
 ## General Case Description
 
-This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). The configuration and modeling parameters are similar to [ver-1ia](ver-1ia.md), except that, in the current case, the reaction is in lawdep conditions. The case is simulated in [!file](/ver-1ie.i).
+This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). This TMAP8 case is published in [!cite](Simon2027). The configuration and modeling parameters are similar to [ver-1ia](ver-1ia.md), except that, in the current case, the reaction is in lawdep conditions. The case is simulated in [!file](/ver-1ie.i). The surface reaction considered is illustrated in [ver-1ie_schematic].
+
+!media figures/ver-1i_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ie_schematic
+    caption=Schematic of the ver-1ie case (the same configuration is used for ver-1ia to ver-1if): gas species A$_2$ and B$_2$ in a gas enclosure react on a reactive surface to form AB.
 
 The problem considers the reaction between two isotopic species, A$_2$ and B$_2$, on a surface in lawdep conditions. The reaction between AB, A$_2$, and B$_2$ is the same as in [ver-1ia](ver-1ia.md). Therefore, the partial pressure of AB in equilibrium depends on the initial partial pressures of A$_2$ and B$_2$:
 
@@ -45,7 +50,7 @@ where $K_s$ is Sieverts’ solubility. Because A$_2$ and B$_2$ are isotopic vari
 K_d = {K_s}^2 K_r.
 \end{equation}
 
-This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $K_d$ is specified to be $1.858 \times 10^{24}/\sqrt{T}$ atom/m$^2$/s/pa. $K_s$ is specified to be $1 \times 10^{24}$ atom/m$^3$/Pa$^{0.5}$, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
+This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $K_d$ is specified to be $1.858 \times 10^{24}/\sqrt{T}$ atom/m$^2$/s/Pa. $K_s$ is specified to be $1 \times 10^{24}$ atom/m$^3$/Pa$^{0.5}$, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
 
 
 ## Analytical solution

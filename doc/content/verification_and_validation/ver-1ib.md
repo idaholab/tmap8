@@ -8,7 +8,12 @@ The [theory_manual.md] page describes the `ratedep` model and other surface mode
 
 ## General Case Description
 
-This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). The configuration and modeling parameters are the same as in [ver-1ia](ver-1ia.md), except that, in the current case, the starting pressures for A$_2$ and B$_2$ are not equal. The case is simulated in [!file](/ver-1ia.i), but the starting pressures of A$_2$ and B$_2$ are $1 \times 10^4$ Pa and $1 \times 10^5$ Pa, respectively, and there is no AB initially present.
+This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). This TMAP8 case is published in [!cite](Simon2027). The configuration and modeling parameters are the same as in [ver-1ia](ver-1ia.md), except that, in the current case, the starting pressures for A$_2$ and B$_2$ are not equal. The case is simulated in [!file](/ver-1ia.i), but the starting pressures of A$_2$ and B$_2$ are $1 \times 10^4$ Pa and $1 \times 10^5$ Pa, respectively, and there is no AB initially present. The surface reaction considered is illustrated in [ver-1ib_schematic].
+
+!media figures/ver-1i_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ib_schematic
+    caption=Schematic of the ver-1ib case (the same configuration is used for ver-1ia to ver-1if): gas species A$_2$ and B$_2$ in a gas enclosure react on a reactive surface to form AB.
 
 ## Analytical solution
 

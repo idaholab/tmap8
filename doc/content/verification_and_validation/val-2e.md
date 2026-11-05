@@ -6,7 +6,7 @@
 
 This validation problem is taken from [!cite](ambrosek2008verification), which utilized experimental data from [!cite](kizu2001co).
 Kizu et al. describe permeation experiments in which H$_2$ and D$_2$ permeate through thin Pd membranes.
-This case is part of the validation suite of TMAP7 as val-2e [!citep](ambrosek2008verification).
+This case is part of the validation suite of TMAP7 as val-2e [!citep](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 
 The experimental equipment has two vacuum chambers separated by a Pd membrane.
 The membrane area is 1.8 $\times 10^{-4}$ m$^2$ and has thicknesses of either 0.025 mm or 0.05 mm, depending on the test.
@@ -70,7 +70,7 @@ $D_i$ is the diffusivity of hydrogen isotope $i$.
 The flow of gas into Enclosures 2 and 3 can be given by
 
 \begin{equation} \label{eq:dt_P2}
-\frac{P_{Ij}}{dt} = \frac{Q (P_{I,j-1}-P_{Ij})}{V_j},
+\frac{dP_{Ij}}{dt} = \frac{Q (P_{I,j-1}-P_{Ij})}{V_j},
 \end{equation}
 
 where $Q$ is the volumetric flow rate of always 0.1 m$^3$/s,
@@ -187,8 +187,8 @@ The pressure history of D$_2$ in Enclosure 5 for the next two simulations (val-2
 | $P_{D_2,4}$ | D$_2$ pressure in Enclosure 4        | 1 $\times 10^{-10}$                                      | Pa                    |
 | $P_{H_2,4}$ | H$_2$ pressure in Enclosure 4        | 1 $\times 10^{-10}$                                      | Pa                    |
 | $P_{HD,4}$  | HD pressure in Enclosure 4           | 1 $\times 10^{-10}$                                      | Pa                    |
-| $P_{H_2,5}$ | H$_2$ pressure in Enclosure 4        | 6.3 $\times 10^{-2}$                                     | Pa                    |
-| $P_{HD,5}$  | HD pressure in Enclosure 4           | 1 $\times 10^{-10}$                                      | Pa                    |
+| $P_{H_2,5}$ | H$_2$ pressure in Enclosure 5        | 6.3 $\times 10^{-2}$                                     | Pa                    |
+| $P_{HD,5}$  | HD pressure in Enclosure 5           | 1 $\times 10^{-10}$                                      | Pa                    |
 
 
 !alert note title=Updates of times and initial pressures in val-2ee to be consistent with val-2ed.

@@ -4,7 +4,12 @@
 
 ## General Case Description
 
-This heat transfer verification problem is taken from [!cite](longhurst1992verification) and [!cite](ambrosek2008verification), and it has been updated and extended in [!cite](Simon2025).
+This heat transfer verification problem is taken from [!cite](longhurst1992verification) and [!cite](ambrosek2008verification), and it has been updated and extended in [!cite](Simon2025). The geometry and boundary conditions of this case are shown in [ver-1fa_schematic].
+
+!media figures/ver-1fa_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1fa_schematic
+    caption=Schematic of the ver-1fa case: a slab with volumetric heating $Q$, an adiabatic left boundary, and a fixed temperature on the right boundary.
 
 This case models a heat conduction problem through a slab with a heat source. The heat conduction in the one-dimensional model is described as:
 

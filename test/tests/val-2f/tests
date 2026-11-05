@@ -118,16 +118,18 @@
   [val-2f_heavy_csv_bdf2]
     type = CSVDiff
     input = val-2f.i
+    # The SimplePredictor's extrapolated initial guess sends some charging-phase variational
+    # inequality solves into active-set cycling, and whether a given solve fails then depends on
+    # floating-point rounding. Starting each solve from the previous solution keeps the time-step
+    # history, and therefore the output, independent of platform and build (#200).
     cli_args = "Outputs/csv/start_time='${fparse charge_time_hat + cooldown_duration_hat}'
-                Outputs/csv/sync_times='${fparse charge_time_hat + cooldown_duration_hat}'"
+                Outputs/csv/sync_times='${fparse charge_time_hat + cooldown_duration_hat}'
+                Executioner/Predictor/scale=0"
     csvdiff = val-2f_out.csv
     heavy = true
     requirement = 'The system shall be able to model self-damaged tungsten effects on deuterium transport using the bdf2 time integration scheme for accuracy and generate CSV data output.'
     max_time = 2000
     rel_err = 1e-4
-    override_columns = 'scaled_flux_surface_right scaled_flux_surface_left scaled_mobile_deuterium scaled_trapped_deuterium_1 scaled_trapped_deuterium_2'
-    override_abs_zero = '1e4                      1e6                      1e4                     1e9                        1e4'
-    override_rel_err = '5e-3                      1e-3                     9e-3                    5e-3                       5.1e-3'
   []
   [val-2f_heavy_csv_inf_recombination_bdf2]
     type = CSVDiff

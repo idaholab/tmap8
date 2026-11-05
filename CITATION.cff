@@ -1,10 +1,43 @@
 cff-version: 1.2.0
 title: "Tritium Migration Analysis Program, Version 8 (TMAP8)"
-message: "If you use TMAP8, please cite it using the 'preferred-citation' below."
+message: "If you use TMAP8, please cite the 'preferred-citation' below and the other TMAP8 paper listed under 'references' when relevant."
 date-released: 2021-01-26
 url: "https://github.com/idaholab/TMAP8"
 preferred-citation:
   type: article
+  authors:
+  - family-names: "Simon"
+    given-names: "Pierre-Clément A"
+  - family-names: "Icenhour"
+    given-names: "Casey T"
+  - family-names: "Yang"
+    given-names: "Lin"
+  - family-names: "Kadz"
+    given-names: "Lee"
+  - family-names: "Bhave"
+    given-names: "Chaitanya Vivek"
+  - family-names: "Singh"
+    given-names: "Gyanender"
+  - family-names: "Giudicelli"
+    given-names: "Guillaume"
+  - family-names: "Lindsay"
+    given-names: "Alexander D"
+  - family-names: "Humrickhouse"
+    given-names: "Paul"
+  - family-names: "Calderoni"
+    given-names: "Pattrick"
+  - family-names: "Shimada"
+    given-names: "Masashi"
+  title: "Advanced tritium transport modeling and verification, validation, and benchmarking from component level to fuel cycle scale using TMAP8"
+  journal: "Fusion Engineering and Design"
+  publisher: "Elsevier"
+  start: 116089
+  volume: 234
+  year: 2027
+  issn: "0920-3796"
+  doi: "10.1016/j.fusengdes.2026.116089"
+references:
+- type: article
   authors:
   - family-names: "Simon"
     given-names: "Pierre-Clément A"
@@ -25,7 +58,7 @@ preferred-citation:
   - family-names: "Humrickhouse"
     given-names: "Paul"
   - family-names: "Shimada"
-    given-names: "Masashi "
+    given-names: "Masashi"
   - family-names: "Calderoni"
     given-names: "Pattrick"
   title: "MOOSE-based Tritium Migration Analysis Program, Version 8 (TMAP8) for Advanced Open-Source Tritium Transport and Fuel Cycle Modeling"

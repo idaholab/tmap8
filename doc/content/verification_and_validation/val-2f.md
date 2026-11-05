@@ -4,7 +4,7 @@
 
 ## Case Description
 
-The case being used for validation here involves the use of recrystallized polycrystalline tungsten (PCW) samples, which are subjected to ion irradiation and subsequent analysis using thermal desorption spectroscopy (TDS). The primary objective is to determine how damage influences deuterium trapping and release. This case is drawn and updated from [!cite](dark2024modelling).
+The case being used for validation here involves the use of recrystallized polycrystalline tungsten (PCW) samples, which are subjected to ion irradiation and subsequent analysis using thermal desorption spectroscopy (TDS). The primary objective is to determine how damage influences deuterium trapping and release. This case is drawn and updated from [!cite](dark2024modelling). This case is introduced in [!cite](Simon2027), with full results to appear in a forthcoming publication.
 
 The TDS process is simulated using TMAP8 in a 1D tungsten sample with a thickness of 0.8 mm. The TDS simulation consisted of three phases: implantation, cooldown, and desorption.
 

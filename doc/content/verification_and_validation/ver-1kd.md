@@ -4,11 +4,16 @@
 
 ## General Case Description
 
-Two enclosures are separated by a membrane that allows diffusion according to Sieverts' law and chemical reactions, with a volumetric source in Enclosure 1. Enclosure 2 has twice the volume of Enclosure 1.
+Two enclosures are separated by a membrane that allows diffusion according to Sieverts' law and chemical reactions, with a volumetric source in Enclosure 1. Enclosure 2 has twice the volume of Enclosure 1. The system of two enclosures is illustrated in [ver-1kd_schematic].
+
+!media figures/ver-1k_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1kd_schematic
+    caption=Schematic of the ver-1kd case (the same configuration is used for ver-1ka to ver-1kd): two enclosures separated by a membrane, with T$_2$, H$_2$, and HT in each enclosure.
 
 ## Case Set Up
 
-This verification problem is taken from [!cite](ambrosek2008verification).
+This verification problem is taken from [!cite](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 
 This setup describes a diffusion system in which tritium T$_2$, dihydrogen H$_2$ and HT are modeled across a one-dimensional domain split into two enclosures. Compared to the [ver-1kc-2](ver-1kc-2.md) case, we now incorporate a T$_2$ tritium volumetric source in Enclosure 1. The volumetric source rate is set to $S_{\text{T}_2} = 10^{23}/N_A$ mol/m$^3$/s with $N_A = 6.02214076 \times 10^{23}$ 1/mol.
 The total system length is $2.5 \times 10^{-4}$ m, divided into 100 segments. The system operates at a constant temperature of 500 Kelvin. Initial tritium T$_2$ and dihydrogen H$_2$ pressures are specified as $10^{5}$ Pa for Enclosure 1 and $10^{-10}$ Pa for Enclosure 2. Initially, there is no HT in either enclosure.

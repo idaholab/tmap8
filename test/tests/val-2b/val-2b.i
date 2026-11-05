@@ -35,7 +35,7 @@ diffusion_BeO_preexponential_charging = ${units 1.40e-4 m^2/s -> mum^2/s}
 diffusion_BeO_energy_charging = ${units 24408 K}
 diffusion_BeO_preexponential_desorption = ${units 7e-5 m^2/s -> mum^2/s}
 diffusion_BeO_energy_desorption = ${units 27000 K}
-solubility_order = .5 # order of the solubility law (Here, we use Sievert's law)
+solubility_order = .5 # order of the solubility law (Here, we use Sieverts' law)
 solubility_constant_BeO = ${fparse 5.00e20 / 1e18 / concentration_scaling} # at/m^3/Pa^0.5 -> at/mum^3/Pa^0.5}
 solubility_energy_BeO = ${units -9377.7 K}
 solubility_constant_Be = ${fparse 7.156e27 / 1e18 / concentration_scaling} # at/m^3/Pa^0.5 -> at/mum^3/Pa^0.5}
@@ -195,7 +195,7 @@ node_length_Be = ${fparse length_Be_modeled / num_nodes_Be}
 []
 
 [BCs]
-  # Sieverts-law equilibrium on the left surface; symmetry on the right
+  # Sieverts' law equilibrium on the left surface; symmetry on the right
   [left_flux]
     type = EquilibriumBC
     Ko = ${solubility_constant_BeO}

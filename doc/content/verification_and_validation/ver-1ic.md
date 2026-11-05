@@ -8,7 +8,12 @@ The [theory_manual.md] page describes the `surfdep` model and other surface mode
 
 ## General Case Description
 
-This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). The configuration and modeling parameters are similar to [ver-1ia](ver-1ia.md), except that, in the current case, the reaction is in surfdep conditions. The case is simulated in [!file](/ver-1ic.i).
+This verification problem is taken from [!cite](ambrosek2008verification) and builds on [ver-1ia](ver-1ia.md). This TMAP8 case is published in [!cite](Simon2027). The configuration and modeling parameters are similar to [ver-1ia](ver-1ia.md), except that, in the current case, the reaction is in surfdep conditions. The case is simulated in [!file](/ver-1ic.i). The surface reaction considered is illustrated in [ver-1ic_schematic].
+
+!media figures/ver-1i_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ic_schematic
+    caption=Schematic of the ver-1ic case (the same configuration is used for ver-1ia to ver-1if): gas species A$_2$ and B$_2$ in a gas enclosure react on a reactive surface to form AB.
 
 The problem considers the reaction between two isotopic species, A$_2$ and B$_2$, on a surface in surfdep conditions. The reaction between AB, A$_2$, and B$_2$ is the same as in [ver-1ia](ver-1ia.md). Therefore, the partial pressure of AB in equilibrium is depends on the initial partial pressures of A$_2$ and B$_2$:
 
@@ -90,7 +95,7 @@ where $t$ is the time, $S$ is the surface area, and $V$ is the volume in the enc
 C_A C_B = \frac{\hat{K_b} \hat{K_d}}{2 D_s \lambda \hat{K_r}} P_{AB}^{eq}.
 \end{equation}
 
-This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $E_x$, $E_c$, and $E_b$ are specified to be 0.05, -0.01, and 0.0 eV, respectively, $\nu_0$ is $8.4 \times 10^{12}$ m/s, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
+This case uses equal starting pressures of $1 \times 10^{4}$ Pa of A$_2$ and B$_2$ and no AB. $E_x$, $E_c$, and $E_b$ are specified to be 0.05, -0.01, and 0.0 eV, respectively, $\nu_0$ is $8.4 \times 10^{12}$ 1/s, the temperature is 1000 K, the surface area for reaction is 0.05 m $\times$ 0.05 m square, and the enclosure volume is 1 m$^3$.
 
 
 ## Analytical solution

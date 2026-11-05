@@ -80,6 +80,7 @@
     command = 'python3 comparison_val-2c.py'
     requirement = 'The system shall be able to generate comparison plots between simulated solutions and experimental data of validation cases val-2c, modeling a Test Cell Release Experiment.'
     required_python_packages = 'matplotlib numpy pandas scipy os json'
+    min_slots = 2 # 326 MB per slot observed during https://civet.inl.gov/job/4305500/ during step Test debug. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   # Check the test data for the same heavy tests using 'Executioner/scheme=bdf2' for documentation. Since consistency has already been verified with `Executioner/scheme=implicit-euler` tests, the error tolerance can be relaxed.
   [val-2c_immediate_injection_csv_bdf2]

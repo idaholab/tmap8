@@ -40,6 +40,11 @@ verification of TMAP8. These V&V cases can be found here.
 !col-end!
 !row-end!
 
+## Citing TMAP8
+
+!style halign=center
+If you use TMAP8 in your work, please follow the instructions in the [Citing TMAP8 page](citing_tmap8.md) to cite TMAP8.
+
 ## TMAP8 Wins 2026 R&D 100 Award
 
 !media figures/RD100_2026_Winner_Logo_scaled.png alt=2026 R&D 100 Award Winner logo style=display:block;margin-left:auto;margin-right:auto;width:18%;
@@ -51,9 +56,9 @@ TMAP8 was named among the winners of the 2026 R&D 100 Award. See the other
 !style halign=center
 The R&D 100 awards began in 1963 as a science and technology
 competition recognizing 100 of the most technologically significant new products,
-technologies, and materials introduced into the marketplace each year. TMAP8 is the first open-source platform for tritium modeling to meet the Nuclear 
+technologies, and materials introduced into the marketplace each year. TMAP8 is the first open-source platform for tritium modeling to meet the Nuclear
 Quality Assurance Level 1 (NQA-1) industry standard. It also combines multiscale and multiphysics simulation capabilities with broad industry accessibility
-and applicability to accelerate the development of commercially viable fusion systems. 
+and applicability to accelerate the development of commercially viable fusion systems.
 
 ## TMAP8 is built on MOOSE style=clear:both;
 

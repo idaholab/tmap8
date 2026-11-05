@@ -9,7 +9,12 @@ This verification problem models a species '$T_2$' (gaseous tritium) flowing thr
 \bar{j_i} = QC_{i-1},
 \end{equation}
 
-where Q is the volumetric flow rate, and $C_{i-1}$ is the concentration of gas molecules in the previous enclosure.
+where Q is the volumetric flow rate, and $C_{i-1}$ is the concentration of gas molecules in the previous enclosure. The system of three enclosures is illustrated in [ver-1ha_schematic].
+
+!media figures/ver-1ha_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ha_schematic
+    caption=Schematic of the ver-1ha case: gas flows at rate $Q$ from enclosure 1, held at a fixed pressure, to enclosure 2, and then to enclosure 3.
 
 As gas flows through the system, the number of atoms of the gas entering the second and third enclosures is greater than the number exiting. The difference in pressures between two neighboring enclosures determines the net rate of gas flowing into the enclosure. The rate of change of the pressure of gas in the second and third enclosures is given as
 \begin{equation} \label{eq:dt_P2}

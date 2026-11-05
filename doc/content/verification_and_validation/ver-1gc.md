@@ -6,7 +6,7 @@
 ## Problem set up
 
 This verification problem is taken from [!cite](ambrosek2008verification) and builds on the capabilities verified in [ver-1g](ver-1g.md) for simple chemical reactions.
-This case is simulated in [!file](/ver-1gc.i).
+This case is simulated in [!file](/ver-1gc.i). This TMAP8 case is published in [!cite](Simon2027).
 
 This problem models a set of chemical reactions in series with three species: $A$, $B$, and $C$.
 The system was configured so that the enclosure initially contained only species $A$.
@@ -16,7 +16,12 @@ The reactions that were modeled are
 \begin{equation} \label{eq:chemical_reaction}
 A \xrightarrow{\mathit{k_1}} B \xrightarrow{\mathit{k_2}} C,
 \end{equation}
-with $k_1$ and $k_2$ as the reaction rates.
+with $k_1$ and $k_2$ as the reaction rates. The series of reactions is illustrated in [ver-1gc_schematic].
+
+!media figures/ver-1gc_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1gc_schematic
+    caption=Schematic of the ver-1gc case: species A converts to B, which converts to C, in a well-mixed enclosure initially containing only A.
 
 The concentration of each species is therefore described as
 \begin{equation} \label{eq:chemical_reaction_reaction_A}
