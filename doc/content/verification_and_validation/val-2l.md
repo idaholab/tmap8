@@ -110,9 +110,9 @@ The physical parameters are summarized in [val-2l_parameters].
 | $\alpha_{t,0}$ | Trapping prefactor | $2.927\times10^{12}$ | s$^{-1}$ | [!cite](Shimada2011) |
 | $E_{\mathrm{trap}}$ | Trapping energy | 0.39 | eV | [!cite](ambrosek2008verification) |
 | $\alpha_{r,0}$ | Release prefactor | $1\times10^{13}$ | s$^{-1}$ | [J-Dark-PhD](https://zenodo.org/records/11085134) |
-| $f_{T/M}$ | Trapped-to-mobile numerical scaling factor | $1\times10^{4}$ | - | User-specified convergence factor |
-| $T_{\mathrm{initial}}$ | TDS ramp initial temperature | 293 | K | TMAP7 ramp |
-| $T_{\mathrm{final}}$ | TDS ramp final temperature, reached at 5400 s | 1173 | K | TMAP7 ramp |
+| $f_{T/M}$ | Trapped-to-mobile numerical scaling factor | $1\times10^{4}$ | - | User-specified scaling factor |
+| $T_{\mathrm{initial}}$ | TDS ramp initial temperature | 293 | K | TMAP7 ramp in [!cite](Shimada2011)|
+| $T_{\mathrm{final}}$ | TDS ramp final temperature, reached at 5400 s | 1173 | K | TMAP7 ramp in [!cite](Shimada2011)|
 | $K_{r,0}$ | Recombination prefactor | $3.2\times10^{-15}$ | m$^4$ at$^{-1}$ s$^{-1}$ | [!cite](anderl1992deuterium) |
 | $E_r$ | Recombination activation energy | 1.16 | eV | [!cite](anderl1992deuterium) |
 

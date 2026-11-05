@@ -435,7 +435,7 @@ def plot_flux_vs_temperature(
     ax.set_title("Unirradiated Sample: Deuterium Desorption vs Temperature")
     ax.set_xlim(300, simulation_temperature.max())
     ax.set_ylim(
-        0, 1.5 * simulation_flux.max()
+        0, 1.2 * simulation_flux.max()
     )  # headroom keeps the legend clear of the peak
     ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
     ax.legend(loc="upper right")
