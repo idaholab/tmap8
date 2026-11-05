@@ -25,17 +25,17 @@ recombination_preexponential_factor = '${units 3.2e-15 m^4/at/s -> mum^4/at/s}'
 recombination_energy = '${units 1.16 eV}'
 
 # Trapping Parameters
-trap_depth = '${units 0.7 mum}' # TMAP7 fit A Shimida et al. 2010
+trap_depth = '${units 0.7 mum}' # TMAP7 fit A Shimada et al. 2010
 tungsten_density = '${units 6.25e28 at/m^3 -> at/mum^3}' # Ambrosek and Longhurst 2008
-trap_fraction = 0.04 # TMAP7 fit A Shimida et al. 2010
+trap_fraction = 0.04 # TMAP7 fit A Shimada et al. 2010
 trap_site_density = '${fparse ${trap_fraction} * ${tungsten_density}}'
-alpha_t_0 = '${units 9.1316e12 1/s}' # Ambrosek and Longhurst 2008 (val-2d)
-trapping_energy = '${units ${fparse 0.39 / kb_eV} K}' # Ambrosek and Longhurst 2008 (val-2d)
-trap_per_free = 1e4 # User specified
+alpha_t_0 = '${units 2.927e12 1/s}' # Shimada et al. 2011
+trapping_energy = '${units ${fparse 0.39 / kb_eV} K}' # Ambrosek and Longhurst 2008
+trap_per_free = 1e4 # User-specified convergence factor
 
 # Detrapping Parameters
-alpha_r_0 = '${units 8.4e12 1/s}' # Ambrosek and Longhurst 2008 (val-2d)
-detrapping_energy = '${units ${fparse 1.30 / kb_eV} K}' # TMAP7 fit A Shimida et al. 2010
+alpha_r_0 = '${units 1.0e13 1/s}' # val-2f
+detrapping_energy = '${units ${fparse 1.35 / kb_eV} K}' # TMAP7 fit A Shimada et al. 2010
 
 # Mesh Parameters (Ensure that all trap endpoints have a node)
 depth_A  = '${units 0.7 mum}'   # TMAP7 fit A trap boundary
@@ -52,15 +52,15 @@ bulk_end = '${units 7.0 mum}'   # bulk / deep-material interface and TMAP fit B 
 #   [depth_C, depth_E ] : bulk middle              (1.3  mum)
 #   [depth_E, bulk_end] : bulk end                 (4.5  mum)
 #   [bulk_end, W_thick] : deep material            (193  mum)
-  seg1 = '${fparse ${depth_A}}'
-  seg2 = '${fparse ${near_end} - ${depth_A}}'
-  seg3 = '${fparse ${depth_C}  - ${near_end}}'
-  seg4 = '${fparse ${depth_E}  - ${depth_C}}'
-  seg5 = '${fparse ${bulk_end} - ${depth_E}}'
-  seg6 = '${fparse ${tungsten_thickness} - ${bulk_end}}'
+seg1 = '${fparse ${depth_A}}'
+seg2 = '${fparse ${near_end} - ${depth_A}}'
+seg3 = '${fparse ${depth_C}  - ${near_end}}'
+seg4 = '${fparse ${depth_E}  - ${depth_C}}'
+seg5 = '${fparse ${bulk_end} - ${depth_E}}'
+seg6 = '${fparse ${tungsten_thickness} - ${bulk_end}}'
 
-  # ── Element counts ─────────────────────────────────────────────────────────
-  # nx_scale uniformly refines all segments. Per-segment multipliers set the
-  # relative resolution.
+# ── Element counts ─────────────────────────────────────────────────────────
+# nx_scale uniformly refines all segments. Per-segment multipliers set the
+# relative resolution.
 
-  nx_scale = 20
+nx_scale = 20

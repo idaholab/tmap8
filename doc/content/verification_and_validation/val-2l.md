@@ -21,13 +21,13 @@ The objectives of this first stage of `val-2l` are to:
 
 The tungsten specimens were 6 mm-diameter, 0.2 mm-thick discs made from 99.99 at.% polycrystalline tungsten. Both the unirradiated and irradiated specimens were exposed to 100 eV deuterons at a nominal flux of $5\times10^{21}$ m$^{-2}$ s$^{-1}$ and a fluence of $4\times10^{25}$ m$^{-2}$ while the specimen temperature was maintained at 473 K [!citep](Shimada2011). After exposure, deuterium release was measured using TDS.
 
-The measured temperature history is prescribed directly in the TMAP8 model rather than approximated by a constant heating rate. It is imperative that we capture the correct temperature history, as sharp TDS spectra coincide with temperature fluctuations between roughly 100-150 seconds and 200-250 seconds for the neutron-irradiated sample. This temperature history is found in [val-2l_temperature_history].
+The TMAP8 model prescribes the idealized temperature ramp used in the TMAP7 simulations rather than the measured temperature history. The temperature increases linearly from 293 K to 1173 K over 5400 s (approximately 9.8 K/min) and is then held at 1173 K until the end of the 2 h simulation. The measured sample temperature of the unirradiated specimen is not an input to the model: it is only compared with the prescribed ramp in [val-2l_temperature_history], which reports the root-mean-squared-percentage error (RMSPE) of the prescribed temperature at the experimental times.
 
 !media comparison_val-2l.py
     image_name=val-2l_temperature_history.png
     id=val-2l_temperature_history
     style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
-    caption=Temperature history prescribed during the TDS simulation. The inset highlights the early-time temperature fluctuations reported during the experiment in [!cite](Shimada2011).
+    caption=Idealized temperature ramp prescribed during the TDS simulation compared with the measured sample temperature of the unirradiated specimen reported in [!cite](Shimada2011). The inset highlights the early-time deviations of the measured temperature from the ramp.
 
 ## Model Description
 
@@ -54,9 +54,8 @@ The trapped-species balance is governed by trapping and release:
 
 where the terms in the right-hand side represent trapping and release, respectively. $\alpha_r^i$ and $\alpha_t^i$ are the release and trapping rate coefficients for trap $i$, $N$ is the density of tungsten, and $C_{T_i}^{empty}$ is the concentration of empty trapping sites of type $i$, defined as
 
-\begin{equation} \label{eqn:trapping_empty}
-    C_{T_i}^{empty} = (C_{{T_i}0} N - f_{T/M,i} C_{T_i}  ) ,
-\end{equation}
+!equation id=val-2l_trapping_empty
+C_{T_i}^{empty} = C_{{T_i}0} N - f_{T/M,i} C_{T_i},
 
 where $C_{T_{i,0}}$ is the fraction of host sites of type $i$ that can contribute to trapping.
 Note that in this model, TMAP8 accounts for a single trapping population, which is consistent with the TMAP7 fit A model in [!cite](Shimada2011), so $N_{trap}=1$.
@@ -73,12 +72,24 @@ C_M(x,0) = 0, \quad C_{T_1}(x,0) = \begin{cases}
 
 The mobile concentration is initially zero. Further, we assume that the single trap population is initially saturated, meaning that the trapped concentration equals the trap site density divided by the scaling factor, corresponding to zero empty trap sites ($C_{T_1}^{\text{empty}} = 0$) in the trapped region. No traps are present beyond 0.7 μm depth.
 
-Finite recombination boundary conditions were selected for TMAP7 fit A in [!cite](Shimada2011). However, homogeneous Dirichlet boundary conditions, representing infinite recombination, show better agreement with the TDS data and are applied at both the upstream and downstream surfaces:
+Dirichlet boundary conditions with zero mobile concentration are applied at both the upstream and downstream surfaces:
 
 !equation id=val-2l_dirichlet
-C_M = 0.
+C_M = 0 \quad \text{at } x = 0 \text{ and } x = L,
 
-The simulation begins at the first temperature in the experimental temperature history and runs for 2 h. The plasma-exposure stage is not simulated; its effect is represented by the prescribed initial trapped-deuterium profile.
+which assumes that every deuterium atom reaching a surface is immediately desorbed.
+
+Finite recombination boundary conditions are also implemented in the input file for comparison, but are inactive in the current case. When activated, they replace the Dirichlet conditions at both surfaces:
+
+!equation id=val-2l_recombination
+-D \nabla C_M \cdot \mathbf{n} = 2 K_r C_M^2,
+
+where $K_r$ is the temperature-dependent recombination rate coefficient following [!citep](anderl1992deuterium):
+
+!equation id=val-2l_recombination_rate
+K_r(T) = K_{r,0} \exp\left(-\frac{E_r}{k_B T}\right).
+
+The simulation begins at 293 K, the first temperature of the prescribed ramp, and runs for 2 h. The plasma-exposure stage is not simulated; its effect is represented by the prescribed initial trapped-deuterium profile.
 
 ## Case and Model Parameters
 
@@ -94,13 +105,19 @@ The physical parameters are summarized in [val-2l_parameters].
 | $E_D$ | Deuterium diffusion activation energy | 0.39 | eV | [!cite](frauenfelder1969solution,Causey2002) |
 | $f_t$ | TMAP7 Fit A trap atomic fraction | 0.04 | - | [!cite](Shimada2011) |
 | $x_t$ | TMAP7 Fit A trap depth | 0.7 | $\mu$m | [!cite](Shimada2011) |
-| $E_{\mathrm{detrap}}$ | Detrapping energy | 1.30 | eV | [!cite](Shimada2011) |
+| $E_{\mathrm{detrap}}$ | Detrapping energy | 1.35 | eV | [!cite](Shimada2011) |
 | $N$ | Tungsten atomic density | $6.25\times10^{28}$ | atom/m$^3$ | [!cite](ambrosek2008verification) |
-| $\alpha_{t,0}$ | Trapping prefactor | $9.1316\times10^{12}$ | s$^{-1}$ | [!cite](ambrosek2008verification) |
-| $\alpha_{r,0}$ | Release prefactor | $8.4\times10^{12}$ | s$^{-1}$ | [!cite](ambrosek2008verification) |
+| $\alpha_{t,0}$ | Trapping prefactor | $2.927\times10^{12}$ | s$^{-1}$ | [!cite](Shimada2011) |
+| $E_{\mathrm{trap}}$ | Trapping energy | 0.39 | eV | [!cite](ambrosek2008verification) |
+| $\alpha_{r,0}$ | Release prefactor | $1\times10^{13}$ | s$^{-1}$ | [J-Dark-PhD](https://zenodo.org/records/11085134) |
+| $f_{T/M}$ | Trapped-to-mobile numerical scaling factor | $1\times10^{4}$ | - | User-specified convergence factor |
+| $T_{\mathrm{initial}}$ | TDS ramp initial temperature | 293 | K | TMAP7 ramp |
+| $T_{\mathrm{final}}$ | TDS ramp final temperature, reached at 5400 s | 1173 | K | TMAP7 ramp |
+| $K_{r,0}$ | Recombination prefactor | $3.2\times10^{-15}$ | m$^4$ at$^{-1}$ s$^{-1}$ | [!cite](anderl1992deuterium) |
+| $E_r$ | Recombination activation energy | 1.16 | eV | [!cite](anderl1992deuterium) |
 
 !alert note title=Detrapping energy selection
-[!cite](Shimada2011) considered detrapping energies in the range of 1.30 to 1.50 eV for the various TMAP7 fits. The value of 1.30 eV, at the bottom of this range, was selected for the TMAP8 implementation as it provides improved agreement with the experimental TDS data compared to the value of 1.35 eV selected for TMAP7 fit A.
+[!cite](Shimada2011) considered detrapping energies in the range of 1.30 to 1.50 eV for the various TMAP7 fits. The value of 1.35 eV was selected for the TMAP8 implementation to exactly match the TMAP7 fit A parameters, as the objective of this validation case is to benchmark TMAP8 against TMAP7 fit A.
 
 ## Results
 
@@ -111,16 +128,13 @@ Define the TDS flux root-mean-squared-percentage error (RMSPE) for both TMAP8 an
 !equation id=val-2l_error_metric
 \mathrm{RMSPE} = \frac{\sqrt{\sum_{i=1}^{n}\left(J_{\mathrm{TMAP},i}-J_{\mathrm{exp},i}\right)^2/n}}{\sum_{i=1}^{n}J_{\mathrm{exp}}/n}\times100.
 
-[val-2l_comparison] compares the TMAP8 desorption flux with the unirradiated experimental data and TMAP7 Fit A from [!cite](Shimada2011). The comparison is evaluated over the interval from 900 s to 2600 s, which contains the primary desorption peak. The two models exhibit complementary strengths and weaknesses: TMAP8 captures the peak magnitude and position accurately but overestimates the desorption flux during the ramp-up (before ~1800 s) and late ramp-down (after ~2400 s) phases of the TDS spectrum. Conversely, TMAP7 Fit A reproduces the rising and falling tails of the spectrum more closely but predicts a higher peak flux than observed experimentally.
+[val-2l_comparison_flux_vs_temperature] compares the TMAP8 desorption flux with the unirradiated experimental data and TMAP7 Fit A from Figure 3 of [!cite](Shimada2011) as a function of temperature. The figure reports three RMSPE values: TMAP8 against the experiment, TMAP7 Fit A against the experiment, and TMAP8 against TMAP7 Fit A (benchmark).
 
 !media comparison_val-2l.py
-    image_name=val-2l_comparison_desorption.png
-    id=val-2l_comparison
+    image_name=val-2l_comparison_flux_vs_temperature.png
+    id=val-2l_comparison_flux_vs_temperature
     style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
-    caption=Comparison of the TMAP8 prediction with the unirradiated experimental TDS data and TMAP7 Fit A reported by [!cite](Shimada2011).
-
-!alert note title=Digitized data
-The temperature history, experimental TDS data, and TMAP7 Fit A data were digitized from figures in [!cite](Shimada2011) and may contain small digitization errors.
+    caption=Comparison of the TMAP8 prediction with the unirradiated experimental TDS data and TMAP7 Fit A reported by [!cite](Shimada2011), as a function of temperature.
 
 ### Deuterium inventory and mass conservation
 
@@ -165,14 +179,14 @@ boundary of the Fit A trap region.
 
 ## Discussion and Limitations
 
-This stage of `val-2l` validates TMAP8 against the unirradiated experimental TDS data. It exercises temperature-dependent diffusion, trapping and release, a measured temperature history, and inventory accounting in TMAP8. The comparison does not establish that the chosen trap distribution is physically unique or represents the correct underlying physical mechanism. In [!cite](Shimada2011), TMAP7 Fit A was calibrated to the TDS spectrum alone and did not reproduce the measured NRA depth profile. The TMAP8 fit improves upon these results, but can be further improved through optimization methods.
+This stage of `val-2l` validates TMAP8 against the unirradiated experimental TDS data. It exercises temperature-dependent diffusion, trapping and release, an idealized temperature ramp, and inventory accounting in TMAP8. The comparison does not establish that the chosen trap distribution is physically unique or represents the correct underlying physical mechanism. In [!cite](Shimada2011), TMAP7 Fit A was calibrated to the TDS spectrum alone and did not reproduce the measured NRA depth profile. The TMAP8 fit improves upon these results, but can be further improved through optimization methods.
 
 ### Planned extension to the neutron-irradiated case
 
 The neutron-irradiated specimen (0.025 dpa) exhibited a much broader desorption spectrum than the unirradiated specimen and required multiple trap populations in the TMAP7 analysis [!citep](Shimada2011). A later extension of `val-2l` will:
 
 1. add the irradiated experimental TDS and temperature-history data;
-2. introduce multiple trap populations to attempt to capture multiple sharp spectra;
+2. introduce multiple trap populations to capture multiple sharp spectra;
 3. document the irradiation history and the assumptions required, exploring modeling techniques to represent damage to tungsten;
 4. perform mass conservation and validation checks incrementally;
 5. optimize material properties for chosen trap distributions and types.

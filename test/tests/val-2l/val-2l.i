@@ -72,7 +72,7 @@
     temperature = 'temperature'
     trap_per_free = ${trap_per_free}
   []
-  [release_1]
+  [releasing_1]
     type = ReleasingNodalKernel
     variable = trapped_1
     alpha_r = '${alpha_r_0}'
@@ -95,10 +95,8 @@
   []
 []
 
-
 [BCs]
-  active = 'left_recombination_flux right_recombination_flux'
-
+  active = 'left right'
   [left]
     type = ADDirichletBC
     boundary = upstream
@@ -111,7 +109,6 @@
     value = 0
     variable = mobile
   []
-
   [left_recombination_flux]
     type = ADMatNeumannBC
     variable = mobile
@@ -119,7 +116,6 @@
     value = 1
     boundary_material = flux_recombination_surface
   []
-
    [right_recombination_flux]
     type = ADMatNeumannBC
     variable = mobile
@@ -130,7 +126,6 @@
 []
 
 [Materials]
-
   [diffusivity_mat]
     type = ADDerivativeParsedMaterial
     property_name = 'diffusivity_mat'
@@ -138,7 +133,6 @@
     functor_symbols = 'temperature'
     expression = '${diffusivity_preexponential_factor} * exp(- ${diffusivity_activation_energy} / ${kb_eV} / temperature)'
   []
-
   [recombination_rate_surface]
     type = ADDerivativeParsedMaterial
     property_name = 'Kr'
@@ -146,7 +140,6 @@
     functor_symbols = 'temperature'
     expression = '${recombination_preexponential_factor} * exp(- ${recombination_energy} / ${kb_eV} / temperature)'
   []
-
   [flux_recombination_surface]
     type = ADDerivativeParsedMaterial
     coupled_variables = 'mobile'
@@ -159,10 +152,9 @@
 [Functions]
   [temperature_function]
     type = PiecewiseLinear
-    data_file = 'gold/temperature_data.csv'
-    x_title = 'time (s)'
-    y_title = 'temperature (K)'
-    format = columns
+    # Idealized ramp from TMAP7 code
+    x = '0 5400 7200'
+    y = '293 1173 1173'
   []
 
   [trapped_initial_condition]
@@ -177,58 +169,49 @@
 []
 
 [Postprocessors]
-
   [dt]
     type = TimestepSize
     execute_on = 'TIMESTEP_END'
   []
-
   [flux_threshold]
     type = ConstantPostprocessor
     value = ${flux_threshold}
     execute_on = 'initial'
     outputs = csv
   []
-
   [trap_depth]
     type = ConstantPostprocessor
     value = ${trap_depth}
     execute_on = 'initial'
     outputs = csv
   []
-
   [trap_per_free]
     type = ConstantPostprocessor
     value = ${trap_per_free}
     execute_on = 'initial'
     outputs = csv
   []
-
   [temperature]
     type = FunctionValuePostprocessor
     function = temperature_function
     outputs = csv
     execute_on = 'INITIAL TIMESTEP_END'
   []
-
   [diffusivity_pp]
     type = ADElementAverageMaterialProperty
     mat_prop = diffusivity_mat
     outputs = csv
   []
-
   [total_mobile_retention]
     type = ElementIntegralVariablePostprocessor
     variable = mobile
     execute_on = 'INITIAL TIMESTEP_END'
   []
-
   [total_trapped_retention]
     type = ElementIntegralVariablePostprocessor
     variable = trapped_1
     execute_on = 'INITIAL TIMESTEP_END'
   []
-
   [total_deuterium_retention]
     type = ParsedPostprocessor
     expression = 'total_mobile_retention + total_trapped_retention * ${trap_per_free}'
@@ -236,7 +219,6 @@
     execute_on = 'INITIAL TIMESTEP_END'
     outputs = csv
   []
-
   [deuterium_inventory_change]
     type = ChangeOverTimePostprocessor
     postprocessor = total_deuterium_retention
@@ -244,7 +226,6 @@
     execute_on = 'INITIAL TIMESTEP_END'
     outputs = none
   []
-
   [upstream_flux]
     type = ADSideDiffusiveFluxIntegral
     boundary = 'upstream'
@@ -252,7 +233,6 @@
     diffusivity = diffusivity_mat
     execute_on = 'TIMESTEP_END'
   []
-
   [downstream_flux]
     type = ADSideDiffusiveFluxIntegral
     boundary = 'downstream'
@@ -260,14 +240,12 @@
     diffusivity = diffusivity_mat
     execute_on = 'TIMESTEP_END'
   []
-
   [deuterium_release_flux_total]
     type = SumPostprocessor
     values = 'upstream_flux downstream_flux'
     execute_on = 'TIMESTEP_END'
     outputs = csv
   []
-
   [dt_limit]
     type = ParsedPostprocessor
     expression = 'min(if(t < 350, dt_fine_temp, dt_max), if(abs(flux) > flux_threshold, dt_fine_spectra, dt_max))'
@@ -279,7 +257,6 @@
     execute_on = 'TIMESTEP_END'
     outputs = csv
   []
-
   [deuterium_released_physical]
     type = TimeIntegratedPostprocessor
     value = deuterium_release_flux_total
@@ -287,7 +264,6 @@
     execute_on = 'TIMESTEP_END'
     outputs = csv
   []
-
   [deuterium_mass_conservation_residual]
     type = SumPostprocessor
     values = 'deuterium_inventory_change deuterium_released_physical'
@@ -321,10 +297,12 @@
   [profile_csv]
     type = CSV
     file_base = 'deuterium_mobile_concentration_profile/val-2l_out'
+    execute_postprocessors_on = none
   []
   [trapped_profile_csv]
     type = CSV
     file_base = 'deuterium_trapped_concentration_profile/val-2l_out'
+    execute_postprocessors_on = none
   []
 []
 
