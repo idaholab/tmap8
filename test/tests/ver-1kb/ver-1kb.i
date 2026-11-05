@@ -251,6 +251,10 @@ unit_scale_neighbor = 1
 [Outputs]
   file_base = 'ver-1kb_out_k1'
   csv = true
-  exodus = true
+  [exodus]
+    type = Exodus
+    # legacy value
+    max_output_name_length = 32
+  []
   execute_on = 'initial timestep_end'
 []

@@ -460,6 +460,8 @@ temperature_rate = '${units ${fparse 50 / 60} K/s}'
   []
   [exodus]
     type = Exodus
+    # legacy value
+    max_output_name_length = 32
     start_time = ${outputs_initial_time}
     output_material_properties = true
     time_step_interval = 20

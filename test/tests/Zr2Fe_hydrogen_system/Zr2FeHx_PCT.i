@@ -346,6 +346,8 @@ output_file_base ='Zr2FeHx_PCT_out'
   csv = true
   [exodus]
     type = Exodus
+    # legacy value
+    max_output_name_length = 32
     execute_on = 'timestep_end'
   []
 []

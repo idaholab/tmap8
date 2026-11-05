@@ -504,6 +504,8 @@
   file_base = ${output_file_base}
   [exodus]
     type = Exodus
+    # legacy value
+    max_output_name_length = 32
     time_step_interval = 10
   []
   [csv]
