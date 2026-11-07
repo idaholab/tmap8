@@ -2,7 +2,7 @@
 # A diffusion on two connected enclosures by a membrane with a volumetric source using Sieverts' law
 
 # Physical Constants
-kb = ${units 1.380649e-23 J/K} # Boltzmann constant J/K - from PhysicalConstants.h
+kb = ${units 1.380649e-23 J/K} # Boltzmann constant J/K - from TMAP8PhysicalConstants.h
 
 # Modeling parameters
 length = '${units 1 m}'

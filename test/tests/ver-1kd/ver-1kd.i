@@ -2,8 +2,8 @@
 # A diffusion on two connected enclosures by a membrane with a volumetric source using Sieverts’ Law and chemical reactions
 
 # Physical Constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from PhysicalConstants.h
-N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from TMAP8PhysicalConstants.h
+N_a = '${units 6.02214076e23 1/mol}' # Avogadro's number from TMAP8PhysicalConstants.h
 
 # Modeling parameters
 nb_segments_TMAP7 = 20

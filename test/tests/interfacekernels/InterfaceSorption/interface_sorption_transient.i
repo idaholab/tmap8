@@ -8,7 +8,7 @@
 # In this input file, we apply the Sievert law with n_sorption=1/2.
 
 # Physical Constants
-R = 8.31446261815324 # J/mol/K, based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
+R = 8.31446261815324 # J/mol/K, based on number used in TMAP8PhysicalConstants.h
 
 temperature = 1000 # K
 initial_concentration = 1

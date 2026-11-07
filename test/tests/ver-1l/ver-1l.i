@@ -2,7 +2,7 @@
 # Tritium diffusion through semi-infinity layer under heat gradient
 
 # Physical Constants
-# This is to be consistent with PhysicalConstants.h
+# This is to be consistent with TMAP8PhysicalConstants.h
 # kb = '${units 1.380649e-23 J/K}' # Boltzmann constant
 # R = '${units 8.31446261815324 J/mol/K}' # Gas constant
 

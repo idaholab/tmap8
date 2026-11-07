@@ -2,7 +2,7 @@
 # Thermal Desorption Spectroscopy on Tungsten
 
 # General parameters
-kB = '${units 1.380649e-23 J/K}' # Boltzmann constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?k)
+kB = '${units 1.380649e-23 J/K}' # Boltzmann constant (from TMAP8PhysicalConstants.h)
 
 # Model parameters
 TDS_initial_time = '${units 5e3 s}'
