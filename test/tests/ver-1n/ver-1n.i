@@ -2,7 +2,7 @@
 # Diffusion verification under an applied voltage with constant source boundary condition
 
 # Physical constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in include/utils/PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
 eV_to_J = '${units 1.602176634e-19 eV/J}'
 N_a = '${units 6.02214076e23 at/mol}'
 q = '${units 1.602176634e-19 C}'

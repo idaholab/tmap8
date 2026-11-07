@@ -4,7 +4,7 @@
 
 # Physical Constants
 # Note that we do NOT use the same number of digits as in TMAP4/TMAP7.
-# This is to be consistent with PhysicalConstant.h
+# This is to be consistent with PhysicalConstants.h
 kb = '${units 1.380649e-23 J/K}' # Boltzmann constant
 R = '${units 8.31446261815324 J/mol/K}' # Gas constant
 

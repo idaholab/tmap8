@@ -3,7 +3,7 @@
 # No trapping terms
 
 # Physical constants
-R = ${units 8.31446261815324 J/mol/K} # ideal gas constant based on number used in include/utils/PhysicalConstants.h
+R = ${units 8.31446261815324 J/mol/K} # ideal gas constant based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
 
 # Pressure conditions
 pressure_enclosure_init = ${units 13300 Pa}

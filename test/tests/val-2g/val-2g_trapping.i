@@ -3,9 +3,9 @@
 # Diffusion, Trapping, Surface Reaction under Wet and Dry Considered, No Soret effect
 
 # Physical constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in include/utils/PhysicalConstants.h
-eV_to_J = '${units 1.602176634e-19 eV/J}' # eV to J conversion factor based on number used in include/utils/PhysicalConstants.h
-N_a = '${units 6.02214076e23 at/mol}' # Avogadro's number based on number used in include/utils/PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
+eV_to_J = '${units 1.602176634e-19 eV/J}' # eV to J conversion factor based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
+N_a = '${units 6.02214076e23 at/mol}' # Avogadro's number based on number used in MOOSE PhysicalConstants.h (also see TMAP8PhysicalConstants.h)
 k_B = '${units 8.61733e-5 eV/K}' # Boltzmann constant in eV
 
 # thermal parameters
