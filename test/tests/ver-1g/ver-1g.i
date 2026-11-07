@@ -8,9 +8,9 @@
 ## Example: ~/projects/TMAP8/tmap8-opt -i ver-1g.i equal_conc.i
 
 # Physical Constants
-R = 8.31446261815324 # Gas constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+R = 8.31446261815324 # Gas constant (from TMAP8PhysicalConstants.h)
 T = '${units 25 degC -> K}' # Temperature
-Na = 6.02214076E23 # Avogadro's constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?na)
+Na = 6.02214076E23 # Avogadro's constant (from TMAP8PhysicalConstants.h)
 
 [Mesh]
   type = GeneratedMesh

@@ -12,8 +12,8 @@
 # val-2k oxide-thickness wrappers.
 
 # Physical constants
-kb = '${units 1.380649e-23 J/K}' # Boltzmann constant from PhysicalConstants.h
-eV_to_J = '${units 1.602176634e-19 J/eV}' # Electron-volt to Joule conversion from PhysicalConstants.h
+kb = '${units 1.380649e-23 J/K}' # Boltzmann constant from TMAP8PhysicalConstants.h
+eV_to_J = '${units 1.602176634e-19 J/eV}' # Electron-volt to Joule conversion from TMAP8PhysicalConstants.h
 kb_eV = '${units ${fparse kb / eV_to_J} eV/K}'
 
 # Shared geometry

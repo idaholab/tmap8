@@ -45,7 +45,7 @@ In this analytical verification we use the equal volume solution [eq:P3_equal_vo
 \begin{equation}
  C_i = \frac{P_i N_a}{RT},
 \end{equation}
-where $C_i$ is the concentration in atoms/m$^3$, $N_a$ is Avogadro's constant, $R$ is the gas constant, and $T = 303$ K is the temperature of the system [!cite](longhurst1992verification). The values of $N_a$ and $R$ are taken from the [Physical Constants](https://mooseframework.inl.gov/tmap8/source/utils/PhysicalConstants.html).
+where $C_i$ is the concentration in atoms/m$^3$, $N_a$ is Avogadro's constant, $R$ is the gas constant, and $T = 303$ K is the temperature of the system [!cite](longhurst1992verification). The values of $N_a$ and $R$ are taken from the [Physical Constants](source/utils/TMAP8PhysicalConstants.md).
 
 ## Results and comparison against analytical solution
 

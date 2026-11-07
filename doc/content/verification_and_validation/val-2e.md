@@ -200,8 +200,8 @@ Other case and model parameters used in TMAP8 are listed in [val-2e_parameters]:
 !table id=val-2e_parameters caption=Values of material properties.
 | Parameter | Description                          | Value                                                       | Units                 | Reference                 |
 | --------- | ------------------------------------ | ----------------------------------------------------------- | --------------------- | --------------------- |
-| $k_b$     | Boltzmann constant                   | 1.380649 $\times 10^{-23}$                                  | J/K                   | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?k) |
-| $R$       | Gas constant                         | 8.31446261815324                                            | J/mol/K               | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?r) |
+| $k_b$     | Boltzmann constant                   | 1.380649 $\times 10^{-23}$                                  | J/K                   | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
+| $R$       | Gas constant                         | 8.31446261815324                                            | J/mol/K               | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | $A$ | Surface area  | 1.8$\times 10^{-4}$                                      | m$^2$ | [!cite](kizu2001co) |
 | $V$ | Enclosure volume   | 0.005     | m$^3$            | [!cite](kizu2001co) |
 | $T_1$ | Temperature in val-2ea and val-2eb | 825                                          | K            | [!cite](kizu2001co) |
