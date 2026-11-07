@@ -2,9 +2,12 @@
 
 ## Overview
 
-This object lists physical constants to use consistent values across TMAP8. It contains the values listed in [PhysicalConstants_table]. Most of these constants are defined in MOOSE's `PhysicalConstants.h` (`moose/modules/misc/include/utils/PhysicalConstants.h`), which is included by `TMAP8PhysicalConstants.h`; the tritium half-life, tritium decay constant, and curie-to-becquerel conversion are defined in `TMAP8PhysicalConstants.h` itself. To use these constants in the code, add `#include "TMAP8PhysicalConstants.h"` at the top of your class and use `PhysicalConstants::<IN_CODE_NAME>`. For example, to use the ideal gas constant, use `PhysicalConstants::ideal_gas_constant`.
+This object lists physical constants to use consistent values across TMAP8. It contains the values listed in [PhysicalConstants_table]. Most of these constants are defined in MOOSE's `PhysicalConstants.h` (`moose/modules/misc/include/utils/PhysicalConstants.h`), which is included by `TMAP8PhysicalConstants.h`.
+Constants specific to tritium transport (e.g., tritium half-life, tritium decay constant, and curie-to-becquerel conversion) are defined in `TMAP8PhysicalConstants.h` itself. 
 
-!table id=PhysicalConstants_table caption=List of physical constants available in `PhysicalConstants`.
+To use these constants in the code, add `#include "TMAP8PhysicalConstants.h"` at the top of your class and use `PhysicalConstants::<IN_CODE_NAME>`. For example, to use the ideal gas constant, use `PhysicalConstants::ideal_gas_constant`.
+
+!table id=PhysicalConstants_table caption=List of physical constants available in `PhysicalConstants` and `TMAP8PhysicalConstants`.
 | Symbol   | In code name              | Description                              | Value            | Units     | Reference                 |
 | -------- | ------------------------- | ---------------------------------------- | ---------------- | --------- | ------------------------- |
 | $N_a$    | avogadro_number           | Avogadro's number                        | 6.02214076e23    | atoms/mol | [!cite](CODATA2021552941) |
