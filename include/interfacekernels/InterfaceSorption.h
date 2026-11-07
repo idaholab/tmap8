@@ -48,6 +48,9 @@ protected:
   const GenericVariableValue<is_ad> & _T;
   ///@}
 
+  /// Whether to enforce the sorption law in its inverted form, C_i = (C_s / K)^(1/n) / (R T)
+  const bool _use_inverted_sorption;
+
   /// Penalty associated with the concentration imbalance
   const Real _sorption_penalty;
 
