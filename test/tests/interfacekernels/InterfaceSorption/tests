@@ -369,4 +369,164 @@
     rel_err = 5.4e-2
     mesh_mode = REPLICATED
   []
+
+  [Sievert_inverted_transient_non_ad]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Sievert law using the inverted formulation of the sorption law, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'InterfaceKernels/interface/use_inverted_sorption=true
+                Outputs/file_base=interface_sorption_transient_Sievert_inverted_non_ad_out'
+    exodiff = 'interface_sorption_transient_Sievert_inverted_non_ad_out.e'
+    # The gold file is a copy of the one of the default formulation (interface_sorption_transient_Sievert_non_ad_out). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Sievert_inverted_transient_ad]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Sievert law using the inverted formulation of the sorption law and automatic differentiation, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'Kernels/u1_time_derivative/type=ADTimeDerivative
+                Kernels/u2_time_derivative/type=ADTimeDerivative
+                Kernels/temperature/type=ADTimeDerivative
+                Kernels/u1_diffusion/type=ADMatDiffusion
+                Kernels/u2_diffusion/type=ADMatDiffusion
+                Kernels/temperature/type=ADHeatConduction
+                InterfaceKernels/interface/type=ADInterfaceSorption
+                Materials/properties_1/type=ADGenericConstantMaterial
+                Materials/properties_2/type=ADGenericConstantMaterial
+                Postprocessors/flux_inner/type=ADSideDiffusiveFluxIntegral
+                Postprocessors/flux_outer/type=ADSideDiffusiveFluxIntegral
+                InterfaceKernels/interface/use_inverted_sorption=true
+                Executioner/nl_rel_tol=1e-7
+                Executioner/nl_abs_tol=1e-12
+                Outputs/file_base=interface_sorption_transient_Sievert_inverted_ad_out'
+    exodiff = 'interface_sorption_transient_Sievert_inverted_ad_out.e'
+    # The gold file is a copy of the one of the default formulation (interface_sorption_transient_Sievert_ad_out). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Sievert_inverted_transient_non_ad_penalty_scaling]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Sievert law using the inverted formulation of the sorption law, a penalty-enforced flux balance, and unit scaling on both variables, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'unit_scale=4
+                unit_scale_neighbor=6
+                InterfaceKernels/interface/use_flux_penalty=true
+                InterfaceKernels/interface/flux_penalty=1e1
+                InterfaceKernels/interface/use_inverted_sorption=true
+                Outputs/file_base=interface_sorption_transient_Sievert_inverted_non_ad_penalty_scaling_out'
+    exodiff = 'interface_sorption_transient_Sievert_inverted_non_ad_penalty_scaling_out.e'
+    # The gold file is a copy of the one of the default formulation (interface_sorption_transient_Sievert_non_ad_penalty_scaling_out). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Sievert_inverted_transient_ad_penalty_scaling]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Sievert law using the inverted formulation of the sorption law, automatic differentiation, a penalty-enforced flux balance, and unit scaling on both variables, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'unit_scale=4
+                unit_scale_neighbor=6
+                InterfaceKernels/interface/use_flux_penalty=true
+                InterfaceKernels/interface/flux_penalty=1e1
+                Kernels/u1_time_derivative/type=ADTimeDerivative
+                Kernels/u2_time_derivative/type=ADTimeDerivative
+                Kernels/temperature/type=ADTimeDerivative
+                Kernels/u1_diffusion/type=ADMatDiffusion
+                Kernels/u2_diffusion/type=ADMatDiffusion
+                Kernels/temperature/type=ADHeatConduction
+                InterfaceKernels/interface/type=ADInterfaceSorption
+                Materials/properties_1/type=ADGenericConstantMaterial
+                Materials/properties_2/type=ADGenericConstantMaterial
+                Postprocessors/flux_inner/type=ADSideDiffusiveFluxIntegral
+                Postprocessors/flux_outer/type=ADSideDiffusiveFluxIntegral
+                InterfaceKernels/interface/use_inverted_sorption=true
+                Executioner/nl_abs_tol=1e-12
+                Outputs/file_base=interface_sorption_transient_Sievert_inverted_ad_penalty_scaling_out'
+    exodiff = 'interface_sorption_transient_Sievert_inverted_ad_penalty_scaling_out.e'
+    # The gold file is a copy of the one of the default formulation without automatic differentiation
+    # (interface_sorption_transient_Sievert_non_ad_penalty_scaling_out), because the default AD result
+    # differs from it by up to 1.8% with a penalty-enforced flux balance (see rel_err of
+    # Sievert_transient_ad_penalty_scaling). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Henry_inverted_transient_non_ad]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Henry law using the inverted formulation of the sorption law, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'n_sorption=1
+                InterfaceKernels/interface/use_inverted_sorption=true
+                Outputs/file_base=interface_sorption_transient_Henry_inverted_non_ad_out'
+    exodiff = 'interface_sorption_transient_Henry_inverted_non_ad_out.e'
+    # The gold file is a copy of the one of the default formulation (interface_sorption_transient_Henry_non_ad_out). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Henry_inverted_transient_ad]
+    requirement = 'The system shall have the capability to enforce interfacial conditions based on the Henry law using the inverted formulation of the sorption law and automatic differentiation, and provide the same results as the default formulation.'
+    type = 'Exodiff'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'n_sorption=1
+                Kernels/u1_time_derivative/type=ADTimeDerivative
+                Kernels/u2_time_derivative/type=ADTimeDerivative
+                Kernels/temperature/type=ADTimeDerivative
+                Kernels/u1_diffusion/type=ADMatDiffusion
+                Kernels/u2_diffusion/type=ADMatDiffusion
+                Kernels/temperature/type=ADHeatConduction
+                InterfaceKernels/interface/type=ADInterfaceSorption
+                Materials/properties_1/type=ADGenericConstantMaterial
+                Materials/properties_2/type=ADGenericConstantMaterial
+                Postprocessors/flux_inner/type=ADSideDiffusiveFluxIntegral
+                Postprocessors/flux_outer/type=ADSideDiffusiveFluxIntegral
+                InterfaceKernels/interface/use_inverted_sorption=true
+                Executioner/nl_rel_tol=1e-7
+                Executioner/nl_abs_tol=1e-12
+                Outputs/file_base=interface_sorption_transient_Henry_inverted_ad_out'
+    exodiff = 'interface_sorption_transient_Henry_inverted_ad_out.e'
+    # The gold file is a copy of the one of the default formulation (interface_sorption_transient_Henry_ad_out). The two formulations
+    # solve different (but equivalent) residuals, so the results agree within the solver tolerance,
+    # not to machine precision, and the relative error tolerance is increased here
+    rel_err = 1e-4
+    mesh_mode = REPLICATED
+  []
+
+  [Sievert_inverted_solid_liquid]
+    requirement = 'The system shall be able to solve a Sievert law interface between a solid and a liquid, for very small concentrations in the liquid at the interface, using the inverted formulation of the sorption law, while conserving mass and satisfying the sorption law at the interface.'
+    type = 'CSVDiff'
+    input = 'interface_sorption_solid_liquid.i'
+    issues = '#494'
+    csvdiff = 'interface_sorption_solid_liquid_out.csv'
+    mesh_mode = REPLICATED
+  []
+  [Sievert_inverted_invalid_exponent]
+    requirement = 'The system shall report an error if the inverted formulation of the sorption law is requested with an exponent larger than one.'
+    type = 'RunException'
+    input = 'interface_sorption_transient.i'
+    issues = '#494'
+    cli_args = 'n_sorption=2
+                InterfaceKernels/interface/use_inverted_sorption=true'
+    expect_err = 'The inverted sorption form requires n_sorption <= 1'
+    mesh_mode = REPLICATED
+  []
 []
