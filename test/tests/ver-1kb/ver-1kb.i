@@ -2,7 +2,7 @@
 # A diffusion on two connected enclosures by a membrane without a volumetric source using Henry’s Law
 
 # Physical Constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from TMAP8PhysicalConstants.h
 
 # Modeling parameters
 nb_segments_TMAP7 = 20

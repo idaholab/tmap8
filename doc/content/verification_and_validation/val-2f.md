@@ -147,7 +147,7 @@ In this section provides the model parameters for this validation case. [val-2f_
 !table id=val-2f_set_up_values caption=Values of material properties.
 | Parameter | Description                                    | Value                       | Units         | Reference                  |
 | --------- | ---------------------------------------------- | --------------------------- | ------------- | -------------------------- |
-| $k_B$     | Boltzmann constant                             | 1.380649 $\times 10^{-23}$  | J/K           | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?r) |
+| $k_B$     | Boltzmann constant                             | 1.380649 $\times 10^{-23}$  | J/K           | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | $T_{\text{initial}}$ | Initial temperature                 | 370                         | K             | [!cite](dark2024modelling) |
 | $T_{\text{cooldown}}$ | Cooldown temperature               | 295                         | K             | [!cite](dark2024modelling) |
 | $T_{\text{desorption,min}}$ | Desorption start temperature | 300                         | K             | [!cite](dark2024modelling) |

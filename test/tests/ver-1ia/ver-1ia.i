@@ -2,7 +2,7 @@
 # A Species Equilibration Problem in Ratedep Conditions with Equal/Unequal Starting Pressures
 
 # Physical Constants
-k_b = '${units 1.380649e-23 J/K}' # Boltzmann constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+k_b = '${units 1.380649e-23 J/K}' # Boltzmann constant (from TMAP8PhysicalConstants.h)
 
 # modeling parameters
 simulation_time = '${units 6 s}'

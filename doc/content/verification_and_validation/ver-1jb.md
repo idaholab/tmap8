@@ -50,7 +50,7 @@ The tritium diffusivity is defined as
 \begin{equation}
     D_T = 1.58 \times 10^{-4} \exp \left(- \frac{308 \times 10^{3}}{RT}\right),
 \end{equation}
-where $R$ is the ideal gas constant in J/K/mol from [Physical Constants](utils/TMAP8PhysicalConstants.md) and $T=300$ K is the temperature of the domain.
+where $R$ is the ideal gas constant in J/K/mol from [Physical Constants](source/utils/TMAP8PhysicalConstants.md) and $T=300$ K is the temperature of the domain.
 The trapping frequency is defined as
 \begin{equation}
     \alpha_t = 2.096 \times 10^{15} \exp \left(- \frac{308 \times 10^{3}}{RT}\right),
@@ -59,7 +59,7 @@ and the release frequency is equal to
 \begin{equation}
     \alpha_r = 1 \times 10^{13} \exp \left(- \frac{4.2}{k_bT}\right),
 \end{equation}
-where $k_b$ is the Boltzmann constant in eV/K from [Physical Constants](utils/TMAP8PhysicalConstants.md).
+where $k_b$ is the Boltzmann constant in eV/K from [Physical Constants](source/utils/TMAP8PhysicalConstants.md).
 
 !alert warning title=TMAP8 uses different model parameters than TMAP7
 $k$ is defined as $k= 0.693/t_{1/2}=1.78199 \times 10^{-9}$ 1/s instead of $1.78241 \times 10^{-9}$ 1/s to be fully consistent with the half-life value (assuming 365.25 days in a year).
