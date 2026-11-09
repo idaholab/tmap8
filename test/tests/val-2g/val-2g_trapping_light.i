@@ -3,7 +3,7 @@
 # Diffusion, Surface Reaction under Wet Considered, No Trapping, Soret effects
 
 # Physical constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in include/utils/PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in TMAP8PhysicalConstants.h
 
 # thermal parameters
 temperature_low = '${units 1000 K}'

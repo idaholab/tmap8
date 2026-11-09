@@ -38,7 +38,7 @@ The model parameters used in the verification case are shown in [ver-1n_set_up_v
 !table id=ver-1n_set_up_values caption=Values of model properties for the Nernst--Planck verification problem.
 | Parameter | Description                          | Value                                                       | Units                 | Reference                 |
 | --------- | ------------------------------------ | ----------------------------------------------------------- | --------------------- | --------------------- |
-| $R$     | gas constant                         | 8.31446261815324                                            | J/mol/K               | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?r) |
+| $R$     | gas constant                         | 8.31446261815324                                            | J/mol/K               | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | $T$     | temperature                          | 773                                                          | K                     | -- |
 | $K_{s}$ | deuterium solubility in PCC          | 6.38$\times 10^{23} \exp(-7726.21 / RT)$                   | atom/m$^3$/Pa$^{0.5}$ | [!cite](hossain2020evaluation) |
 | $P$     | upstream pressure                    | 100                                                          | Pa                    | -- |
