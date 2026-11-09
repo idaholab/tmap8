@@ -26,13 +26,7 @@
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0061.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0071.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0081.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0091.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0101.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0111.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0121.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0131.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0141.csv
-               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0149.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0087.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0001.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0011.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0021.csv
@@ -42,13 +36,7 @@
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0061.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0071.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0081.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0091.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0101.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0111.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0121.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0131.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0141.csv
-               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0149.csv'
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0087.csv'
     requirement = 'The system shall be able to model deuterium transport through irradiated tungsten for comparison with experimental results and generate the concentration profiles.'
   []
   [val-2l_comparison]

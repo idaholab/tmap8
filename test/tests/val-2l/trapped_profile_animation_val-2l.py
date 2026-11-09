@@ -39,7 +39,7 @@ OUTPUT_FILE = "val-2l_profile_animation.gif"
 FRAME_STRIDE = 10
 FPS = 4
 OUTPUT_DPI = 80
-MAX_TIME = 3500.0
+MAX_TIME = None  # use every recorded profile (the full 87-step run)
 FIGURE_SIZE = (9, 6.75)
 
 # Panel definitions

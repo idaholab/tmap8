@@ -7,11 +7,11 @@ kb_eV = '${units ${fparse kb / eV_to_J} eV/K}' # Boltzmann constant eV/K
 
 # Temporal Parameters
 simulation_time = '${units 2 h -> s}'
-dt_max = '${units 60 s}'
-dt_min = '${units 10 s}'
-dt_fine_temp = '${units 10 s}'
-dt_fine_spectra = '${units 20 s}'
-flux_threshold = '${units 5e16 at/m^2/s -> at/mum^2/s}'
+dt_max = '${units 300 s}'
+dt_min = '${units 20 s}'
+dt_fine_temp = '${units 300 s}'
+dt_fine_spectra = '${units 30 s}'
+flux_threshold = '${units 1e17 at/m^2/s -> at/mum^2/s}'
 
 # Geometry
 tungsten_thickness = '${units 0.2 mm -> mum}' # Tungsten disc sample thickness, Shimada et al. 2010 (p. S667, Section 2.1)
@@ -63,4 +63,4 @@ seg6 = '${fparse ${tungsten_thickness} - ${bulk_end}}'
 # nx_scale uniformly refines all segments. Per-segment multipliers set the
 # relative resolution.
 
-nx_scale = 20
+nx_scale = 5

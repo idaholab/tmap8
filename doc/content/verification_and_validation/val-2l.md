@@ -128,13 +128,13 @@ Define the TDS flux root-mean-squared-percentage error (RMSPE) for both TMAP8 an
 !equation id=val-2l_error_metric
 \mathrm{RMSPE} = \frac{\sqrt{\sum_{i=1}^{n}\left(J_{\mathrm{TMAP},i}-J_{\mathrm{exp},i}\right)^2/n}}{\sum_{i=1}^{n}J_{\mathrm{exp}}/n}\times100.
 
-[val-2l_comparison_flux_vs_temperature] compares the TMAP8 desorption flux with the unirradiated experimental data and TMAP7 Fit A from Figure 3 of [!cite](Shimada2011) as a function of temperature. The figure reports three RMSPE values: TMAP8 against the experiment, TMAP7 Fit A against the experiment, and TMAP8 against TMAP7 Fit A (benchmark).
+[val-2l_comparison_flux_vs_time] compares the TMAP8 desorption flux with the unirradiated experimental data and TMAP7 Fit A from Figure 3 of [!cite](Shimada2011) as a function of time, with the TMAP8 temperature history on the secondary axis. The TMAP7 Fit A times are reconstructed from the TMAP7 input temperature ramp (10 s sampling), because the published data are given as a function of temperature. The TMAP8 and TMAP7 Fit A RMSPE values against the experiment are evaluated at the experimental times, and the TMAP8 against TMAP7 Fit A (benchmark) RMSPE is evaluated at the TMAP7 times.
 
 !media comparison_val-2l.py
-    image_name=val-2l_comparison_flux_vs_temperature.png
-    id=val-2l_comparison_flux_vs_temperature
+    image_name=val-2l_comparison_flux_vs_time.png
+    id=val-2l_comparison_flux_vs_time
     style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
-    caption=Comparison of the TMAP8 prediction with the unirradiated experimental TDS data and TMAP7 Fit A reported by [!cite](Shimada2011), as a function of temperature.
+    caption=Comparison of the TMAP8 prediction with the unirradiated experimental TDS data and TMAP7 Fit A reported by [!cite](Shimada2011). The difference between the TMAP7 and TMAP8 results is primarily caused by uncertainty in previous model inputs and boundary conditions. The RMSPE could be further reduced through various optimization methods.
 
 ### Deuterium inventory and mass conservation
 

@@ -4,7 +4,7 @@ This is the main comparison script for val-2l, and computes the following plots:
 1: plot_temperature_history() shows the prescribed temperature profile against the experimental temperature data, as well as an inlet graph that zooms in on temperature anomolies observed during the experiment
 2: plot_mass_conservation() shows the evolution of the mass conservation residual relative to the initial mass at the start of the TDS experiment
 3: plot_inventory() shows the deuterium present in traps and as a mobile concentration over time
-4: plot_flux_vs_temperature() plots the desorbed flux vs temperature for TMAP8, TMAP7 fit A, and experimental data, performing RMSPE calculations to measure the goodness of fit
+4: plot_flux_vs_time() plots the desorbed flux vs time for TMAP8, TMAP7 fit A, and experimental data, with the TMAP8 temperature history on a secondary axis, performing RMSPE calculations to measure the goodness of fit
 
 """
 
@@ -36,7 +36,7 @@ def read_csv_from_TMAP8(file_name, parameter_names):
     """
     if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
         csv_folder = f"../../../../test/tests/val-2l/gold/{file_name}"
-    else:  # if in test folder
+    else:
         csv_folder = f"./gold/{file_name}"
     simulation_data = pd.read_csv(csv_folder)
     return np.array([simulation_data[name] for name in parameter_names])
@@ -56,58 +56,8 @@ def compute_rmspe(simulated, reference):
     return RMSE * 100 / np.mean(reference)
 
 
-def read_shimada_fig2(file_name):
-    """Read the measured sample temperature of Fig. 2(a) of Shimada (2011)
-
-    Args:
-        file_name (str): path of the spreadsheet CSV
-
-    Returns:
-        tuple of ndarray: (time [s], temperature [K])
-    """
-    data = pd.read_csv(file_name)
-    return data.iloc[:, 4].to_numpy(), data.iloc[:, 5].to_numpy()
-
-
-def read_shimada_fig3(file_name):
-    """Read the experimental and TMAP7 fit A desorbed flux versus temperature of Fig. 3 of Shimada (2011)
-
-    The spreadsheet has no time column. The experimental series is shorter than the TMAP7
-    series, so its trailing empty cells are dropped.
-
-    Args:
-        file_name (str): path of the spreadsheet CSV
-
-    Returns:
-        tuple of ndarray: (experimental temperature [K], experimental flux [m^-2 s^-1],
-            TMAP7 fit A temperature [K], TMAP7 fit A flux [m^-2 s^-1])
-    """
-    data = pd.read_csv(file_name)
-    experiment = data.iloc[:, [0, 1]].dropna().to_numpy()
-    tmap7 = data.iloc[:, [2, 3]].dropna().to_numpy()
-    return experiment[:, 0], experiment[:, 1], tmap7[:, 0], tmap7[:, 1]
-
-
-def interpolate_on_temperature(target_temperature, temperature, flux):
-    """Interpolate a flux history onto the target temperatures
-
-    The temperature histories are sorted first because they are not strictly increasing
-    (start-up and end-of-ramp plateau), which np.interp does not allow.
-
-    Args:
-        target_temperature (ndarray): temperatures [K] where the flux is wanted
-        temperature (ndarray): temperature history [K] of the flux
-        flux (ndarray): flux at the temperatures in temperature
-
-    Returns:
-        ndarray: flux at target_temperature
-    """
-    order = np.argsort(temperature, kind="stable")
-    return np.interp(target_temperature, temperature[order], flux[order])
-
-
 def plot_temperature_history(
-    experiment_file="gold/2011_J_Nucl_Mater_Shimada_Fig2_TDSvsTime0dpa.csv",
+    experiment_file="val-2l_experimental_data.csv",
     simulation_file="val-2l_out.csv",
     filename="val-2l_temperature_history.png",
     zoom_end=350,
@@ -116,8 +66,8 @@ def plot_temperature_history(
     """Plot the prescribed and experimental temperature history versus time with a zoomed inset
 
     Args:
-        experiment_file (str): Shimada (2011) Fig. 2(a) spreadsheet; the measured
-            temperature (time [s], temperature [K]) is used
+        experiment_file (str): name of the experimental CSV in the gold directory; the
+            measured temperature (time [s], temperature [K]) is used
         simulation_file (str): TMAP8 CSV with "time" (s) and "temperature" (K) columns,
             where temperature is the idealized ramp prescribed in val-2l.i
         filename (str): output PNG filename
@@ -125,7 +75,9 @@ def plot_temperature_history(
         zoom_ylim (tuple): (y_min, y_max) in K for the inset y-axis
     """
     time, temperature = read_csv_from_TMAP8(simulation_file, ["time", "temperature"])
-    experiment_time, experiment_temperature = read_shimada_fig2(experiment_file)
+    experiment_time, experiment_temperature = read_csv_from_TMAP8(
+        experiment_file, ["exp:time [s]", "exp:temperature [K]"]
+    )
 
     # RMSPE of the prescribed temperature at the experimental times
     mapped_temperature = np.interp(experiment_time, time, temperature)
@@ -300,51 +252,63 @@ def plot_inventory(
     plt.close(fig)
 
 
-def plot_flux_vs_temperature(
-    experiment_file="gold/2011_J_Nucl_Mater_Shimada_Fig3_DesorbedFlux.csv",
+def plot_flux_vs_time(
+    experiment_file="val-2l_experimental_data.csv",
+    tmap7_file="val-2l_tmap7_fita.csv",
     simulation_file="val-2l_out.csv",
     simulation_flux_column="deuterium_release_flux_total",
-    comparison_plot="val-2l_comparison_flux_vs_temperature.png",
-    rmspe_window=None,
+    comparison_plot="val-2l_comparison_flux_vs_time.png",
+    rmspe_window=[900, 2650],
 ):
-    """Plot desorption flux vs temperature for Shimada (2011) data, TMAP7 fit A, and TMAP8.
+    """Plot desorption flux vs time for Shimada (2011) data, TMAP7 fit A, and TMAP8, with the
+    TMAP8 temperature history on a secondary y-axis.
+
+    The TMAP8 and TMAP7 fit A fluxes are compared with the experiment at the experimental
+    times. TMAP8 is compared with TMAP7 fit A at the TMAP7 times.
 
     Args:
-        experiment_file (str): Shimada (2011) Fig. 3 spreadsheet holding the experimental
-            and TMAP7 fit A (temperature [K], desorbed flux [m^-2 s^-1])
-        simulation_file (str): TMAP8 CSV output holding "temperature" and
+        experiment_file (str): name of the experimental CSV in the gold directory
+            (time [s], temperature [K], desorbed flux [m^-2 s^-1])
+        tmap7_file (str): name of the TMAP7 fit A CSV in the gold directory
+            (time [s], temperature [K], desorbed flux [m^-2 s^-1])
+        simulation_file (str): TMAP8 CSV output holding "time", "temperature" and
             the desorbed-flux column
         simulation_flux_column (str): name of the desorbed-flux column in
             simulation_file. TMAP8 reports it in at/µm^2/s; converted to at/m^2/s.
         comparison_plot (str): output PNG filename
-        rmspe_window (tuple, optional): (T_min, T_max) in K of the experimental points used
-            in the RMSPE, shaded on the plot. Defaults to None, which uses the entire
-            experimental temperature range.
+        rmspe_window (tuple, optional): (t_min, t_max) in s of the points used in the
+            RMSPE, shaded on the plot. Defaults to None, which uses the entire time range.
     """
 
-    experiment_temperature, experiment_flux, tmap7_temperature, tmap7_flux = (
-        read_shimada_fig3(experiment_file)
+    experiment_time, experiment_flux = read_csv_from_TMAP8(
+        experiment_file,
+        ["exp:time [s]", "exp:W103 desorbed D flux [m^-2 s^-1]"],
+    )
+    # Shimada (2011) provides the TMAP7 fit A flux as a function of temperature only. The time
+    # column was reconstructed from the TMAP7 input, whose temperature ramps linearly from 293 K
+    # to 1173 K in 5400 s and then holds 1173 K until 7200 s.
+    tmap7_time, tmap7_flux = read_csv_from_TMAP8(
+        tmap7_file,
+        ["TMAP_fit_A:time [s]", "TMAP_fit_A:W103_good TMAP flux [m^-2 s^-1]"],
     )
 
-    simulation_temperature, simulation_flux = read_csv_from_TMAP8(
-        simulation_file, ["temperature", simulation_flux_column]
+    simulation_time, simulation_temperature, simulation_flux = read_csv_from_TMAP8(
+        simulation_file, ["time", "temperature", simulation_flux_column]
     )
     simulation_flux = simulation_flux * 1e12  # at/µm^2/s -> at/m^2/s
 
-    # Interpolate TMAP7 fit A and TMAP8 flux at the experimental temperatures
-    mapped_tmap7_flux = interpolate_on_temperature(
-        experiment_temperature, tmap7_temperature, tmap7_flux
-    )
-    mapped_simulation_flux = interpolate_on_temperature(
-        experiment_temperature, simulation_temperature, simulation_flux
+    # Interpolate TMAP7 fit A and TMAP8 flux at the experimental times
+    mapped_tmap7_flux = np.interp(experiment_time, tmap7_time, tmap7_flux)
+    mapped_simulation_flux = np.interp(
+        experiment_time, simulation_time, simulation_flux
     )
 
-    # Experimental points used for the RMSPE: default is the entire experimental range
+    # Points used for the RMSPE: default is the entire time range
     if rmspe_window is None:
-        rmspe_region = np.ones_like(experiment_temperature, dtype=bool)
+        rmspe_region = np.ones_like(experiment_time, dtype=bool)
     else:
-        rmspe_region = (experiment_temperature >= rmspe_window[0]) & (
-            experiment_temperature <= rmspe_window[1]
+        rmspe_region = (experiment_time >= rmspe_window[0]) & (
+            experiment_time <= rmspe_window[1]
         )
 
     rmspe_tmap8 = compute_rmspe(
@@ -354,36 +318,35 @@ def plot_flux_vs_temperature(
         mapped_tmap7_flux[rmspe_region], experiment_flux[rmspe_region]
     )
 
-    # TMAP8 against TMAP7 fit A (reference solution) at the TMAP7 temperatures
-    mapped_simulation_flux_on_tmap7 = interpolate_on_temperature(
-        tmap7_temperature, simulation_temperature, simulation_flux
+    # TMAP8 against TMAP7 fit A (reference solution) at the TMAP7 times
+    mapped_simulation_flux_on_tmap7 = np.interp(
+        tmap7_time, simulation_time, simulation_flux
     )
     if rmspe_window is None:
-        tmap7_region = np.ones_like(tmap7_temperature, dtype=bool)
+        tmap7_region = np.ones_like(tmap7_time, dtype=bool)
     else:
-        tmap7_region = (tmap7_temperature >= rmspe_window[0]) & (
-            tmap7_temperature <= rmspe_window[1]
-        )
+        tmap7_region = (tmap7_time >= rmspe_window[0]) & (tmap7_time <= rmspe_window[1])
     rmspe_tmap8_vs_tmap7 = compute_rmspe(
         mapped_simulation_flux_on_tmap7[tmap7_region], tmap7_flux[tmap7_region]
     )
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    ax.plot(
-        experiment_temperature,
+    experiment_handle = ax.plot(
+        experiment_time,
         experiment_flux,
         "ko",
         label="Experiment (Shimada 2011, 0 dpa)",
-    )
-    ax.plot(
-        tmap7_temperature,
+    )[0]
+    tmap7_handle = ax.plot(
+        tmap7_time,
         tmap7_flux,
         color="red",
         linestyle="--",
         label="TMAP7 fit A",
-    )
-    ax.plot(simulation_temperature, simulation_flux, "b-", label="TMAP8")
+    )[0]
+    tmap8_handle = ax.plot(simulation_time, simulation_flux, "b-", label="TMAP8")[0]
+    handles = [experiment_handle, tmap7_handle, tmap8_handle]
 
     if rmspe_window is not None:
         # Add shaded region to indicate RMSPE evaluation window
@@ -392,8 +355,28 @@ def plot_flux_vs_temperature(
             rmspe_window[1],
             alpha=0.1,
             color="gray",
-            label=f"RMSPE window ({rmspe_window[0]:.0f}-{rmspe_window[1]:.0f} K)",
         )
+        handles.append(
+            Patch(
+                color="gray",
+                alpha=0.1,
+                label=f"RMSPE window ({rmspe_window[0]:.0f}-{rmspe_window[1]:.0f} s)",
+            )
+        )
+
+    # Temperature history on the secondary y-axis
+    ax_T = ax.twinx()
+    handles.append(
+        ax_T.plot(
+            simulation_time,
+            simulation_temperature,
+            linestyle="-",
+            color="k",
+            linewidth=1.5,
+            label="TMAP8 temperature history",
+        )[0]
+    )
+    ax_T.set_ylabel("Temperature (K)")
 
     # Add color-coded RMSPE annotations to center right
     ax.text(
@@ -430,15 +413,15 @@ def plot_flux_vs_temperature(
         fontsize=11,
     )
 
-    ax.set_xlabel("Temperature (K)")
+    ax.set_xlabel("Time (s)")
     ax.set_ylabel(r"Desorbed flux (m$^{-2}$s$^{-1}$)")
-    ax.set_title("Unirradiated Sample: Deuterium Desorption vs Temperature")
-    ax.set_xlim(300, simulation_temperature.max())
+    ax.set_title("Unirradiated Sample: Deuterium Desorption vs Time")
+    ax.set_xlim(0, simulation_time.max())
     ax.set_ylim(
         0, 1.2 * simulation_flux.max()
     )  # headroom keeps the legend clear of the peak
     ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
-    ax.legend(loc="upper right")
+    ax.legend(handles=handles, loc="upper left", fontsize=7)
     ax.grid(True)
 
     plt.tight_layout()
@@ -448,16 +431,9 @@ def plot_flux_vs_temperature(
 
 # ========================== Plot calls ========================== #
 
-if "/tmap8/doc/" in script_folder.lower():  # if in documentation folder
-    fig2_data_file = "../../../../test/tests/val-2l/gold/2011_J_Nucl_Mater_Shimada_Fig2_TDSvsTime0dpa.csv"
-    fig3_data_file = "../../../../test/tests/val-2l/gold/2011_J_Nucl_Mater_Shimada_Fig3_DesorbedFlux.csv"
-else:  # if in test folder
-    fig2_data_file = "./gold/2011_J_Nucl_Mater_Shimada_Fig2_TDSvsTime0dpa.csv"
-    fig3_data_file = "./gold/2011_J_Nucl_Mater_Shimada_Fig3_DesorbedFlux.csv"
-
 # Guarded so comparison_val-2l_multi_trap.py can import the functions without re-plotting
 if __name__ == "__main__":
-    plot_temperature_history(experiment_file=fig2_data_file)
+    plot_temperature_history()
     plot_mass_conservation()
     plot_inventory()
-    plot_flux_vs_temperature(experiment_file=fig3_data_file)
+    plot_flux_vs_time()
