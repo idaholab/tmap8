@@ -36,13 +36,14 @@
 ## Session log
 - Every session must be associated with a GitHub issue on `idaholab/TMAP8`; ask the user for the issue number at the start of the session if one is not provided, or create one if the user instructs you to
 - **SQA requirement:** When creating a GitHub issue with `gh`, you must use the appropriate template from `.github/ISSUE_TEMPLATE/`; read the available templates first, select the one that fits (e.g. `bug-report.md` for bugs, `feature-request.md` for new features or tasks), and populate all sections in the template body — passing a bare description without following the template structure is not acceptable
-- Do not copy, stage, or commit session `.jsonl` files (Claude Code, Codex, or otherwise); the user handles session logs. Leave any existing files in `doc/content/agent/` untouched
 
 ## Committing
 - Commit at minimum after: every input file that successfully runs, every test that passes, and every new class added
 - Keep every commit passing, so that `git bisect` can test each one. If a change makes a test fail, commit the change and its fix (for example, a regold) together. Include the full error message of the failure in that commit body.
 - Every commit must reference the associated GitHub issue (e.g. `Refs #<issue-number>` or `Closes #<issue-number>` as appropriate) in the commit message
-- Never stage session `.jsonl` files or `doc/content/agent/` contents; stage only the files relevant to the change
+- Before committing any physics or modeling change, review the proposed change with the user and wait for confirmation unless explicitly told otherwise, so the model implemented is the one the user expects
+- Before committing any new or changed code, input file, test, or documentation, run an independent agent to adversarially review it and verify comments and claims by running the case or writing throwaway tests, rather than trusting the code or comments as written
+- Never push to a remote unless the user asks for it or approves it
 - Formatting happens only as a pre-commit step, not while editing: right before committing, format the changed files (Python with `black`, C++ with `clang-format`, input files with `hit format`), verify with `black --check`, `clang-format --dry-run --Werror` and `hit check`, then stage the formatted files
 - Every commit must include these trailers:
 ```
