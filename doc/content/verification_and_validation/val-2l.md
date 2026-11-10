@@ -175,7 +175,7 @@ boundary of the Fit A trap region.
     image_name=val-2l_profile_animation.gif
     id=val-2l_profile_animation
     style=width:75%;margin-bottom:2%;margin-left:auto;margin-right:auto
-    caption=Evolution of the mobile and trapped deuterium concentration profiles in the TDS simulation.
+    caption=Evolution of the mobile and trapped deuterium concentration profiles in the TDS simulation. The animation covers the primary TDS peak, up to 3000 s.
 
 ## Discussion and Limitations
 
@@ -197,5 +197,7 @@ The files used in the current unirradiated validation case are:
 
 - [!file](/val-2l.params), which contains the physical and numerical parameters;
 - [!file](/val-2l.i), which defines the one-dimensional transport, trapping, release, surface recombination, and postprocessing model.
+
+To limit the computational costs of the test case, the light test runs a version of the file with a coarser mesh and larger time steps, which uses `cli_args` to modify [!file](/val-2l.i). The results and figures in this page, including the mass-conservation residual and the profile animation, are generated from the fine mesh and small time steps defined in [!file](/val-2l.params). More information about the changes can be found in the test specification file for this case, namely [!file](/val-2l/tests).
 
 !bibtex bibliography

@@ -36,10 +36,10 @@ main_csv = f"{gold_dir}/val-2l_out.csv"
 MOBILE_COL = "mobile"
 TRAPPED_COL = "trapped_1"
 OUTPUT_FILE = "val-2l_profile_animation.gif"
-FRAME_STRIDE = 10
-FPS = 4
+FRAME_STRIDE = 1
+FPS = 12
 OUTPUT_DPI = 80
-MAX_TIME = None  # use every recorded profile (the full 87-step run)
+MAX_TIME = 3000.0  # s; the sample is empty of deuterium after the primary TDS peak
 FIGURE_SIZE = (9, 6.75)
 
 # Panel definitions
