@@ -339,16 +339,6 @@ output_file_base = 'ZrCoHx_PCT_out'
   []
 []
 
-#[Outputs]
- # file_base = ${output_file_base}
- # csv = true
- # [exodus]
- #   type = Exodus
- #   execute_on = 'timestep_end'
- # []
-#[]
-
-
 [Outputs]
   file_base = ${output_file_base}
   [csv]
