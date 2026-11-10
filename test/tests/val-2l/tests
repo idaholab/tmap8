@@ -34,28 +34,94 @@
     ignore_columns = 'id'
     heavy = true
     csvdiff = 'deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0001.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0004.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0007.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0010.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0013.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0016.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0019.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0022.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0025.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0028.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0031.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0034.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0037.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0040.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0043.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0046.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0049.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0052.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0055.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0058.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0061.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0064.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0067.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0070.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0073.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0076.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0079.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0082.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0085.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0088.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0091.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0094.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0097.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0100.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0103.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0106.csv
+               deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0109.csv
                deuterium_mobile_concentration_profile/val-2l_out_mobile_profile_0112.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0001.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0004.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0007.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0010.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0013.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0016.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0019.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0022.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0025.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0028.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0031.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0034.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0037.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0040.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0043.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0046.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0049.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0052.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0055.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0058.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0061.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0064.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0067.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0070.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0073.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0076.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0079.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0082.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0085.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0088.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0091.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0094.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0097.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0100.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0103.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0106.csv
+               deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0109.csv
                deuterium_trapped_concentration_profile/val-2l_out_trapped_1_profile_0112.csv'
     requirement = 'The system shall be able to model deuterium transport through tungsten for comparison with experimental results, using the fine mesh and small time steps required for validation, and generate the mobile and trapped concentration profiles.'
   []
   [val-2l_comparison]
     type = RunCommand
     command = 'python3 comparison_val-2l.py'
-    requirement = 'The system shall be able to generate comparison plots between the experimental data, TMAP7 results, and simulated solution of validation case 2l.'
+    requirement = 'The system shall be able to generate comparison plots between the experimental data, TMAP7 results, and simulated solution.'
     required_python_packages = 'matplotlib numpy pandas'
   []
   [val-2l_profile_animation]
     type = RunCommand
     command = 'python3 trapped_profile_animation_val-2l.py'
     heavy = true
-    requirement = 'The system shall be able to generate an animation of the mobile and trapped deuterium concentration profiles for a single trap during validation case 2l.'
+    requirement = 'The system shall be able to generate an animation of the mobile and trapped deuterium concentration profiles for a single trap.'
     required_python_packages = 'matplotlib numpy pandas PIL'
   []
 []
