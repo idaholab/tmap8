@@ -39,8 +39,8 @@ They reflect different combinations of material microstructures and irradiation 
 
 The pre-exponential factor and the activation energy of the selected model can be scaled with the
 [!param](/Materials/TritiumDiffusivityLi2O/prefactor_scaling) and
-[!param](/Materials/TritiumDiffusivityLi2O/activation_energy_scaling) parameters, for example to explore the
-sensitivity of a simulation to the uncertainty of a correlation, or to represent a specimen that
+[!param](/Materials/TritiumDiffusivityLi2O/activation_energy_scaling) parameters to explore, for example, the
+sensitivity of a simulation to the uncertainty of a correlation or to represent a specimen that
 differs from the one measured in the literature. The properties become
 
 !equation
@@ -61,7 +61,7 @@ at a temperature outside its documented validity range (the ranges are listed in
 [li2o_diffusivity_models_table]):
 
 - `ignore`: nothing happens and the model is silently extrapolated.
-- `warning` (default): the simulation continues. Each out-of-range evaluation is recorded in MOOSE's
+- `warning` (default): the simulation continues without stopping, but each out-of-range evaluation is recorded in MOOSE's
   solution-invalidity system and summarized in the "Warnings History" table printed at the end of
   the run, with the number of occurrences per time step. Set
   [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.

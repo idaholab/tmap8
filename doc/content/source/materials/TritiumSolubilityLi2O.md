@@ -27,13 +27,13 @@ energy in J/mol, $R$ is the ideal gas constant (its value is provided by
 The $f_i$ terms are scaling parameters defined below.
 
 Note that models available in the literature do all use the same convention to define the solubility.
-TMAP8 therefore converts these model to this conisistent defintiion, as described in [this subsection](#conversion).
+TMAP8, therefore, converts these models to this conisistent defintiion, as described in [this subsection](#conversion).
 
 ## Scaling the Model Parameters
 
 The pre-exponential factor and the activation energy of the selected model can be scaled with the
 [!param](/Materials/TritiumSolubilityLi2O/prefactor_scaling) ($f_{A} \geq 0$) and
-[!param](/Materials/TritiumSolubilityLi2O/activation_energy_scaling) (f_{E}) parameters, for example to explore the
+[!param](/Materials/TritiumSolubilityLi2O/activation_energy_scaling) (f_{E}) parameters to explore, for example, the
 sensitivity of a simulation to the uncertainty of a correlation, or to represent a specimen that
 differs from the one measured in the literature.
 Both parameters default to 1, which gives the model as published.
@@ -170,7 +170,7 @@ at a temperature outside its documented validity range (the ranges are listed in
 [li2o_solubility_models_table]):
 
 - `ignore`: nothing happens and the model is silently extrapolated.
-- `warning` (default): the simulation continues. Each out-of-range evaluation is recorded in MOOSE's
+- `warning` (default): the simulation continues without stopping, and each out-of-range evaluation is recorded in MOOSE's
   solution-invalidity system and summarized in the "Warnings History" table printed at the end of
   the run, with the number of occurrences per time step. Set
   [!param](/Problem/FEProblem/immediately_print_invalid_solution) to print them as they occur.

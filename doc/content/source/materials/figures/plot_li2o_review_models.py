@@ -5,9 +5,8 @@ Plot the Li$_2$O tritium diffusivity and hydrogen isotope solubility correlation
 TMAP8 (TritiumDiffusivityLi2O and TritiumSolubilityLi2O).
 
 Intended use: regenerate the two documentation figures that are included with `!media` in
-TritiumDiffusivityLi2O.md and TritiumSolubilityLi2O.md. Run it from any directory:
-
-    python plot_li2o_review_models.py
+TritiumDiffusivityLi2O.md and TritiumSolubilityLi2O.md. Because it utilizes information from
+include/materials/Li2OPropertyHelper.h directly, it can be run from any location in the repository.
 
 Outputs (written next to this script):
     li2o_diffusivity_models.png  -- D (m^2/s) versus 1000/T, one curve per model

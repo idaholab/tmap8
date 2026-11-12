@@ -99,7 +99,7 @@ struct SolubilityFit
 };
 
 /**
- * Sieverts solubility in the form used by TMAP8, C = K_s sqrt(P) with
+ * Sieverts' solubility in the form used by TMAP8, C = K_s sqrt(P) with
  * K_s = N_at(T) X_0 exp(-E_a / (R T)), C in atoms/m^3, P in Pa and K_s in atoms m^-3 Pa^-1/2,
  * derived from a published fit by convertSolubilityFit().
  */
@@ -226,7 +226,7 @@ convertSolubilityFit(const SolubilityFit & fit)
 }
 
 /**
- * Look up the Sieverts solubility data of a model, converted from the published fit.
+ * Look up the Sieverts' solubility data of a model, converted from the published fit.
  * @param model the solubility model
  * @return the model data
  */
@@ -250,7 +250,7 @@ computeDiffusivity(const DiffusivityModelData & data, const T & temperature)
 }
 
 /**
- * Compute the Sieverts solubility K_s = N_at(T) X_0 exp(-E_a / (R T)), such that C = K_s sqrt(P)
+ * Compute the Sieverts' solubility K_s = N_at(T) X_0 exp(-E_a / (R T)), such that C = K_s sqrt(P)
  * with C in atoms/m^3 and P in Pa. See convertSolubilityFit() for the relation to the published
  * fit.
  * @param data the model data
