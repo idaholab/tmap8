@@ -22,6 +22,12 @@
 - Apply the relevant parts of those standards (comprehensive comments, constants declared at the top, documented units, streamlined input files via CLI arguments, Python scripts that compute analytical solutions directly, quantified comparison metrics such as RMSPE, standardized physical constants) when developing or updating any other TMAP8 simulation
 - Flag to the user any place where the standards cannot be followed, and why
 
+## Documentation
+- In markdown files under `doc/content/`, break lines by sentence: start each new sentence on a new line. For long sentences, break at punctuation (commas, semicolons, colons) instead of at arbitrary widths. Do not hard-wrap at a fixed column
+- Citations must use existing entries in the project `.bib` files in `doc/content/bib/` (not the loose `.bib` exports at the repository root). Add a bib entry there for any new reference before citing it
+- Generate figures with the Python scripts whenever possible. Do not commit hand-made or manually edited figures
+- Before committing documentation changes, confirm that the docs build (`doc/moosedocs.py`) or, at minimum, that every referenced file (figures, includes, input files, bib keys) exists
+
 ## Input files
 - Before writing an input file, look through existing MOOSE and TMAP8 classes to confirm object names and parameter syntax
 - Use `moose/framework/contrib/hit/hit check <file>.i` to validate before committing
@@ -32,8 +38,13 @@
 ## Testing
 - Run tests only when `.C`, `.h`, or `test/tests/` files change
 - Run only the affected module: `./run_tests -j<N> --re <module>`
+- TMAP8 tests should run in 2 seconds or less. When adding a new test, time it with few other processes running (e.g. `-j1`, no concurrent heavy jobs)
+- If the test takes significantly longer than 2 seconds, suggest to the user to flag it with `heavy = true` and to add a corresponding light test that uses the same input file and finishes in 2 seconds or less while still exercising the simulation. Make it light by relaxing numerical parameters (tolerances, time step), running only a fraction of the full simulation (reduced `end_time` or number of steps), or reducing the mesh size. Light tests should keep their own gold files and describe the reduction in the test specification
+- Name heavy tests with a `_heavy` suffix (e.g., `ver-1e_TMAP4_heavy`, `ver-1e_TMAP4_heavy_csvdiff`), and name the light counterpart without the suffix (e.g., `ver-1e`, `ver-1e_csvdiff`)
+- Every test needs its own `requirement`, and a `design` and/or `issues` entry (`design` and `issues` may be set once at the `[Tests]` block level, but `requirement` is always per test)
+- Before committing, check that every file in a `gold/` directory you added or touched is used by a test (e.g., listed in an `exodiff`, `csvdiff` or similar parameter of a `tests` file, or read by a Python script). Remove or fix any orphaned gold file, and flag it to the user
 
-## Session log
+## SQA
 - Every session must be associated with a GitHub issue on `idaholab/TMAP8`; ask the user for the issue number at the start of the session if one is not provided, or create one if the user instructs you to
 - **SQA requirement:** When creating a GitHub issue with `gh`, you must use the appropriate template from `.github/ISSUE_TEMPLATE/`; read the available templates first, select the one that fits (e.g. `bug-report.md` for bugs, `feature-request.md` for new features or tasks), and populate all sections in the template body — passing a bare description without following the template structure is not acceptable
 
