@@ -88,7 +88,7 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // Fitting constant used by the beta phase below
   const ADReal At_Min_beta_fit = -1.01e-6 * Utility::pow<2>(_neighbor_temperature[_qp]) +
-                               2.55e-3 * _neighbor_temperature[_qp] - 5.6e-01;
+                                 2.55e-3 * _neighbor_temperature[_qp] - 5.6e-01;
 
   // -------------------------------
   // Ratio r = P / P_limit   (used for blending thresholds in log-space)
@@ -120,10 +120,11 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
   // -------------------------------
   auto f_beta = [&](const ADReal & P) -> ADReal
   {
-    return 2. - 1.0015 * pow(At_Min_beta_fit + exp(24.89 - 2.53e-02 * _neighbor_temperature[_qp] +
-                                                 (-3.98e-01 + 0.001 * _neighbor_temperature[_qp]) *
-                                                     log(max(P - PLim, 1.e-10))),
-                             -1);
+    return 2. -
+           1.0015 * pow(At_Min_beta_fit + exp(24.89 - 2.53e-02 * _neighbor_temperature[_qp] +
+                                              (-3.98e-01 + 0.001 * _neighbor_temperature[_qp]) *
+                                                  log(max(P - PLim, 1.e-10))),
+                        -1);
   };
 
   // -------------------------------
@@ -159,18 +160,18 @@ ADMatInterfaceReactionYHxPCT::computeQpResidual(Moose::DGResidualType type)
 
   // Sigmoid steps (AD-safe)
   const ADReal s_alpha_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / blend_width)); // alpha→mid
-  const ADReal s_mid_to_beta = 1.0 / (1.0 + exp(-(x - x_zeta) / blend_width));  // mid→beta
+  const ADReal s_mid_to_beta = 1.0 / (1.0 + exp(-(x - x_zeta) / blend_width));   // mid→beta
 
   // Weights
-  ADReal w_alpha = 1.0 - s_alpha_to_mid;                  // Low pressure weights
+  ADReal w_alpha = 1.0 - s_alpha_to_mid;                 // Low pressure weights
   ADReal w_mid = s_alpha_to_mid * (1.0 - s_mid_to_beta); // Mid pressure weights
-  ADReal w_beta = s_mid_to_beta;                        // High pressure weights
+  ADReal w_beta = s_mid_to_beta;                         // High pressure weights
 
   // Normalization
   const ADReal w_sum = w_alpha + w_mid + w_beta; // Sum of weights
-  w_alpha /= w_sum;                            // Ratio of weight for low pressure
-  w_mid /= w_sum;                           // Ratio of weight for mid pressure
-  w_beta /= w_sum;                            // Ratio of weight for high pressure
+  w_alpha /= w_sum;                              // Ratio of weight for low pressure
+  w_mid /= w_sum;                                // Ratio of weight for mid pressure
+  w_beta /= w_sum;                               // Ratio of weight for high pressure
 
   // -------------------------------
   // Final atomic fraction
