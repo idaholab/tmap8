@@ -24,14 +24,14 @@ To incorporate the entire PCT curve in TMAP8, the curve is divided into three re
 
 The low-pressure regime is captured as:
 \begin{equation}\label{eq:atomic_fraction_alpha}
-f_{at,\alpha}(T,P) = 0.7-1\left[5 \times 10^{-3}+\exp\left(-4.37 + 1.34 \times 10^{-2} T + \left( -8.22 \times 10^{-2} - 3.97 \times 10^{-4} T \right) \log\left(P_{lim}(T) - P\right)\right)\right]^{-1}.
+f_{at,α}(T,P) = 0.7-1\left[5 \times 10^{-3}+\exp\left(-4.37 + 1.34 \times 10^{-2} T + \left( -8.22 \times 10^{-2} - 3.97 \times 10^{-4} T \right) \log\left(P_{lim}(T) - P\right)\right)\right]^{-1}.
 \end{equation}
 
 ### High-pressure (β) regime
 
 The high-pressure regime is captured as:
 \begin{equation}\label{eq:atomic_fraction_beta}
-f_{at,\beta}(T,P) = 2.7-1.45\left[1.00+\exp\left(6.57 - 2.21 \times 10^{-2} T + \left( 6.52 \times 10^{-1} - 1.17 \times 10^{-5} T \right) \log\left(P - P_{lim}(T)\right)\right)\right]^{-1}.
+f_{at,β}(T,P) = 2.7-1.45\left[1.00+\exp\left(6.57 - 2.21 \times 10^{-2} T + \left( 6.52 \times 10^{-1} - 1.17 \times 10^{-5} T \right) \log\left(P - P_{lim}(T)\right)\right)\right]^{-1}.
 \end{equation}
 
 !media comparison_ZrCoHx_PCT.py
@@ -59,17 +59,17 @@ The α and β regimes are bridged using a sigmoid blending methodology, describe
 
 First, the bridging regime is expressed as a linear-logarithmic interpolation in pressure:
 \begin{equation}\label{eq:mid_interp}
-f_{at,\alpha+\beta}(P)= m_{0} + m_{1}\ln(P),
+f_{at,α+β}(P)= m_{0} + m_{1}\ln(P),
 \end{equation}
 
 where the slope and intercept of [eq:mid_interp] are chosen so that the bridging regime is continuous with the low-pressure regime at $P=\delta P_{lim}(T)$ and with the high-pressure regime at $P=\zeta P_{lim}(T)$:
 
 \begin{equation}\label{eq:m0_definition}
-m_{0} = f_{at,\alpha}(T,\delta P_{lim}) - \frac{f_{at,\beta}(T,\zeta P_{lim}) - f_{at,\alpha}(T,\delta P_{lim})}{L_{b} - L_{a}} L_{a},
+m_{0} = f_{at,α}(T,\delta P_{lim}) - \frac{f_{at,β}(T,\zeta P_{lim}) - f_{at,α}(T,\delta P_{lim})}{L_{b} - L_{a}} L_{a},
 \end{equation}
 and
 \begin{equation}\label{eq:m1_definition}
-m_{1} = \frac{f_{at,\beta}(T,\zeta P_{lim}) - f_{at,\alpha}(T,\delta P_{lim})}{L_{b} - L_{a}},
+m_{1} = \frac{f_{at,β}(T,\zeta P_{lim}) - f_{at,α}(T,\delta P_{lim})}{L_{b} - L_{a}},
 \end{equation}
 with
 \begin{equation}
@@ -88,7 +88,7 @@ where $\delta$ and $\zeta$ mark, respectively, the low- and high-pressure edges 
 
 ### Smooth blending
 
-With $f_{at,\alpha+\beta}(P)$ fully described, a smooth (logistic) weight blending scheme can be applied using the following equations:
+With $f_{at,α+β}(P)$ fully described, a smooth (logistic) weight blending scheme can be applied using the following equations:
 
 \begin{equation}
 \label{eq:blend_x}
@@ -99,32 +99,32 @@ x_{\zeta} = \ln(\zeta),
 and
 \begin{equation}
 \label{eq:blend_sigmoids}
-s_{\alpha\to\alpha+\beta}(x) = \left[1+\exp\!\left(-\frac{x-x_{\delta}}{\Delta_{\delta}}\right)\right]^{-1}, \qquad
-s_{\alpha+\beta\to\beta}(x) = \left[1+\exp\!\left(-\frac{x-x_{\zeta}}{\Delta_{\zeta}}\right)\right]^{-1},
+s_{α\toα+β}(x) = \left[1+\exp\!\left(-\frac{x-x_{\delta}}{\Delta_{\delta}}\right)\right]^{-1}, \qquad
+s_{α+β\toβ}(x) = \left[1+\exp\!\left(-\frac{x-x_{\zeta}}{\Delta_{\zeta}}\right)\right]^{-1},
 \end{equation}
 
 where $\Delta_{\delta} = \Delta_{\zeta} = 0.08$ are the tunable base widths of the smooth blending function, controlling how rapidly each transition occurs. The (unnormalized) regime weights are then:
 
 \begin{equation}
 \label{eq:weight_normalization}
-W = \left(1 - s_{\alpha\to\alpha+\beta}\right) + s_{\alpha\to\alpha+\beta}\left(1 - s_{\alpha+\beta\to\beta}\right) + s_{\alpha+\beta\to\beta},
+W = \left(1 - s_{α\toα+β}\right) + s_{α\toα+β}\left(1 - s_{α+β\toβ}\right) + s_{α+β\toβ},
 \end{equation}
 
 \begin{equation}
 \label{eq:weight_definitions}
-w_{\alpha} = \frac{1 - s_{\alpha\to\alpha+\beta}}{W}, \qquad
-w_{\alpha+\beta} = \frac{s_{\alpha\to\alpha+\beta}\left(1 - s_{\alpha+\beta\to\beta}\right)}{W}, \qquad
-w_{\beta} = \frac{s_{\alpha+\beta\to\beta}}{W},
+w_{α} = \frac{1 - s_{α\toα+β}}{W}, \qquad
+w_{α+β} = \frac{s_{α\toα+β}\left(1 - s_{α+β\toβ}\right)}{W}, \qquad
+w_{β} = \frac{s_{α+β\toβ}}{W},
 \end{equation}
 
-and are renormalized so that $w_{\alpha}+w_{\alpha+\beta}+w_{\beta}=1$ at every point. The final atomic fraction used by the kernel is the corresponding weighted sum:
+and are renormalized so that $w_{α}+w_{α+β}+w_{β}=1$ at every point. The final atomic fraction used by the kernel is the corresponding weighted sum:
 
 \begin{equation}
 \label{eq:overall_interpolation}
-f_{at}(T,P) = w_{\alpha}\,f_{at,\alpha}(T,P) + w_{\alpha+\beta}\,f_{at,\alpha+\beta}(T,P) + w_{\beta}\,f_{at,\beta}(T,P).
+f_{at}(T,P) = w_{α}\,f_{at,α}(T,P) + w_{α+β}\,f_{at,α+β}(T,P) + w_{β}\,f_{at,β}(T,P).
 \end{equation}
 
-Because $f_{at,\alpha+\beta}$ is constructed to agree exactly with $f_{at,\alpha}$ at $P=\delta P_{lim}(T)$ and with $f_{at,\beta}$ at $P=\zeta P_{lim}(T)$, and because the sigmoid weights vary smoothly through these same points, $f_{at}(T,P)$ transitions continuously across the full PCT curve without the discontinuities that a hard-switched piecewise definition would introduce.
+Because $f_{at,α+β}$ is constructed to agree exactly with $f_{at,α}$ at $P=\delta P_{lim}(T)$ and with $f_{at,β}$ at $P=\zeta P_{lim}(T)$, and because the sigmoid weights vary smoothly through these same points, $f_{at}(T,P)$ transitions continuously across the full PCT curve without the discontinuities that a hard-switched piecewise definition would introduce.
 
 The validity of this present fit is between:
 \begin{equation} \label{eq:bounds}

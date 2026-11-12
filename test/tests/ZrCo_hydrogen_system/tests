@@ -12,6 +12,10 @@
     type = Exodiff
     input = ZrCoHx_PCT.i
     exodiff = ZrCoHx_PCT_out.e
+    cli_args = "temperature=524.15
+                initial_pressure_H2_enclosure_1=3e4
+                initial_atomic_fraction=1.8
+                Functions/function_BC_concentration_H_enclosure_1/expression=' exp(-${dt_init}*2e-2/t)* ${initial_concentration_H_enclosure_1}'"
     prereq = ZrCoHx_PCT_csv
     should_execute = false # this test relies on the output files from ZrCoHx_PCT_csv, so it shouldn't be run twice
     requirement = 'The system shall be able to model the PCT curves of ZrCoHx to determine the surface atomic fraction as a function of pressure and temperature and generate an exodus file.'

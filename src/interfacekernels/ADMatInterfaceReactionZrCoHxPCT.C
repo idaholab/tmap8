@@ -56,27 +56,27 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   using std::log;
   using std::max;
 
-  // Fitting constants of High-Pressure (HP)
-  const Real HP_A = 2.7;
-  const Real HP_B = 1.45;
-  const Real HP_C = 1.00;
-  const Real HP_D = 6.57;
-  const Real HP_E = 2.21e-02;
-  const Real HP_F = 6.52e-01;
-  const Real HP_G = 1.17e-05;
-  // Fitting constants of  Low-Pressure (LP)
-  const Real LP_A = 0.7;
-  const Real LP_B = 1.0;
-  const Real LP_C = 5.e-03;
-  const Real LP_D = -4.37;
-  const Real LP_E = -1.34e-02;
-  const Real LP_F = -8.22e-02;
-  const Real LP_G = 3.97e-04;
+  // Fitting constants of beta phase
+  const Real beta_A = 2.7;
+  const Real beta_B = 1.45;
+  const Real beta_C = 1.00;
+  const Real beta_D = 6.57;
+  const Real beta_E = 2.21e-02;
+  const Real beta_F = 6.52e-01;
+  const Real beta_G = 1.17e-05;
+  // Fitting constants of alpha phase
+  const Real alpha_A = 0.7;
+  const Real alpha_B = 1.0;
+  const Real alpha_C = 5.e-03;
+  const Real alpha_D = -4.37;
+  const Real alpha_E = -1.34e-02;
+  const Real alpha_F = -8.22e-02;
+  const Real alpha_G = 3.97e-04;
 
   // -------------------------------
   // Shared PCT correlation shape
   // -------------------------------
-  // Both the LP and HP branches (and their values at the blending boundaries
+  // Both the alpha and beta phases (and their values at the blending boundaries
   // P_a and P_b) evaluate the exact same functional form:
   //
   //   af(P) = A - B / (C + exp(D - E*T + (F - G*T) * log(max(pressure_diff, 1e-10))))
@@ -114,7 +114,7 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal PLim = exp(-9.41 + 3.32e-02 * _neighbor_temperature[_qp] -
                           3.30e-06 * Utility::pow<2>(_neighbor_temperature[_qp]));
 
-  // Transition fitted parameters, zeta -> high pressure; delta -> low pressure
+  // Transition fitted parameters, zeta ->beta; delta -> alpha
   const ADReal zeta_corr = 2.39 - 5.1e-03 * _neighbor_temperature[_qp] +
                            5.42e-06 * Utility::pow<2>(_neighbor_temperature[_qp]);
   const Real delta = 1.008;
@@ -124,42 +124,42 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   // -------------------------------
   const ADReal ratio_r = neighbor_pressure / PLim;
 
-  // Low pressure (LP) branch: distance below the plateau pressure
-  const ADReal f_LP =
-      pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - neighbor_pressure);
+  // alpha phase: distance below the plateau pressure
+  const ADReal f_alpha =
+      pctCorrelation(alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - neighbor_pressure);
 
-  // High pressure (HP) branch: distance above the plateau pressure
-  const ADReal f_HP =
-      pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, neighbor_pressure - PLim);
+  //beta phase: distance above the plateau pressure
+  const ADReal f_beta =
+      pctCorrelation(beta_A, beta_B, beta_C, beta_D, beta_E, beta_F, beta_G, neighbor_pressure - PLim);
 
   // -------------------------------
-  // Mid branch (exact continuity at delta*Plim and zeta*Plim)
+  // bi-phasic phase (exact continuity at delta*Plim and zeta*Plim)
   // -------------------------------
   // Boundaries in absolute pressure
-  const ADReal delta_Plim = delta * PLim;    // LP
-  const ADReal zeta_Plim = zeta_corr * PLim; // HP
+  const ADReal delta_Plim = delta * PLim;    // alpha
+  const ADReal zeta_Plim = zeta_corr * PLim; // beta
 
-  // LP value at delta_Plim
-  const ADReal f_LP_delta_Plim =
-      pctCorrelation(LP_A, LP_B, LP_C, LP_D, LP_E, LP_F, LP_G, PLim - delta_Plim);
+  // alpha value at delta_Plim
+  const ADReal f_alpha_delta_Plim =
+      pctCorrelation(alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - delta_Plim);
 
-  // HP value at zeta_Plim
-  const ADReal f_HP_zeta_Plim =
-      pctCorrelation(HP_A, HP_B, HP_C, HP_D, HP_E, HP_F, HP_G, zeta_Plim - PLim);
+  // beta value at zeta_Plim
+  const ADReal f_beta_zeta_Plim =
+      pctCorrelation(beta_A, beta_B, beta_C, beta_D, beta_E, beta_F, beta_G, zeta_Plim - PLim);
 
   // Solve for af_mid(P) = m0 + m1 * log(P)
   const ADReal L_a = log(max(delta_Plim, 1e-10));
   const ADReal L_b = log(max(zeta_Plim, 1e-10));
 
   // Determine af_mid(P) slopes
-  m1 = (f_HP_zeta_Plim - f_LP_delta_Plim) / (L_b - L_a);
-  m0 = f_LP_delta_Plim - (f_HP_zeta_Plim - f_LP_delta_Plim) / (L_b - L_a) * L_a;
+  m1 = (f_beta_zeta_Plim - f_alpha_delta_Plim) / (L_b - L_a);
+  m0 = f_alpha_delta_Plim - (f_beta_zeta_Plim - f_alpha_delta_Plim) / (L_b - L_a) * L_a;
 
-  // Mid branch at current pressure using limited slope
+  //  bi-phasic at current pressure using limited slope
   const ADReal f_mid = m0 + m1 * log(max(neighbor_pressure, 1e-10));
 
   // -------------------------------
-  // Smooth blending in log-space (LP ↔ mid ↔ HP)
+  // Smooth blending in log-space (alpha ↔ bi-phasic ↔ beta)
   // -------------------------------
   // Base widths (tunable)
   const Real base_delta_delta_log = 0.08; // typical: 0.05–0.12
@@ -170,24 +170,24 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal x_zeta = log(max(zeta_corr, 1.0)); // log(zeta(T))
 
   // Sigmoid steps (AD-safe)
-  const ADReal s_LP_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / base_delta_delta_log)); // LP→mid
-  const ADReal s_mid_to_HP = 1.0 / (1.0 + exp(-(x - x_zeta) / base_delta_zeta_log));   // mid→HP
+  const ADReal s_alpha_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / base_delta_delta_log)); // alpha→mid
+  const ADReal s_mid_to_beta = 1.0 / (1.0 + exp(-(x - x_zeta) / base_delta_zeta_log));   // mid→beta
 
   // Weights
-  ADReal w_LP = 1.0 - s_LP_to_mid;                  // Low pressure weights
-  ADReal w_mid = s_LP_to_mid * (1.0 - s_mid_to_HP); // Mid pressure weights
-  ADReal w_HP = s_mid_to_HP;                        // High pressure weights
+  ADReal w_alpha = 1.0 - s_alpha_to_mid;                  // alpha weights
+  ADReal w_mid = s_alpha_to_mid * (1.0 - s_mid_to_beta); // Mid pressure weights
+  ADReal w_beta = s_mid_to_beta;                        //beta weights
 
   // Normalization
-  const ADReal w_sum = w_LP + w_mid + w_HP; // Sum of weights
-  w_LP /= w_sum;                            // Ratio of weight for low pressure
+  const ADReal w_sum = w_alpha + w_mid + w_beta; // Sum of weights
+  w_alpha /= w_sum;                            // Ratio of weight for alpha
   w_mid /= w_sum;                           // Ratio of weight for mid pressure
-  w_HP /= w_sum;                            // Ratio of weight for high pressure
+  w_beta /= w_sum;                            // Ratio of weight forbeta
 
   // -------------------------------
   // Final atomic fraction
   // -------------------------------
-  ADReal atomic_fraction = w_LP * f_LP + w_mid * f_mid + w_HP * f_HP;
+  ADReal atomic_fraction = w_alpha * f_alpha + w_mid * f_mid + w_beta * f_beta;
 
   // Convert to concentration
   auto _surface_equilibrium_concentration = atomic_fraction * _density[_qp];
