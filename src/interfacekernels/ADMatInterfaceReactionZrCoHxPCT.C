@@ -125,12 +125,12 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal ratio_r = neighbor_pressure / PLim;
 
   // alpha phase: distance below the plateau pressure
-  const ADReal f_alpha =
-      pctCorrelation(alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - neighbor_pressure);
+  const ADReal f_alpha = pctCorrelation(
+      alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - neighbor_pressure);
 
-  //beta phase: distance above the plateau pressure
-  const ADReal f_beta =
-      pctCorrelation(beta_A, beta_B, beta_C, beta_D, beta_E, beta_F, beta_G, neighbor_pressure - PLim);
+  // beta phase: distance above the plateau pressure
+  const ADReal f_beta = pctCorrelation(
+      beta_A, beta_B, beta_C, beta_D, beta_E, beta_F, beta_G, neighbor_pressure - PLim);
 
   // -------------------------------
   // bi-phasic phase (exact continuity at delta*Plim and zeta*Plim)
@@ -140,8 +140,8 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal zeta_Plim = zeta_corr * PLim; // beta
 
   // alpha value at delta_Plim
-  const ADReal f_alpha_delta_Plim =
-      pctCorrelation(alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - delta_Plim);
+  const ADReal f_alpha_delta_Plim = pctCorrelation(
+      alpha_A, alpha_B, alpha_C, alpha_D, alpha_E, alpha_F, alpha_G, PLim - delta_Plim);
 
   // beta value at zeta_Plim
   const ADReal f_beta_zeta_Plim =
@@ -170,19 +170,20 @@ ADMatInterfaceReactionZrCoHxPCT::computeQpResidual(Moose::DGResidualType type)
   const ADReal x_zeta = log(max(zeta_corr, 1.0)); // log(zeta(T))
 
   // Sigmoid steps (AD-safe)
-  const ADReal s_alpha_to_mid = 1.0 / (1.0 + exp(-(x - x_delta) / base_delta_delta_log)); // alpha→mid
-  const ADReal s_mid_to_beta = 1.0 / (1.0 + exp(-(x - x_zeta) / base_delta_zeta_log));   // mid→beta
+  const ADReal s_alpha_to_mid =
+      1.0 / (1.0 + exp(-(x - x_delta) / base_delta_delta_log));                        // alpha→mid
+  const ADReal s_mid_to_beta = 1.0 / (1.0 + exp(-(x - x_zeta) / base_delta_zeta_log)); // mid→beta
 
   // Weights
-  ADReal w_alpha = 1.0 - s_alpha_to_mid;                  // alpha weights
+  ADReal w_alpha = 1.0 - s_alpha_to_mid;                 // alpha weights
   ADReal w_mid = s_alpha_to_mid * (1.0 - s_mid_to_beta); // Mid pressure weights
-  ADReal w_beta = s_mid_to_beta;                        //beta weights
+  ADReal w_beta = s_mid_to_beta;                         // beta weights
 
   // Normalization
   const ADReal w_sum = w_alpha + w_mid + w_beta; // Sum of weights
-  w_alpha /= w_sum;                            // Ratio of weight for alpha
-  w_mid /= w_sum;                           // Ratio of weight for mid pressure
-  w_beta /= w_sum;                            // Ratio of weight forbeta
+  w_alpha /= w_sum;                              // Ratio of weight for alpha
+  w_mid /= w_sum;                                // Ratio of weight for mid pressure
+  w_beta /= w_sum;                               // Ratio of weight forbeta
 
   // -------------------------------
   // Final atomic fraction
