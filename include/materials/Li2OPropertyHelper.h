@@ -22,8 +22,10 @@
  * Each literature model is described by a plain data struct holding its correlation coefficients
  * and documented validity range.
  *
- * The code is unit-agnostic. The literature coefficients are stored in the units of the
- * source or, where stated, converted to SI (m$^2$/s, J/mol, K, atoms m$^{-3}$ Pa$^{-1/2}$).
+ * The correlations are not unit-agnostic: they assume SI units. The temperature is in K, the
+ * diffusivity in m$^2$/s, the activation energies in J/mol, and the solubility in
+ * atoms m$^{-3}$ Pa$^{-1/2}$ (the ideal gas constant is taken in J/mol/K). The literature
+ * coefficients are stored in the units of the source or, where stated, converted to these units.
  */
 namespace Li2OPropertyHelper
 {
