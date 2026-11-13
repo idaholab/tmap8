@@ -35,7 +35,7 @@ per lattice atom. TMAP8, therefore, converts these models to the consistent defi
 
 The pre-exponential factor and the activation energy of the selected model can be scaled with the
 [!param](/Materials/TritiumSolubilityLi2O/prefactor_scaling) ($f_{A} \geq 0$) and
-[!param](/Materials/TritiumSolubilityLi2O/activation_energy_scaling) (f_{E}) parameters to explore, for example, the
+[!param](/Materials/TritiumSolubilityLi2O/activation_energy_scaling) ($f_{E}$) parameters to explore, for example, the
 sensitivity of a simulation to the uncertainty of a correlation, or to represent a specimen that
 differs from the one measured in the literature.
 Both parameters default to 1, which gives the model as published.
@@ -137,7 +137,7 @@ These activation energies agree with the heats of dissolution measured in
 The atom density is
 
 !equation
-N_{at}(T) = {12}{a_0(T)^3}.
+N_{at}(T) = \frac{12}{a_0(T)^3}.
 
 It follows from the anti-fluorite structure of Li$_2$O (space group Fm$\bar{3}$m) [!citep](Zintl1934Li2O),
 which has 4 formula units (12 atoms) per cubic unit cell.
