@@ -243,6 +243,9 @@ doc/content/verification_and_validation/figures/val-2b_ratio.png
 doc/content/verification_and_validation/figures/val-2f_implantation_distribution.png
 doc/content/verification_and_validation/figures/val-2f_trap_induced_density.png
 doc/content/verification_and_validation/figures/val-2g_environment_history.png
+doc/content/verification_and_validation/figures/val-2l_diffusivity_vs_temperature.png
+doc/content/verification_and_validation/figures/val-2l_inventory.png
+doc/content/verification_and_validation/figures/val-2l_mass_conservation.png
 doc/content/verification_and_validation/figures/val-2j_*.png
 doc/content/verification_and_validation/figures/val-2k_natural_oxide_*.png
 doc/content/examples/figures/diffusion_length.png
