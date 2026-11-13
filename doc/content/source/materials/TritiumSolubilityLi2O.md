@@ -26,8 +26,10 @@ energy in J/mol, $R$ is the ideal gas constant (its value is provided by
 [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md)), and $T$ is the temperature in K.
 The $f_i$ terms are scaling parameters defined below.
 
-Note that models available in the literature do all use the same convention to define the solubility.
-TMAP8, therefore, converts these models to this conisistent defintiion, as described in [this subsection](#conversion).
+Note that the literature does not necessarily report the solubility with the convention used above.
+For example, [!cite](Ohira1989Li2O) reports the inverse of a solubility, for a pressure in atm and
+per lattice atom. TMAP8, therefore, converts these models to the consistent definition above, as described in
+[this subsection](#conversion).
 
 ## Scaling the Model Parameters
 
