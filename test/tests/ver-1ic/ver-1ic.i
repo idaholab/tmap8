@@ -26,7 +26,6 @@ K_r = '${fparse nu * exp((E_c - E_x) / k / temperature)}' # release rate
 K_b = '${fparse nu * exp(- E_b / k / temperature)}' # dissociation rate
 D_s_lamda = '${units ${fparse 5.3167e-7 * exp( -4529 / temperature )} m^4/at/s}'
 
-
 [Mesh]
   type = GeneratedMesh
   dim = 2
@@ -100,7 +99,8 @@ D_s_lamda = '${units ${fparse 5.3167e-7 * exp( -4529 / temperature )} m^4/at/s}'
 []
 
 [BCs]
-  [p_AB_neumann] # No flux on the sides
+  [p_AB_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = p_AB
     boundary = 'left right bottom top'
@@ -129,10 +129,16 @@ D_s_lamda = '${units ${fparse 5.3167e-7 * exp( -4529 / temperature )} m^4/at/s}'
 [Executioner]
   type = Transient
   scheme = bdf2
-  nl_rel_tol = 1e-10
-  nl_abs_tol = 1e-15
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
 
-  solve_type = 'NEWTON'
+  # PJFNK is used because the assembled Jacobian is incomplete: the reaction terms depend on p_AB
+  # through non-AD coupled values (ADMatReactionFlexible 'vs') and/or through AuxVariables that are
+  # computed from p_AB, and those derivatives are not included. NEWTON then converges only linearly
+  # (about 5-11 iterations per step), while PJFNK needs at most 2 iterations per step.
+  # The tolerances (rel/abs 1e-8) were loosened from the previous values (1e-10, abs 1e-10/1e-15);
+  # the results change by less than 1e-9 relative.
+  solve_type = 'PJFNK'
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 
