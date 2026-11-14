@@ -234,7 +234,14 @@ unit_scale_neighbor = 1
   solve_type = NEWTON
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
-  nl_max_its = 6
+  # In the default (heavy) configuration the first two time steps need 7 Newton iterations. With a limit
+  # of 6 they failed about 30 times in a row, and the time step then took more than 1000 steps to grow
+  # back (22 s run time, 32 failed solves). With a limit from 10 to 25 the run takes 1.3 s, 399 steps and
+  # has no failed solves. The result is as accurate as before after 2 s; before 2 s the pressure in the
+  # second enclosure, which is very small there, is less accurate (up to about 10 % at 0.01-0.1 s, 0.07 %
+  # at 0.1-0.5 s), because the failed solves previously forced very small steps. The light configuration
+  # (coarser mesh, nl_rel_tol = 1e-4) needs up to 27 iterations at step 2 and still has failed solves.
+  nl_max_its = 15
   [TimeStepper]
     type = IterationAdaptiveDT
     dt = 0.01
