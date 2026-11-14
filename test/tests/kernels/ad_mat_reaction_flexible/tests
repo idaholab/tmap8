@@ -7,4 +7,12 @@
     design = '/ADMatReactionFlexible.md'
     requirement = 'The system shall compute the reaction contribution in the material.'
   []
+  [ad_mat_reaction_flexible_jacobian]
+    type = 'PetscJacobianTester'
+    input = 'ad_mat_reaction_flexible_jacobian.i'
+    ratio_tol = 1e-7
+    issues = '#12'
+    design = '/ADMatReactionFlexible.md'
+    requirement = 'The system shall compute a Jacobian for the reaction contribution that includes the derivatives with respect to the kernel variable and to other coupled nonlinear variables appearing in the reaction product.'
+  []
 []

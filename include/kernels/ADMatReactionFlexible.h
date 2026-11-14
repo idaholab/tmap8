@@ -31,7 +31,7 @@ protected:
    * where lambda is the Lagrange multiplier)
    */
   const unsigned int _num_vs;
-  const std::vector<const VariableValue *> _vs;
+  const std::vector<const ADVariableValue *> _vs;
 
   /// Reaction rate
   const ADMaterialProperty<Real> & _reaction_rate;
