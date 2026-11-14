@@ -5,7 +5,7 @@
 concentration_A_0 = '${units 2.415e14 at/m^3 -> at/mum^3}' # atoms/microns^3 initial concentration of species A
 k_1 = '${units 0.0125 1/s}' # 1/s reaction rate for first reaction
 k_2 = '${units 0.0025 1/s}' # 1/s reaction rate for second reaction
-end_time = ${units 1500 s} # s
+end_time = '${units 1500 s}' # s
 
 [Mesh]
   type = GeneratedMesh
@@ -85,19 +85,22 @@ end_time = ${units 1500 s} # s
 []
 
 [BCs]
-  [c_A_neumann] # No flux on the sides
+  [c_A_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = c_A
     boundary = 'left right'
     value = 0
   []
-  [c_B_neumann] # No flux on the sides
+  [c_B_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = c_B
     boundary = 'left right'
     value = 0
   []
-  [c_C_neumann] # No flux on the sides
+  [c_C_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = c_C
     boundary = 'left right'
@@ -126,11 +129,9 @@ end_time = ${units 1500 s} # s
 [Executioner]
   type = Transient
   scheme = bdf2
-  nl_rel_tol = 1e-11
-  nl_abs_tol = 1e-50
-  l_tol = 1e-10
+  nl_rel_tol = 1e-9
+  nl_abs_tol = 1e-8
   solve_type = 'NEWTON'
-  petsc_options = '-snes_ksp_ew'
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
   end_time = ${end_time}
@@ -138,8 +139,10 @@ end_time = ${units 1500 s} # s
   [TimeStepper]
     type = IterationAdaptiveDT
     dt = 1.0
-    optimal_iterations = 15
-    growth_factor = 1.25
+    # Newton converges in about 1 iteration per step, so the step size growth is set by growth_factor
+    # (the iteration-count criterion is not reached). The RMSPE depends on this time step history.
+    optimal_iterations = 4
+    growth_factor = 1.05
     cutback_factor = 0.8
   []
 []
