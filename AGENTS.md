@@ -55,7 +55,7 @@
 - Before committing any physics or modeling change, review the proposed change with the user and wait for confirmation unless explicitly told otherwise, so the model implemented is the one the user expects
 - Before committing any new or changed code, input file, test, or documentation, run an independent agent to adversarially review it and verify comments and claims by running the case or writing throwaway tests, rather than trusting the code or comments as written
 - Never push to a remote unless the user asks for it or approves it
-- Formatting happens only as a pre-commit step, not while editing: right before committing, format the changed files (Python with `black`, C++ with `clang-format`, input files with `hit format`), verify with `black --check`, `clang-format --dry-run --Werror` and `hit check`, then stage the formatted files
+- Formatting happens only as a pre-commit step, not while editing: right before committing, and after the independent adversarial review and any fixes it prompts, format the changed files (Python with `black`, C++ with `clang-format`, input files with `hit format`), verify with `black --check`, `clang-format --dry-run --Werror` and `hit check`, then stage the formatted files
 - Every commit must include these trailers:
 ```
 Refs #<issue-number>
