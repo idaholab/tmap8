@@ -234,20 +234,31 @@ unit_scale_neighbor = 1
   solve_type = NEWTON
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
-  # In the default (heavy) configuration the first two time steps need 7 Newton iterations. With a limit
-  # of 6 they failed about 30 times in a row, and the time step then took more than 1000 steps to grow
-  # back (22 s run time, 32 failed solves). With a limit from 10 to 25 the run takes 1.3 s, 399 steps and
-  # has no failed solves. The result is as accurate as before after 2 s; before 2 s the pressure in the
-  # second enclosure, which is very small there, is less accurate (up to about 10 % at 0.01-0.1 s, 0.07 %
-  # at 0.1-0.5 s), because the failed solves previously forced very small steps. The light configuration
-  # (coarser mesh, nl_rel_tol = 1e-4) needs up to 27 iterations at step 2 and still has failed solves.
-  nl_max_its = 15
+  # In the default (heavy) configuration the Newton solves need up to 11 iterations (at the second time step
+  # and again at t = 0.29 s). With the original limit of 6 the first two time steps failed about 30 times in
+  # a row, and the time step then took more than 1000 steps to grow back (22 s run time, 32 failed solves).
+  # The limit is 25 and not 15 so that the case stays robust when the mesh is changed: with nb_segments_TMAP8 = 50,
+  # a limit of 15 gives 2 failed solves, whereas 25 and 40 give none.
+  # The light configuration (coarser mesh, nl_rel_tol = 1e-4) still has failed solves even with 40 iterations:
+  # Sieverts' law (n_sorption = 0.5) has an unbounded derivative as the concentration in the second enclosure
+  # goes to zero (about 1e-14 initially), so Newton converges very slowly there (the residual of the second
+  # step decreases by about 0.3 % per iteration).
+  nl_max_its = 25
   [TimeStepper]
     type = IterationAdaptiveDT
-    dt = 0.01
-    optimal_iterations = 5
+    # The pressures change very quickly during the first 0.05 s (the initial pressure jump), which is
+    # where the time step error is concentrated: starting from 0.002 s instead of 0.01 s reduces the
+    # maximum pressure error against a fixed small step reference (relative to the peak pressure) from
+    # 4.5e-2 to 4e-3 for 0.01-0.02 s, and from 4e-3 to 6e-4 for 0.02-0.05 s. After 0.5 s the error is
+    # about 1.3 times larger than with the previous settings (below 1e-4).
+    dt = 0.002
+    # The time step grows when a solve needs fewer than optimal_iterations - iteration_window = 4
+    # iterations. The previous values (5 and 3) required fewer than 2, which the 2-iteration steps of
+    # this problem never satisfied, so the time step stayed at its initial value for 3 s (399 steps).
+    # With these values the run takes 180 steps.
+    optimal_iterations = 7
     iteration_window = 3
-    growth_factor = 1.05
+    growth_factor = 1.1
     cutback_factor_at_failure = 0.8
   []
 []
