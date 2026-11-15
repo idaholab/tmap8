@@ -90,13 +90,15 @@
 []
 
 [Bounds]
-  [deuterium_mobile_lower_bound]
-    type = ConstantBounds
-    variable = bounds_dummy
-    bounded_variable = deuterium_mobile
-    bound_type = lower
-    bound_value = 0
-  []
+  # The mobile deuterium has no lower bound. Together with the lower bound on oxygen, it made the
+  # active-set solver (vinewtonrsls) converge extremely slowly in the 5 nm oxide case at t = 14658 s
+  # when dtmax = 40: the D2O release flux -2 * Kr * oxygen * deuterium_mobile^2 couples the two bounded
+  # variables, and with both bounds active the residual decreased by only about 1e-6 (relative) per
+  # iteration, so up to 91 iterations were needed (nl_max_its is 30, so the solve failed). Removing
+  # either bound, or the D2O term, avoids this. Without the mobile bound, all four oxide cases need
+  # at most 10 iterations per step. The mobile deuterium then undershoots zero by at most 2e-7 of its
+  # peak value, whereas dropping the oxygen bounds instead gives negative oxygen concentrations down
+  # to -0.13 (its maximum is 1).
   [oxygen_lower_bound]
     type = ConstantBounds
     variable = bounds_dummy
@@ -485,7 +487,11 @@
   nl_abs_tol = 1e-10
   nl_max_its = 30
   l_tol = 1e-8
-  dtmax = 20
+  # Doubling dtmax from 20 to 40 halves the run time and changes the RMSPE against the experimental
+  # D2 and D2O release by less than 0.02 percentage points. The deuterium mass-conservation residual
+  # increases from about 1e-5 to 4e-5 of the initial deuterium inventory (it grows roughly 4x per doubling).
+  # For the 5 nm case, dtmax = 60 still converges but dtmax = 80 fails at t = 14713 s, so 40 keeps a margin.
+  dtmax = 40
   abort_on_solve_fail = true
   [TimeStepper]
     type = IterationAdaptiveDT
