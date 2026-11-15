@@ -23,6 +23,7 @@
 - Flag to the user any place where the standards cannot be followed, and why
 
 ## Documentation
+- Write documentation in ASD-STE100 Simplified Technical English: short and direct sentences, one idea per sentence, active voice, and consistent terms. Avoid mannered prose (flowery, stylized or overly elaborate wording)
 - In markdown files under `doc/content/`, break lines by sentence: start each new sentence on a new line. For long sentences, break at punctuation (commas, semicolons, colons) instead of at arbitrary widths. Do not hard-wrap at a fixed column
 - Citations must use existing entries in the project `.bib` files in `doc/content/bib/` (not the loose `.bib` exports at the repository root). Add a bib entry there for any new reference before citing it
 - Generate figures with the Python scripts whenever possible. Do not commit hand-made or manually edited figures
