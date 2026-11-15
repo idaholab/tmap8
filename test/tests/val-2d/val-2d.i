@@ -13,12 +13,6 @@ outputs_initial_time = '${units 4000 s}'
 step_interval_max = 50 # (-)
 step_interval_mid = 15 # (-)
 step_interval_min = 6 # (-)
-# Maximum time step during the TDS in the full-resolution run. Doubling it from 6 s to 12 s reduces the
-# number of steps by 23 % and the maximum number of Newton iterations per step from 25 to 9, with the
-# RMSPE unchanged (32.80 %), the TDS peak 0.1 % lower and the integrated TDS release 0.1 % higher.
-# Doubling the maximum time step during the exposure (step_interval_mid) is not possible: it makes the
-# solves fail (2 failures at 30 s, 16 at 60 s).
-step_interval_TDS = 12 # (-)
 bound_value_max = '${units 2e4 at/mum^3}'
 bound_value_min = '${units -1e-10 at/mum^3}'
 
@@ -377,7 +371,7 @@ temperature_rate = '${units ${fparse 50 / 60} K/s}'
   # maximum time size during simulations
   [max_dt_size_function]
     type = ParsedFunction
-    expression = 'if(t<${TDS_initial_time}  , ${step_interval_mid}, ${step_interval_TDS})'
+    expression = 'if(t<${TDS_initial_time}  , ${step_interval_mid}, ${step_interval_min})'
   []
   [max_dt_size_function_coarse]
     type = ParsedFunction
