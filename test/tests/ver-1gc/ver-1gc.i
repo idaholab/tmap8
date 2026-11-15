@@ -139,8 +139,6 @@ end_time = '${units 1500 s}' # s
   [TimeStepper]
     type = IterationAdaptiveDT
     dt = 1.0
-    # Newton converges in about 1 iteration per step, so the step size growth is set by growth_factor
-    # (the iteration-count criterion is not reached). The RMSPE depends on this time step history.
     optimal_iterations = 4
     growth_factor = 1.05
     cutback_factor = 0.8

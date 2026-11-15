@@ -328,15 +328,6 @@ diffusivity_e_energy = '${units 103818.22 J/mol}'
   compute_scaling_once = true
   line_search = none
   num_steps = 3
-  # The first step needs 15 Newton iterations (the surface-reaction flux is very stiff at the initial
-  # state, and Newton converges by a constant factor of 4 per iteration before accelerating). The
-  # limit of 10 made the solve fail 16 times for 3 steps. The boundary conditions and the flux
-  # materials use AD classes so that the Jacobian includes the surface reaction (the non-AD
-  # MatNeumannBC has no Jacobian). The oxygen concentration is an AuxVariable, which is lagged in
-  # the Jacobian, so the convergence is not quadratic.
-  # Note: the time step of 0.1 s is too large to resolve the first steps. The gold values are a
-  # regression snapshot and not an accurate solution (the T2O flux at 0.1 s is off by a factor
-  # of about 1000 compared with a time step of 0.01 s).
   nl_max_its = 20
   dt = 0.1
 []
