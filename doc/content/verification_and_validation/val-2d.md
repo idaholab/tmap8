@@ -4,7 +4,7 @@
 
 ## Case Description
 
-This validation problem is taken from [!cite](hino1998hydrogen) and uses multiple trapping capability. This case is part of the validation suite of TMAP7 as val-2d [!citep](ambrosek2008verification).
+This validation problem is taken from [!cite](hino1998hydrogen) and uses multiple trapping capability. This case is part of the validation suite of TMAP7 as val-2d [!citep](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 In this experiment, tritium is implanted at 5 keV and a flux of 1 $\times 10^{19}$ atom/m$^2$/s for 5,000 seconds into a 0.1-mm-thick polycrystalline tungsten foil with a surface area of 50 $\times$ 50 mm$^2$ at room temperature (300 K).
 The background pressure in the implantation chamber is 10$^{-3}$ Pa while the implantation is going on and 10$^{-5}$ Pa the rest of the time.
 Following the implantation, the sample is subjected to thermal desorption spectroscopy by heating under vacuum at 50 K/min to 1,273 K and is then held at that temperature for several minutes.
@@ -125,7 +125,7 @@ All the model parameters are listed in [val-2d_set_up_values]:
 !table id=val-2d_set_up_values caption=Values of material properties. Note that parameters marked with * are currently not used in the input file.
 | Parameter | Description                          | Value                                                       | Units                 | Reference                 |
 | --------- | ------------------------------------ | ----------------------------------------------------------- | --------------------- | --------------------- |
-| $k_b$     | Boltzmann constant                   | 1.380649 $\times 10^{-23}$                                  | J/K                   | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?r) |
+| $k_b$     | Boltzmann constant                   | 1.380649 $\times 10^{-23}$                                  | J/K                   | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | $F$       | Implantation flux                    | 1 $\times 10^{19}$                                          | at/m$^2$/s            | [!cite](hino1998hydrogen) |
 | $D_{0,l}$ | Maximum diffusivity coefficient when $x < 15 \times 10 ^ {-9}$ m | 4.1 $\times 10^{-7}$            | m$^2$/2               | [!cite](frauenfelder1969solution) |
 | $D_{0,r}$ | Maximum diffusivity coefficient when $x > 15 \times 10 ^ {-9}$ m | 4.1 $\times 10^{-6}$            | m$^2$/2               | [!cite](ambrosek2008verification) |

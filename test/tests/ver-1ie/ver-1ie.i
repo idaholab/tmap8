@@ -2,7 +2,7 @@
 # A Species Equilibration Problem in Lawdep Condition with Equal/Unequal Starting Pressures
 
 # Physical Constants
-k = '${units 1.380649e-23 J/K}' # Boltzmann constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+k = '${units 1.380649e-23 J/K}' # Boltzmann constant (from TMAP8PhysicalConstants.h)
 
 # Modeling parameters
 simulation_time = '${units 3 s}'

@@ -1,10 +1,13 @@
-# PhysicalConstants
+# TMAP8PhysicalConstants
 
 ## Overview
 
-This object lists physical constants to use consistent values across TMAP8. It contains the values listed in [PhysicalConstants_table]. To use these constants in the code, add `#include "TMAP8PhysicalConstants.h"` at the top of your class and use `PhysicalConstants::<IN_CODE_NAME>`. For example, to use the ideal gas constant, use `PhysicalConstants::ideal_gas_constant`.
+This object lists physical constants to use consistent values across TMAP8. It contains the values listed in [PhysicalConstants_table]. Most of these constants are defined in MOOSE's `PhysicalConstants.h` (`moose/modules/misc/include/utils/PhysicalConstants.h`), which is included by `TMAP8PhysicalConstants.h`.
+Constants specific to tritium transport (e.g., tritium half-life, tritium decay constant, and curie-to-becquerel conversion) are defined in `TMAP8PhysicalConstants.h` itself. 
 
-!table id=PhysicalConstants_table caption=List of physical constants available in PhysicalConstants.
+To use these constants in the code, add `#include "TMAP8PhysicalConstants.h"` at the top of your class and use `PhysicalConstants::<IN_CODE_NAME>`. For example, to use the ideal gas constant, use `PhysicalConstants::ideal_gas_constant`.
+
+!table id=PhysicalConstants_table caption=List of physical constants available in `PhysicalConstants` and `TMAP8PhysicalConstants`.
 | Symbol   | In code name              | Description                              | Value            | Units     | Reference                 |
 | -------- | ------------------------- | ---------------------------------------- | ---------------- | --------- | ------------------------- |
 | $N_a$    | avogadro_number           | Avogadro's number                        | 6.02214076e23    | atoms/mol | [!cite](CODATA2021552941) |
@@ -12,6 +15,8 @@ This object lists physical constants to use consistent values across TMAP8. It c
 |          | eV_to_J                   | Conversion coefficient from eV to Joules | 1.602176634e-19  | J/eV      | [!cite](CODATA2021552941) |
 | $R$      | ideal_gas_constant        | Ideal gas constant                       | 8.31446261815324 | J/K/mol   | [!cite](CODATA2021552941) |
 | $\sigma$ | stefan_boltzmann_constant | Stefan-Boltzmann constant                | 5.670374419e-8   | W/m$^2$/K$^4$ | [!cite](CODATA2021552941) |
+|          | cal_to_J                  | Conversion coefficient from calories to Joules | 4.184      | J/cal     | [NIST SP 1038](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication1038.pdf) |
+| $g$      | acceleration_of_gravity   | Standard acceleration of gravity         | 9.80665          | m/s$^2$   | [NIST CODATA](https://physics.nist.gov/cgi-bin/cuu/Value?gn) |
 | $t_{T_{\frac{1}{2}}}$ | tritium_half_life | Tritium half-life                   | 3.88800e+8       | s         | [!cite](Lucas2000-qu)     |
 | $\lambda_{T}$ | tritium_decay_const  | Tritium decay constant                   | 1.782785958230312e-09 | 1/s  | [!cite](Lucas2000-qu)     |
 |          | curie_to_bq            | Conversion coefficient from curies to becquerels  | 3.7e10     |  Bq/Ci  | [!cite](IAEA2015BPTC)     |

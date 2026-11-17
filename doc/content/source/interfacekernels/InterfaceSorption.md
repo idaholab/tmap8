@@ -17,7 +17,7 @@ where $K_0$ is the pre-exponential constant, and $E_a$ is the activation energy 
 The value of $n$ determines the sorption law. For example:
 
 - $n = 1$ corresponds to Henry's law
-- $n = 1/2$ corresponds to Sievert's law.
+- $n = 1/2$ corresponds to Sieverts' law.
 
 A penalty is applied to enforce the sorption law at the interface. Note that solubilities in the literature may only be compatible with concentrations expressed in certain units, and those units may differ from those used elsewhere in the simulation, e.g., $mmol/kg$ versus $mol/m^3$. The model accepts concentration unit conversion factors ([!param](/InterfaceKernels/InterfaceSorption/unit_scale) and [!param](/InterfaceKernels/InterfaceSorption/unit_scale_neighbor)) to accommodate data from different sources. For example, unit conversion factors of $1000$ can be supplied to accommodate sets of solubilities for concentrations in $mmol/m^3$. Note that for multi-atomic molecules, it is important to specify if the moles correspond to the moles of gas molecules, or the moles of atoms. The model assumes that the units associated with the partial pressures are equal and that all constants are compatible with absolute temperature.
 

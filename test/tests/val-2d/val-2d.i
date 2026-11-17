@@ -2,7 +2,7 @@
 # Thermal Desorption Spectroscopy on Tungsten
 
 # General parameters
-kB = '${units 1.380649e-23 J/K}' # Boltzmann constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+kB = '${units 1.380649e-23 J/K}' # Boltzmann constant (from TMAP8PhysicalConstants.h)
 
 # Model parameters
 TDS_initial_time = '${units 5e3 s}'
@@ -438,6 +438,7 @@ temperature_rate = '${units ${fparse 50 / 60} K/s}'
   line_search = 'none'
   automatic_scaling = true
   nl_rel_tol = 1e-10
+  nl_abs_tol = 1e-9
   nl_max_its = 34
   [TimeStepper]
     type = IterationAdaptiveDT
@@ -459,6 +460,8 @@ temperature_rate = '${units ${fparse 50 / 60} K/s}'
   []
   [exodus]
     type = Exodus
+    # legacy value
+    max_output_name_length = 32
     start_time = ${outputs_initial_time}
     output_material_properties = true
     time_step_interval = 20

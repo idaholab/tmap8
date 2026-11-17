@@ -97,7 +97,7 @@ The model parameters are summarized in [val-2j_parameters].
 | $E_{dp-da}$ | Annihilation energy | 0.9 | eV | [!cite](kobayashi2015developing), Eq. 18 |
 | $N$ | Lattice density | 1.88 $\times 10^{28}$ | m$^{-3}$ | Calculated |
 | $\beta$ | TDS heating rate | 5 | K/min | [!cite](kobayashi2015developing) |
-| $k_B$ | Boltzmann constant | 1.380649 $\times 10^{-23}$ | J/K | [PhysicalConstants.h](https://physics.nist.gov/cgi-bin/cuu/Value?r) |
+| $k_B$ | Boltzmann constant | 1.380649 $\times 10^{-23}$ | J/K | [PhysicalConstants](source/utils/TMAP8PhysicalConstants.md) |
 | $D_{id,E}$ | Defect density (Sample E) | $3.384 \times 10^{26}$ | m$^{-3}$ | [!cite](kobayashi2015developing), Table 1 |
 
 ## Results

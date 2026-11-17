@@ -2,6 +2,8 @@ For [software quality assurance](sqa/index.md exact=True) purposes, TMAP8 underg
 
 Note that in addition to monitoring TMAP8 performance and reproducibility in verification and validation cases, the effects of changes made to TMAP8 are tracked. A series of automated tests are performed via continuous integration using [CIVET](https://civet.inl.gov/repo/530) to help identify any changes in TMAP8's predictions, therefore ensuring stability and robustness. When adding a new verification case, be sure to follow the [verification and validation standards](verification_and_validation_standards.md).
 
+The two main publications describing the verification and validation of TMAP8 are [!cite](Simon2025) and [!cite](Simon2027). [!cite](Simon2025) describes the scope of TMAP8, its SQA approach, and the V&V cases from TMAP4 as well as the fuel cycle benchmark against [!cite](Abdou2021). [!cite](Simon2027) extends the former with additional verification, validation, and benchmarking cases through TMAP7 and beyond, from the component scale to the fuel cycle scale.
+
 TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how TMAP8 can be used. Finally, for more references of TMAP8 usage, a list of publications supporting TMAP8 development can be found [here](publications.md).
 
 # List of verification cases
@@ -28,7 +30,6 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | ver-1ic   | [Species Equilibration Problem in Surfdep Conditions with Low Barrier Energy](ver-1ic.md)           |
 | ver-1id   | [Species Equilibration Problem in Surfdep Conditions with High Barrier Energy](ver-1id.md)          |
 | ver-1ie   | [Species Equilibration Problem in Lawdep Conditions with Equal Starting Pressures](ver-1ie.md)      |
-| ver-1if   | [Species Equilibration Problem in Lawdep Conditions with Unequal Starting Pressures](ver-1if.md)    |
 | ver-1ja   | [Radioactive Decay of Mobile Tritium in a Slab](ver-1ja.md)                                         |
 | ver-1jb   | [Radioactive Decay of Mobile Tritium in a Slab with a Distributed Trap Concentration](ver-1jb.md)   |
 | ver-1ka   | [Simple Volumetric Source](ver-1ka.md)                                                              |
@@ -47,8 +48,8 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | Case    | Title                                                                              |
 | ------- | ---------------------------------------------------------------------------------- |
 | ver-1fc | [Conduction in Composite Structure with Constant Surface Temperatures](ver-1fc.md) |
-| fuel cycle 1 | [Tritium fuel cycle in fusion energy plant](examples/fuel_cycle_Abdou/index.md) from [!cite](Abdou2021) |
-| fuel cycle 2 | [Tritium fuel cycle in fusion energy plant](examples/fuel_cycle_Meschini/index.md) from [!cite](meschini2023modeling) |
+| fuel cycle 1 | [Tritium Fuel Cycle in Fusion Energy Plant](examples/fuel_cycle_Abdou/index.md) from [!cite](Abdou2021) |
+| fuel cycle 2 | [Tritium Fuel Cycle in Fusion Energy Plant](examples/fuel_cycle_Meschini/index.md) from [!cite](meschini2023modeling) |
 
 
 # List of validation cases
@@ -60,7 +61,8 @@ TMAP8 also contains [example cases](examples/tmap_index.md), which showcase how 
 | val-2c | [Test Cell Release Experiment](val-2c.md)                |
 | val-2d | [Thermal Desorption Spectroscopy on Tungsten](val-2d.md) |
 | val-2e | [Co-permeation of H$_2$ and D$_2$ through Pd](val-2e.md) |
-| val-2f | [Modelling self-damaged tungsten effects on deuterium transport](val-2f.md) |
+| val-2f | [Modelling Self-damaged Tungsten Effects on Deuterium Transport](val-2f.md) |
 | val-2g | [Deuterium Transport in Proton-Conducting Ceramics](val-2g.md) |
-| val-2k | [Oxide effects on deuterium release from self-irradiated tungsten](val-2k.md) |
 | val-2j | [Tritium TDS from Li$_2$TiO$_3$ Solid Breeder](val-2j.md) |
+| val-2k | [Oxide Effects on Deuterium Release from Self-irradiated Tungsten](val-2k.md) |
+| val-2l | [Deuterium Retention in Neutron-irradiated Tungsten](val-2l.md) |

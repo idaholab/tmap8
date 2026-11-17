@@ -4,7 +4,7 @@
 
 ## Problem set up
 
-This verification problem models two species 'T$_2$' (gaseous tritium) and 'D$_2$' (gaseous deuterium) equilibrating in pressure between two enclosures. It recreates the ver-1hb case in [!cite](ambrosek2008verification). Enclosure 1 is pre-charged with tritium and Enclosure 2 is pre-charged with deuterium. The gases flow between the two enclosures until the T$_2$ and D$_2$ partial pressures in the two enclosures equilibrate. The pressure change rates for this system for T$_2$ gas are given by
+This verification problem models two species 'T$_2$' (gaseous tritium) and 'D$_2$' (gaseous deuterium) equilibrating in pressure between two enclosures. It recreates the ver-1hb case in [!cite](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027). Enclosure 1 is pre-charged with tritium and Enclosure 2 is pre-charged with deuterium. The gases flow between the two enclosures until the T$_2$ and D$_2$ partial pressures in the two enclosures equilibrate. The pressure change rates for this system for T$_2$ gas are given by
 \begin{equation} \label{eq:dt_P1_T}
 \frac{dP^1_{T_2}}{dt} = \frac{Q}{V} (P^2_{T_2} - P^1_{T_2}),
 \end{equation}
@@ -20,7 +20,12 @@ and for $D_2$ gas are given by
 \end{equation}
 where $Q$ is the volumetric flow rate (m$^3 \cdot$s$^{-1}$), $V$ is the volume (m$^3$), and $P^i_j$ is the pressure in enclosure $i$ of gas species $j$ ($j$ = $T_2$ or $D_2$).
 
-We solve these time evolution equations for the T$_2$ and D$_2$ pressures in the two enclosures using TMAP8 with $t$ as the time and the initial condition set to $P^1_{T_2} = P^2_{D_2} = 1$ Pa and $P^2_{T_2} = P^1_{D_2} = 0$ Pa. We use $V = 1$ m$^3$ and $Q = 0.1$ m$^3\cdot $s$^{-1}$.
+We solve these time evolution equations for the T$_2$ and D$_2$ pressures in the two enclosures using TMAP8 with $t$ as the time and the initial condition set to $P^1_{T_2} = P^2_{D_2} = 1$ Pa and $P^2_{T_2} = P^1_{D_2} = 0$ Pa. We use $V = 1$ m$^3$ and $Q = 0.1$ m$^3 \cdot$s$^{-1}$. The system of two enclosures is illustrated in [ver-1hb_schematic].
+
+!media figures/ver-1hb_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1hb_schematic
+    caption=Schematic of the ver-1hb case: T$_2$ and D$_2$ equilibrate in pressure between two enclosures through a flow $Q$.
 
 ## Analytical solution
 

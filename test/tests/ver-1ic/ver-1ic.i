@@ -2,7 +2,7 @@
 # A Species Equilibration Problem in Surfdep Conditions with Low/High Barrier Energy
 
 # Physical Constants
-k = '${units 1.380649e-23 J/K}' # Boltzmann constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+k = '${units 1.380649e-23 J/K}' # Boltzmann constant (from TMAP8PhysicalConstants.h)
 amu = '${units 1.6605390666e-27 kg}' # Atomic mass unit
 
 # Modeling parameters

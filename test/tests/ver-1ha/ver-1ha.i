@@ -4,9 +4,9 @@
 # Modeling parameters
 simulation_time = '${units 40 s}'
 P1 = '${units 1 Pa}'
-R = '${units 8.31446261815324 J/K/mol}' # from PhysicalConstants
+R = '${units 8.31446261815324 J/K/mol}' # from TMAP8PhysicalConstants.h
 T = '${units 303 K}'
-N_a = '${units 6.02214076e23 at/mol}' # from PhysicalConstants
+N_a = '${units 6.02214076e23 at/mol}' # from TMAP8PhysicalConstants.h
 Q = '${units 0.1 m^3/s }'
 V2 = '${units 1 m^3}'
 V3 = '${units 1 m^3}'

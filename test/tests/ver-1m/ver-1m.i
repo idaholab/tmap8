@@ -5,7 +5,7 @@
 #   Technol. 37 (2000) 887–892 https://doi.org/10.1080/18811248.2000.9714969
 
 # Physical constants
-boltzmann_constant = '${units 1.380649e-23 J/K -> eV/K}' # Boltzmann constant from PhysicalConstants.h
+boltzmann_constant = '${units 1.380649e-23 J/K -> eV/K}' # Boltzmann constant from TMAP8PhysicalConstants.h
 
 # Geometry
 pin_radius = '${units 0.005 m}'

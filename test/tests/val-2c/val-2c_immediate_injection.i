@@ -1,8 +1,8 @@
 # This input file utilizes val_2c_base and adds specific parameter values and capabilities to inject T2 immediately
 
-# Physical Constants (from PhysicalConstant.h)
-kb = '${units 1.380649e-23 J/K}' # Boltzmann constant based on number used in include/utils/PhysicalConstants.h
-NA = '${units 6.02214076e23 at/mol}' # Avogadro's number based on number used in include/utils/PhysicalConstants.h
+# Physical Constants (from TMAP8PhysicalConstants.h)
+kb = '${units 1.380649e-23 J/K}' # Boltzmann constant based on number used in TMAP8PhysicalConstants.h
+NA = '${units 6.02214076e23 at/mol}' # Avogadro's number based on number used in TMAP8PhysicalConstants.h
 
 ## Geometry
 paint_thickness = '${units 0.16 mm -> mum}'

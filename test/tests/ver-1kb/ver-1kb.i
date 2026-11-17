@@ -2,7 +2,7 @@
 # A diffusion on two connected enclosures by a membrane without a volumetric source using Henry’s Law
 
 # Physical Constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant from TMAP8PhysicalConstants.h
 
 # Modeling parameters
 nb_segments_TMAP7 = 20
@@ -251,6 +251,10 @@ unit_scale_neighbor = 1
 [Outputs]
   file_base = 'ver-1kb_out_k1'
   csv = true
-  exodus = true
+  [exodus]
+    type = Exodus
+    # legacy value
+    max_output_name_length = 32
+  []
   execute_on = 'initial timestep_end'
 []

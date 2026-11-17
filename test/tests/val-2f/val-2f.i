@@ -91,7 +91,7 @@
     value = 1
     boundary_material = flux_recombination_surface
   []
-  # Sieverts boundary conditions
+  # Sieverts' boundary conditions
   [left_concentration_sieverts]
     type = ADDirichletBC
     value = '${sieverts_boundary_hat}'
@@ -476,6 +476,8 @@
   []
   [exodus]
     type = Exodus
+    # legacy value
+    max_output_name_length = 32
     output_material_properties = true
     time_step_interval = 200
     file_base = 'val-2f_out'

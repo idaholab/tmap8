@@ -6,7 +6,7 @@ TMAP8 aims to expand the capabilities of previous versions (i.e., TMAP4 and TMAP
 
 The [TMAP8 documentation](https://mooseframework.inl.gov/tmap8) includes the code reference, a getting started guide, and details about software quality assurance (SQA) processes, verification, validation, and examples case, etc.
 
-When using TMAP8, please cite the following.
+When using TMAP8, please cite the following papers.
 
 ```latex
 @article{Simon2025,
@@ -20,6 +20,18 @@ When using TMAP8, please cite the following.
     month = {May},
     issn = {0920-3796},
     doi = {10.1016/j.fusengdes.2025.114874}
+}
+
+@article{Simon2027,
+    author = {Pierre-Clément A. Simon and Casey T. Icenhour and Lin Yang and Lee Kadz and Chaitanya Vivek Bhave and Gyanender Singh and Guillaume Giudicelli and Alexander D Lindsay and Paul Humrickhouse and Pattrick Calderoni and Masashi Shimada},
+    title = {Advanced tritium transport modeling and verification, validation, and benchmarking from component level to fuel cycle scale using {TMAP8}},
+    journal = {Fusion Engineering and Design},
+    publisher = {Elsevier},
+    volume = {234},
+    pages = {116089},
+    year = {2027},
+    issn = {0920-3796},
+    doi = {10.1016/j.fusengdes.2026.116089}
 }
 ```
 

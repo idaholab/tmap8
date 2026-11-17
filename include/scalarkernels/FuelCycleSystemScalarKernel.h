@@ -13,12 +13,33 @@
 #include "FunctorInterface.h"
 #include "MooseTypes.h"
 
+/**
+ * Placeholder used when the MOOSE scalar kernel base class already provides FunctorInterface
+ * (newer MOOSE), so that FunctorInterface is not inherited twice. Older MOOSE does not provide
+ * it, in which case FunctorInterface is inherited directly. This can be removed after a MOOSE
+ * update.
+ */
+struct FuelCycleNoFunctorInterface
+{
+  FuelCycleNoFunctorInterface(const MooseObject *) {}
+};
+
 template <bool is_ad>
 class FuelCycleSystemScalarKernelTempl
   : public std::conditional<is_ad, ADScalarTimeDerivative, ODETimeDerivative>::type,
-    public FunctorInterface
+    public std::conditional<
+        std::is_base_of<
+            FunctorInterface,
+            typename std::conditional<is_ad, ADScalarTimeDerivative, ODETimeDerivative>::type>::
+            value,
+        FuelCycleNoFunctorInterface,
+        FunctorInterface>::type
 {
   using Base = typename std::conditional<is_ad, ADScalarTimeDerivative, ODETimeDerivative>::type;
+  using TmpFunctorInterface =
+      typename std::conditional<std::is_base_of<FunctorInterface, Base>::value,
+                                FuelCycleNoFunctorInterface,
+                                FunctorInterface>::type;
 
 public:
   FuelCycleSystemScalarKernelTempl(const InputParameters & parameters);
@@ -27,7 +48,7 @@ public:
 
 protected:
   virtual GenericReal<is_ad> computeQpResidual() override;
-  virtual Real computeQpJacobian();
+  virtual Real computeQpJacobian() override;
   // Helper values for bookkeeping
   size_t _n_inputs;
   size_t _n_other_sources;

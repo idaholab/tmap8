@@ -2,7 +2,7 @@
 # Diffusion verification under an applied voltage with constant source boundary condition
 
 # Physical constants
-R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in include/utils/PhysicalConstants.h
+R = '${units 8.31446261815324 J/mol/K}' # ideal gas constant based on number used in TMAP8PhysicalConstants.h
 eV_to_J = '${units 1.602176634e-19 eV/J}'
 N_a = '${units 6.02214076e23 at/mol}'
 q = '${units 1.602176634e-19 C}'
@@ -20,7 +20,7 @@ diffusion_pre_PCC = '${units ${fparse sqrt(3) * 1.41e-6} m^2/s -> mum^2/s}' # De
 diffusion_energy_PCC = '${units ${fparse 0.74 * eV_to_J * N_a} J/mol}'
 solubility_pre_PCC = '${units ${fparse 1.06 * N_a / 1e18} at/mum^3/Pa^0.5}' # at/m^3/Pa^0.5 -> at/mum^3/Pa^0.5
 solubility_energy_PCC = '${units 7726.21 J/mol}'
-solubility_order = .5 # Here, we use Sievert's law
+solubility_order = .5 # Here, we use Sieverts' law
 charge_number = 1
 V_current = '${units 20 V}'
 

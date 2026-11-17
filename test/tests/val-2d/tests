@@ -5,14 +5,14 @@
   [val-2d_csvdiff]
     type = CSVDiff
     input = 'val-2d.i'
-    cli_args = 'Mesh/active=cartesian_mesh_coarse Postprocessors/max_time_step_size/function=max_dt_size_function_coarse Executioner/line_search=l2 Executioner/nl_abs_tol=1e-9 Outputs/file_base=val-2d_limited_out'
+    cli_args = 'Mesh/active=cartesian_mesh_coarse Postprocessors/max_time_step_size/function=max_dt_size_function_coarse Executioner/line_search=l2 Outputs/file_base=val-2d_limited_out'
     csvdiff = val-2d_limited_out.csv
     requirement = 'The system shall be able to model thermal desorption spectroscopy on Tungsten.'
   []
   [val-2d_exodiff]
     type = Exodiff
     input = 'val-2d.i'
-    cli_args = 'Mesh/active=cartesian_mesh_coarse Postprocessors/max_time_step_size/function=max_dt_size_function_coarse Executioner/line_search=l2 Executioner/nl_abs_tol=1e-9 Outputs/file_base=val-2d_limited_out'
+    cli_args = 'Mesh/active=cartesian_mesh_coarse Postprocessors/max_time_step_size/function=max_dt_size_function_coarse Executioner/line_search=l2 Outputs/file_base=val-2d_limited_out'
     exodiff = val-2d_limited_out.e
     prereq = val-2d_csvdiff
     should_execute = false # this test relies on the output files from val-2d_csvdiff, so it shouldn't be run twice

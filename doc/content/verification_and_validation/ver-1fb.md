@@ -4,7 +4,12 @@
 
 ## General Case Description
 
-This heat transfer verification problem is taken from [!cite](longhurst1992verification) and [!cite](ambrosek2008verification) and builds on the capabilities verified in [ver-1fa](ver-1fa.md). It has been updated and extended in [!cite](Simon2025). The configuration is the same as in [ver-1fa](ver-1fa.md), except that, in the current case, there are no heat source in the slab and both ends with fixed temperature. This case is simulated in [!file](/ver-1fb.i).
+This heat transfer verification problem is taken from [!cite](longhurst1992verification) and [!cite](ambrosek2008verification) and builds on the capabilities verified in [ver-1fa](ver-1fa.md). It has been updated and extended in [!cite](Simon2025). The configuration is the same as in [ver-1fa](ver-1fa.md), except that, in the current case, there is no heat source in the slab and both ends with fixed temperature. This case is simulated in [!file](/ver-1fb.i). The geometry and boundary conditions of this case are shown in [ver-1fb_schematic].
+
+!media figures/ver-1fb_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1fb_schematic
+    caption=Schematic of the ver-1fb case: a slab without heat source and with fixed temperatures at both ends.
 
 The heat conduction in the one-dimensional model is described as:
 

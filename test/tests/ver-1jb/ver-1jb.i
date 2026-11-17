@@ -2,8 +2,8 @@
 # Radioactive Decay of Tritium in a Distributed Trap
 
 # Physical Constants
-ideal_gas_constant = ${units 8.31446261815324 J/K/mol} # from PhysicalConstants.h
-boltzmann_constant = ${units 1.380649e-23 J/K -> eV/K } # from PhysicalConstants.h
+ideal_gas_constant = ${units 8.31446261815324 J/K/mol} # from TMAP8PhysicalConstants.h
+boltzmann_constant = ${units 1.380649e-23 J/K -> eV/K } # from TMAP8PhysicalConstants.h
 
 # Case and model parameters (adapted from TMAP7)
 slab_length = ${units 1.5 m }

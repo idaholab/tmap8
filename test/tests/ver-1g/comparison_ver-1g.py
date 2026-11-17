@@ -45,9 +45,9 @@ ax.plot(
 
 
 def get_conc_from_pressure(P):
-    R = 8.31446261815324  # Gas constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?r)
+    R = 8.31446261815324  # Gas constant (from TMAP8PhysicalConstants.h)
     T = 25 + 273.15  # Temperature (25 C -> K)
-    Na = 6.02214076e23  # Avogadro's constant (from PhysicalConstants.h - https://physics.nist.gov/cgi-bin/cuu/Value?na)
+    Na = 6.02214076e23  # Avogadro's constant (from TMAP8PhysicalConstants.h)
     m3_to_microns3 = 1e18  # Convert m^3 to microns^3
     # Using ideal gas law
     return P * Na / (R * T * m3_to_microns3)

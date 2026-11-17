@@ -4,9 +4,14 @@
 
 ## General Case Description
 
-The fourth heat transfer problem taken from [!cite](ambrosek2008verification) builds on the capabilities verified in [ver-1fa](ver-1fa.md), [ver-1fb](ver-1fb.md), and [ver-1fc](ver-1fc.md). The configuration is the same as in [ver-1fb](ver-1fb.md), except that, the current case has a convection boundary. This case is simulated in [!file](/ver-1fd.i).
+The fourth heat transfer problem taken from [!cite](ambrosek2008verification) builds on the capabilities verified in [ver-1fa](ver-1fa.md), [ver-1fb](ver-1fb.md), and [ver-1fc](ver-1fc.md). The configuration is the same as in [ver-1fb](ver-1fb.md), except that, the current case has a convection boundary. This case is simulated in [!file](/ver-1fd.i). This TMAP8 case is published in [!cite](Simon2027).
 
-The case focuses on the heating of a semi-infinite slab by convection at the boundary. The slab is initially configured with a constant temperature of 100 K throughout the slab. A convection boundary is activated at the surface from time $t = 0$ s. The convection temperature in the enclosure is $T_{\infty} = 500$ K. In the slab, the conduction coefficient is $h = 200$ W/m$^2$/K, the thermal conductivity is $k = 401$ W/m/K, and the thermal diffusivity is $\alpha = 1.17 \times 10^{-4}$ m$^2$/s.
+The case focuses on the heating of a semi-infinite slab by convection at the boundary. The slab is initially configured with a constant temperature of 100 K throughout the slab. A convection boundary is activated at the surface from time $t = 0$ s. The convection temperature in the enclosure is $T_{\infty} = 500$ K. In the slab, the conduction coefficient is $h = 200$ W/m$^2$/K, the thermal conductivity is $k = 401$ W/m/K, and the thermal diffusivity is $\alpha = 1.17 \times 10^{-4}$ m$^2$/s. The geometry and boundary conditions of this case are shown in [ver-1fd_schematic].
+
+!media figures/ver-1fd_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1fd_schematic
+    caption=Schematic of the ver-1fd case: a slab heated by convection on its left boundary, with a zero-flux condition on the right boundary to truncate the domain.
 
 ## Analytical solution
 

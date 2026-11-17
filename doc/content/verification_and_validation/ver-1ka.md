@@ -4,11 +4,16 @@
 
 ## General Case Description
 
-This problem involves two enclosures connected by a diffusive membrane that follows Sieverts law for diffusion. Both enclosures contain hydrogen (H$_2$), tritium (T$_2$), and tritium gas (HT). In the first enclosure, there is an initial inventory of only hydrogen (H$_2$) along with a constant volumetric source rate of tritium (T$_2$). The second enclosure starts out empty.
+This problem involves two enclosures connected by a diffusive membrane that follows Sieverts' law for diffusion. Both enclosures contain hydrogen (H$_2$), tritium (T$_2$), and tritium gas (HT). In the first enclosure, there is an initial inventory of only hydrogen (H$_2$) along with a constant volumetric source rate of tritium (T$_2$). The second enclosure starts out empty. The system of two enclosures is illustrated in [ver-1ka_schematic].
+
+!media figures/ver-1k_schematic.png
+    style=width:50%;margin-bottom:2%;margin-left:auto;margin-right:auto
+    id=ver-1ka_schematic
+    caption=Schematic of the ver-1ka case (the same configuration is used for ver-1ka to ver-1kd): two enclosures separated by a membrane, with T$_2$, H$_2$, and HT in each enclosure.
 
 ## Case Set Up
 
-This verification problem is taken from [!cite](ambrosek2008verification).
+This verification problem is taken from [!cite](ambrosek2008verification). This TMAP8 case is published in [!cite](Simon2027).
 The rise in pressure of T$_2$ molecules in the first enclosure can be monitored by not enabling T$_2$ molecules to traverse the membrane between the two enclosures (no tritium flux). Consequently, the rate of pressure increase in the first enclosure can be expressed as:
 
 \begin{equation} \label{eq:source_term}

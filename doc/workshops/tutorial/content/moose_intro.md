@@ -346,7 +346,7 @@ return _permeability[_qp] * _grad_u[_qp] * _grad_test[_qp];
 - `VacuumBC`: Vacuum boundary condition for diffusive species
 - `ConvectiveFluxBC`: Convective heat transfer
 - `BinaryRecombinationBC`: Recombination of atoms into molecules
-- `EquilibriumBC`: Sorption laws (Sievert's or Henry's)
+- `EquilibriumBC`: Sorption laws (Sieverts' or Henry's)
 
 !col-end!
 !row-end!
@@ -433,7 +433,7 @@ K = K_0 \exp \left(\frac{-E_a}{RT}\right)
 
 - $K_0$ = pre-exponential constant
 - $E_a$ = activation energy (J/mol)
-- $n$ = sorption law exponent (1 = Henry's, 1/2 = Sievert's)
+- $n$ = sorption law exponent (1 = Henry's, 1/2 = Sieverts')
 
 
 !col-end!
