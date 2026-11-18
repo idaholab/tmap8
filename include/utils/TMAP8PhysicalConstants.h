@@ -18,4 +18,7 @@ const auto tritium_decay_const = std::log(2.0) / tritium_half_life;
 // Definition of a curie
 // https://gnssn.iaea.org/main/bptc/BPTC%20Module%20Documents/Module01%20Nuclear%20physics%20and%20reactor%20theory.pdf}
 const auto curie_to_bq = 3.7e10;
+// Conversion coefficient from standard atmospheres to pascals (exact, by definition)
+// https://physics.nist.gov/cgi-bin/cuu/Value?stdatm
+const auto atm_to_Pa = 101325.0;
 } // namespace PhysicalConstants
