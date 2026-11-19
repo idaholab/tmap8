@@ -32,7 +32,9 @@ lattice parameter of Farley et al. (1991) (Li2OPropertyHelper::li2oAtomDensity).
 
 import ast
 import operator
+import os
 import re
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -43,16 +45,27 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 FIG_DIR = SCRIPT_DIR
 REPO_DIR = SCRIPT_DIR.parents[4]
 HELPER_HEADER = REPO_DIR / "include" / "materials" / "Li2OPropertyHelper.h"
+MOOSE_DIR = REPO_DIR / "moose"
+# if the moose submodule has not been initialized then
+# the moose folder will be present but empty. If this is
+# the case then it is likely the moose repo is located next to tmap8
+# rather than inside of it.
+if len(os.listdir(MOOSE_DIR)) == 0:
+    MOOSE_DIR = REPO_DIR.parent / "moose"
+# If moose is installed a different location then we
+# must rely on the MOOSE_DIR environement variable.
+if not os.path.exists(MOOSE_DIR):
+    if "MOOSE_DIR" not in os.environ:
+        print(
+            "Unable to determine where moose has been installed please set the MOOSE_DIR environment variable."
+        )
+        sys.exit(1)
+    MOOSE_DIR = Path(os.environ["MOOSE_DIR"])
+
 # Header defining PhysicalConstants::ideal_gas_constant, which Li2OPropertyHelper.h uses through
 # TMAP8PhysicalConstants.h
 CONSTANTS_HEADER = (
-    REPO_DIR
-    / "moose"
-    / "modules"
-    / "misc"
-    / "include"
-    / "utils"
-    / "PhysicalConstants.h"
+    MOOSE_DIR / "modules" / "misc" / "include" / "utils" / "PhysicalConstants.h"
 )
 # Header defining PhysicalConstants::atm_to_Pa
 TMAP8_CONSTANTS_HEADER = REPO_DIR / "include" / "utils" / "TMAP8PhysicalConstants.h"
