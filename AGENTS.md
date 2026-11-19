@@ -26,7 +26,7 @@
 - Write documentation in ASD-STE100 Simplified Technical English: short and direct sentences, one idea per sentence, active voice, and consistent terms. Avoid mannered prose (flowery, stylized or overly elaborate wording)
 - In markdown files under `doc/content/`, break lines by sentence: start each new sentence on a new line. For long sentences, break at punctuation (commas, semicolons, colons) instead of at arbitrary widths. Do not hard-wrap at a fixed column
 - Citations must use existing entries in the project `.bib` files in `doc/content/bib/` (not the loose `.bib` exports at the repository root). Add a bib entry there for any new reference before citing it
-- Generate figures with the Python scripts whenever possible. Do not commit hand-made or manually edited figures
+- Generate figures with the Python scripts whenever possible. Do not commit hand-made or manually edited figures without flagging it to the user
 - Before committing documentation changes, confirm that the docs build (`doc/moosedocs.py`) or, at minimum, that every referenced file (figures, includes, input files, bib keys) exists
 
 ## Input files
@@ -41,8 +41,10 @@
 - Run only the affected module: `./run_tests -j<N> --re <module>`
 - TMAP8 tests should run in 2 seconds or less. When adding a new test, time it with few other processes running (e.g. `-j1`, no concurrent heavy jobs)
 - If the test takes significantly longer than 2 seconds, suggest to the user to flag it with `heavy = true` and to add a corresponding light test that uses the same input file and finishes in 2 seconds or less while still exercising the simulation. Make it light by relaxing numerical parameters (tolerances, time step), running only a fraction of the full simulation (reduced `end_time` or number of steps), or reducing the mesh size. Light tests should keep their own gold files and describe the reduction in the test specification
+- Reduce the cost of the simulation first (see the previous bullet) before running a test in parallel. Only if the test still takes longer than 2 seconds on one processor, and the reductions would make it no longer test the intended behavior, suggest to the user to run it in parallel (for example `min_parallel = 2` in the test specification; see `test/tests/divertor_monoblock/tests` for the syntax) so it gets under 2 seconds. This is an exception to the one-processor expectation in the V&V standards, so wait for the user to approve it. Time the test with that processor count, tell the user the processor count and the measured run time, and note that the test is skipped on runs with fewer processors. If the test is still too slow, flag it as heavy
 - Name heavy tests with a `_heavy` suffix (e.g., `ver-1e_TMAP4_heavy`, `ver-1e_TMAP4_heavy_csvdiff`), and name the light counterpart without the suffix (e.g., `ver-1e`, `ver-1e_csvdiff`)
-- Every test needs its own `requirement`, and a `design` and/or `issues` entry (`design` and `issues` may be set once at the `[Tests]` block level, but `requirement` is always per test)
+- Every test, or group of tests, needs a `requirement` written as "The system shall ...", a `design` and an `issues` entry. `design` names an existing MooseDocs page (TMAP8 or MOOSE; object, concept, case or index page). `issues` may be set at the `[Tests]` or group level; copy the nearest sibling and add the new issue number to the existing list
+- When several tests cover the same area of the code, or differ only by one change (for example an enum parameter set through `cli_args` or `!include`), use the `requirement` + `detail` syntax: put a shared `requirement` on a group block (for example `requirement = 'The system shall error if'`) and a `detail` on each test in the group. See `test/tests/bcs/EquilibriumBC/tests`
 - Before committing, check that every file in a `gold/` directory you added or touched is used by a test (e.g., listed in an `exodiff`, `csvdiff` or similar parameter of a `tests` file, or read by a Python script). Remove or fix any orphaned gold file, and flag it to the user
 
 ## SQA
