@@ -35,7 +35,7 @@ ADMatReactionFlexible::validParams()
 ADMatReactionFlexible::ADMatReactionFlexible(const InputParameters & parameters)
   : ADKernel(parameters),
     _num_vs(coupledComponents("vs")),
-    _vs(coupledValues("vs")),
+    _vs(adCoupledValues("vs")),
     _reaction_rate(getADMaterialProperty<Real>("reaction_rate_name")),
     _coeff(getParam<Real>("coeff"))
 {
@@ -48,7 +48,9 @@ ADMatReactionFlexible::computeQpResidual()
     return -_coeff * _reaction_rate[_qp] * _test[_i][_qp];
   else
   {
-    Real prod_vs = 1.0;
+    // The product is an ADReal so that derivatives with respect to the coupled variables
+    // (including the kernel's own variable) are included in the Jacobian
+    ADReal prod_vs = 1.0;
     for (const auto * const v : _vs)
       prod_vs *= (*v)[_qp];
     return -_coeff * _reaction_rate[_qp] * _test[_i][_qp] * prod_vs;

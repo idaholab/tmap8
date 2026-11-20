@@ -76,7 +76,7 @@ The model applies 13.3 kPa of D$_2$ for 50 hours and 15 seconds followed by cool
 
 ## Results
 
-[val-2b_comparison] shows the comparison of the TMAP8 calculation and the experimental data during desorption. There is reasonable agreement between the TMAP predictions and the experimental data with a root mean square percentage error of RMSPE = 22.72 %. Note that the agreement could be improved by adjusting the model parameters. It is also possible to perform this optimization with [MOOSE's stochastic tools module](https://mooseframework.inl.gov/modules/stochastic_tools/index.html), which has been demonstrated in [!cite](Simon2025) with parallel subset simulation and in [!cite](DHULIPALA2026102776) with batch Bayesian optimization. The latter approach has been shown to be more computationally efficient than parallel subset simulation.
+[val-2b_comparison] shows the comparison of the TMAP8 calculation and the experimental data during desorption. There is reasonable agreement between the TMAP predictions and the experimental data with a root mean square percentage error of RMSPE = 22.44 %. Note that the agreement could be improved by adjusting the model parameters. It is also possible to perform this optimization with [MOOSE's stochastic tools module](https://mooseframework.inl.gov/modules/stochastic_tools/index.html), which has been demonstrated in [!cite](Simon2025) with parallel subset simulation and in [!cite](DHULIPALA2026102776) with batch Bayesian optimization. The latter approach has been shown to be more computationally efficient than parallel subset simulation.
 
 !media comparison_val-2b.py
        image_name=val-2b_comparison.png

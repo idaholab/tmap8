@@ -90,13 +90,6 @@
 []
 
 [Bounds]
-  [deuterium_mobile_lower_bound]
-    type = ConstantBounds
-    variable = bounds_dummy
-    bounded_variable = deuterium_mobile
-    bound_type = lower
-    bound_value = 0
-  []
   [oxygen_lower_bound]
     type = ConstantBounds
     variable = bounds_dummy
@@ -485,7 +478,7 @@
   nl_abs_tol = 1e-10
   nl_max_its = 30
   l_tol = 1e-8
-  dtmax = 20
+  dtmax = 40
   abort_on_solve_fail = true
   [TimeStepper]
     type = IterationAdaptiveDT

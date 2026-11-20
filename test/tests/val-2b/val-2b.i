@@ -43,7 +43,7 @@ solubility_energy_Be = ${units 11606 K}
 jump_penalty = 1e0 # (-)
 
 # Numerical parameters
-dt_max_large = ${units 100 s}
+dt_max_large = ${units 200 s}
 dt_max_small = ${units 10 s}
 dt_start_charging = ${units 1 s}
 dt_start_cooldown = ${units 10 s}

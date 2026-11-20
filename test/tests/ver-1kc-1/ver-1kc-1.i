@@ -234,13 +234,12 @@ unit_scale_neighbor = 1
   solve_type = NEWTON
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
-  nl_max_its = 6
+  nl_max_its = 25
   [TimeStepper]
     type = IterationAdaptiveDT
-    dt = 0.01
-    optimal_iterations = 5
+    optimal_iterations = 7
     iteration_window = 3
-    growth_factor = 1.05
+    growth_factor = 1.1
     cutback_factor_at_failure = 0.8
   []
 []

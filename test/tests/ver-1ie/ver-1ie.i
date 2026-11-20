@@ -91,7 +91,8 @@ K_r = '${units ${fparse K_d / K_s / K_s} m^4/at/s}'
 []
 
 [BCs]
-  [p_AB_neumann] # No flux on the sides
+  [p_AB_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = p_AB
     boundary = 'left right bottom top'
@@ -120,10 +121,10 @@ K_r = '${units ${fparse K_d / K_s / K_s} m^4/at/s}'
 [Executioner]
   type = Transient
   scheme = bdf2
-  nl_rel_tol = 1e-10
-  nl_abs_tol = 1e-10
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
 
-  solve_type = 'NEWTON'
+  solve_type = 'PJFNK'
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 

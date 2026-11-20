@@ -80,7 +80,8 @@ K_d = '${units ${fparse 1.858e24 / sqrt( ${T} )} at/m^2/s/Pa}' # dissociation ra
 []
 
 [BCs]
-  [p_AB_neumann] # No flux on the sides
+  [p_AB_neumann]
+    # No flux on the sides
     type = NeumannBC
     variable = p_AB
     boundary = 'left right bottom top'
@@ -109,8 +110,8 @@ K_d = '${units ${fparse 1.858e24 / sqrt( ${T} )} at/m^2/s/Pa}' # dissociation ra
 [Executioner]
   type = Transient
   scheme = bdf2
-  nl_rel_tol = 1e-10
-  nl_abs_tol = 1e-10
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
 
   solve_type = 'NEWTON'
   petsc_options_iname = '-pc_type'

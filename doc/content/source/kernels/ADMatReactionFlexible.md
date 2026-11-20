@@ -16,6 +16,8 @@ X \rightarrow 2Y,
 \end{equation}
 $K$ would be the same for both species, but $\alpha$ would be defined as `-1` for species X, and as `2` for species Y.
 
+The product of the variables listed in `vs` is computed with automatic differentiation, so the Jacobian includes the derivatives with respect to every listed variable, including the kernel's own variable. Variables that are listed in `vs` but are `AuxVariables` are lagged, and their dependence on the nonlinear variables is not included in the Jacobian.
+
 !syntax parameters /Kernels/ADMatReactionFlexible
 
 !syntax inputs /Kernels/ADMatReactionFlexible
