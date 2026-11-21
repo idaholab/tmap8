@@ -19,9 +19,9 @@
   [mesh_fine]
     type = CartesianMeshGenerator
     dim = 1
-    dx = '${oxide_thickness_hat} ${left_refined_tungsten_depth_hat} ${damage_remainder_depth_hat} ${oxide_buffer_fine_depth_hat} ${oxide_buffer_coarse_depth_hat} ${oxide_bulk_depth_hat}'
-    ix = '${ix_oxide_fine} ${ix_left_refined_tungsten_fine} ${ix_damage_remainder_fine} ${ix_buffer_fine} ${ix_buffer_coarse_fine} ${ix_bulk_fine}'
-    subdomain_id = '0 0 0 0 0 0'
+    dx = '${oxide_thickness_hat} ${interface_band_depth_hat} ${left_refined_tungsten_remainder_depth_hat} ${damage_remainder_depth_hat} ${oxide_buffer_fine_depth_hat} ${oxide_buffer_coarse_depth_hat} ${oxide_bulk_depth_hat}'
+    ix = '${ix_oxide_fine} ${ix_interface_band_fine} ${ix_left_refined_tungsten_fine} ${ix_damage_remainder_fine} ${ix_buffer_fine} ${ix_buffer_coarse_fine} ${ix_bulk_fine}'
+    subdomain_id = '0 0 0 0 0 0 0'
   []
   [mesh_coarse]
     type = CartesianMeshGenerator

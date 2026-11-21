@@ -28,10 +28,15 @@
     input = val-2k_natural_oxide.i
     cli_args = 'output_file_base=val-2k_natural_oxide_out'
     csvdiff = val-2k_natural_oxide_out.csv
-    # oxygen_mass_conservation_residual's magnitude is 1e17
-    override_columns = 'oxygen_mass_conservation_residual'
-    override_abs_zero = '1e12'
-    override_rel_err = '1e-3'
+    # oxygen_mass_conservation_residual's magnitude is 1e16
+    # No oxygen reaches the right surface, so the right-surface D2O and oxygen
+    # fluxes are roundoff noise (~1e-16 of the 1e17 left-surface D2O flux) that
+    # varies across platforms; treat values below 1e6 as zero.
+    override_columns = 'oxygen_mass_conservation_residual
+                        flux_surface_right_d2o_physical flux_surface_right_oxygen_physical
+                        scaled_flux_surface_right_d2o scaled_flux_surface_right_oxygen'
+    override_abs_zero = '1e12 1e6 1e6 1e6 1e6'
+    override_rel_err = '1e-3 5.5e-6 5.5e-6 5.5e-6 5.5e-6'
     heavy = true
     requirement = 'The system shall be able to model deuterium transport in self-irradiated tungsten with a 1 nm natural-oxide oxygen-field representation during a TDS experiment using deuterium diffusion, trapping, oxygen transport, and phenomenological D2 and D2O surface release, using the backwards differencing formula of second order (BDF-2) time integration scheme.'
   []
@@ -40,10 +45,15 @@
     input = val-2k_5nm_oxide.i
     csvdiff = val-2k_5nm_oxide_out.csv
     rel_err = 1e-5
-    # oxygen_mass_conservation_residual's magnitude is 1e17
-    override_columns = 'oxygen_mass_conservation_residual'
-    override_abs_zero = '1e12'
-    override_rel_err = '1e-3'
+    # oxygen_mass_conservation_residual's magnitude is 1e16
+    # No oxygen reaches the right surface, so the right-surface D2O and oxygen
+    # fluxes are roundoff noise (~1e-16 of the 1e17 left-surface D2O flux) that
+    # varies across platforms; treat values below 1e6 as zero.
+    override_columns = 'oxygen_mass_conservation_residual
+                        flux_surface_right_d2o_physical flux_surface_right_oxygen_physical
+                        scaled_flux_surface_right_d2o scaled_flux_surface_right_oxygen'
+    override_abs_zero = '1e12 1e6 1e6 1e6 1e6'
+    override_rel_err = '1e-3 1e-5 1e-5 1e-5 1e-5'
     heavy = true
     requirement = 'The system shall be able to model deuterium transport in self-irradiated tungsten with a 5 nm oxygen-field oxide representation during a TDS experiment using deuterium diffusion, trapping, oxygen transport, and phenomenological D2 and D2O surface release, using the backwards differencing formula of second order (BDF-2) time integration scheme.'
   []
@@ -52,10 +62,15 @@
     input = val-2k_10nm_oxide.i
     csvdiff = val-2k_10nm_oxide_out.csv
     rel_err = 1e-5
-    # oxygen_mass_conservation_residual's magnitude is 1e17
-    override_columns = 'oxygen_mass_conservation_residual'
-    override_abs_zero = '1e13'
-    override_rel_err = '5e-3'
+    # oxygen_mass_conservation_residual's magnitude is 1e16
+    # No oxygen reaches the right surface, so the right-surface D2O and oxygen
+    # fluxes are roundoff noise (~1e-16 of the 1e17 left-surface D2O flux) that
+    # varies across platforms; treat values below 1e6 as zero.
+    override_columns = 'oxygen_mass_conservation_residual
+                        flux_surface_right_d2o_physical flux_surface_right_oxygen_physical
+                        scaled_flux_surface_right_d2o scaled_flux_surface_right_oxygen'
+    override_abs_zero = '1e13 1e6 1e6 1e6 1e6'
+    override_rel_err = '5e-3 1e-5 1e-5 1e-5 1e-5'
     heavy = true
     requirement = 'The system shall be able to model deuterium transport in self-irradiated tungsten with a 10 nm oxygen-field oxide representation during a TDS experiment using deuterium diffusion, trapping, oxygen transport, and phenomenological D2 and D2O surface release, using the backwards differencing formula of second order (BDF-2) time integration scheme.'
   []
@@ -63,6 +78,15 @@
     type = CSVDiff
     input = val-2k_15nm_oxide.i
     csvdiff = val-2k_15nm_oxide_out.csv
+    # oxygen_mass_conservation_residual's magnitude is 1e16
+    # No oxygen reaches the right surface, so the right-surface D2O and oxygen
+    # fluxes are roundoff noise (~1e-16 of the 1e17 left-surface D2O flux) that
+    # varies across platforms; treat values below 1e6 as zero.
+    override_columns = 'oxygen_mass_conservation_residual
+                        flux_surface_right_d2o_physical flux_surface_right_oxygen_physical
+                        scaled_flux_surface_right_d2o scaled_flux_surface_right_oxygen'
+    override_abs_zero = '1e12 1e6 1e6 1e6 1e6'
+    override_rel_err = '1e-3 5.5e-6 5.5e-6 5.5e-6 5.5e-6'
     heavy = true
     requirement = 'The system shall be able to model deuterium transport in self-irradiated tungsten with a 15 nm oxygen-field oxide representation during a TDS experiment using deuterium diffusion, trapping, oxygen transport, and phenomenological D2 and D2O surface release, using the backwards differencing formula of second order (BDF-2) time integration scheme.'
   []
