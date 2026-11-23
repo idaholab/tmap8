@@ -38,6 +38,7 @@ TrappingNodalKernelBase::TrappingNodalKernelBase(const InputParameters & paramet
     _n_other_concs(coupledComponents("other_trapped_concentration_variables")),
     _last_node(nullptr),
     _temperature(coupledValue("temperature")),
+    _temperature_var(coupled("temperature")),
     _residual_denominator(residual_denominator)
 {
 }
@@ -111,6 +112,11 @@ TrappingNodalKernelBase::computeQpJacobian()
 Real
 TrappingNodalKernelBase::computeQpOffDiagJacobian(unsigned int jvar)
 {
+  // The residual is proportional to exp(-E_t / T), so dR/dT = R * E_t / T^2. Temperature is not
+  // part of the AD-seeded variables in ADHelper(), so it is handled analytically here.
+  if (jvar == _temperature_var)
+    return computeQpResidual() * _trapping_energy / (_temperature[_qp] * _temperature[_qp]);
+
   if (std::find(_var_numbers.begin(), _var_numbers.end(), jvar) == _var_numbers.end())
     return 0;
 
