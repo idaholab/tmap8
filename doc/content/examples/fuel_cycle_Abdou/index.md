@@ -87,6 +87,12 @@ their own ODE and tritium inventory:
 \frac{dI_{11}}{dt} = f_{8-11}\frac{I_8}{\tau_8} + (1-f_{9-10})\frac{I_9}{\tau_9} - \frac{\dot{N}^{-}}{\eta_f f_b} - I_{11}\lambda
 \end{equation}
 
+!media create_fc_diagram_figure.py
+       image_name=fuel_cycle_abdou_generic_AD_fuelcycle.svg
+       style=width:100%;margin-bottom:2%;margin-left:auto;margin-right:auto
+       id=fc_diagram
+       caption=Dependency diagram of the fuel cycle system.
+[fc_diagram] illustrates the fuel cycle and shows the dependencies between systems.
 For an interpretation of these equations and explanations about the notations, readers should refer to [!cite](Abdou2021) (Appendix).
 We instantiate the variables in the typical [`Variables`](/syntax/Variables) block, making sure to set the [!param](/Variables/family) attribute to `SCALAR` for each variable.
 The default initial condition is zero.
