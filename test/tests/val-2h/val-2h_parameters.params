@@ -1,0 +1,26 @@
+# This file provides the common parameters used in all 4 tritium transport cases
+# ==============================================================================
+
+# Physical constants
+R = '${units 8.31446261815324 J/mol/K}' # Ideal gas constant
+
+# Simulation
+simulation_time = '${units 50000 s}'
+temperature_exp = '${units 823 K}'
+
+# Sorption law
+n_Sieverts = 0.5
+unit_scale = 1
+unit_scale_neighbor = 1
+
+# Nickel properties
+D_Ni_prefactor = '${units 7e-7 m^2/s}'
+D_Ni_energy = '${units 39.5e3 J/mol}'
+D_Ni = '${units ${fparse D_Ni_prefactor * exp(- D_Ni_energy / (R*temperature_exp))} m^2/s}'
+
+K_s_Ni_prefactor = '${units 564e-3 mol/m^3/Pa^0.5}'
+K_s_Ni_energy = '${units 15.8e3 J/mol}'
+
+# Initial condition
+initial_concentration_Ni = '${units 1e-12 mol/m^3}'
+
