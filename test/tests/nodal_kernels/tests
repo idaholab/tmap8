@@ -4,7 +4,7 @@
   [trapping_releasing_jacobian]
     type = PetscJacobianTester
     input = trapping_releasing_jacobian.i
-    ratio_tol = 1e-7
+    ratio_tol = 2e-8
     difference_tol = 1e-4
     run_sim = True
     requirement = 'The system shall compute a Jacobian for the trapping and releasing nodal kernels, including the dependence on temperature, that matches a finite-difference Jacobian.'

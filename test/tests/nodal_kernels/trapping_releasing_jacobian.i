@@ -8,40 +8,43 @@
   dim = 1
   nx = 4
 []
+
 [Variables]
-  [Cm]
+  [C_mobile]
   []
-  [Ct]
+  [C_trapped]
     initial_condition = 0.1
   []
   [T]
   []
 []
+
 [ICs]
-  [Tic]
+  [T_initial]
     type = FunctionIC
     variable = T
     function = '500 + 200*x'
   []
-  [Cmic]
+  [C_mobile_initial]
     type = FunctionIC
-    variable = Cm
+    variable = C_mobile
     function = '0.2 + 0.3*x'
   []
 []
+
 [Kernels]
-  [dCm]
+  [dC_mobile]
     type = TimeDerivative
-    variable = Cm
+    variable = C_mobile
   []
-  [diffCm]
+  [diffC_mobile]
     type = Diffusion
-    variable = Cm
+    variable = C_mobile
   []
-  [coup]
+  [coupling]
     type = ScaledCoupledTimeDerivative
-    variable = Cm
-    v = Ct
+    variable = C_mobile
+    v = C_trapped
   []
   [dT]
     type = TimeDerivative
@@ -52,29 +55,31 @@
     variable = T
   []
 []
+
 [NodalKernels]
-  [dCt]
+  [dC_trapped]
     type = TimeDerivativeNodalKernel
-    variable = Ct
+    variable = C_trapped
   []
   [trap]
     type = TrappingNodalKernel
-    variable = Ct
+    variable = C_trapped
     temperature = T
     alpha_t = 2.0
     N = 1
     Ct0 = 0.5
     trapping_energy = 800
-    mobile_concentration = Cm
+    mobile_concentration = C_mobile
   []
   [rel]
     type = ReleasingNodalKernel
-    variable = Ct
+    variable = C_trapped
     temperature = T
     alpha_r = 3.0
     detrapping_energy = 1500
   []
 []
+
 [BCs]
   [l]
     type = DirichletBC
@@ -89,12 +94,14 @@
     value = 700
   []
 []
+
 [Preconditioning]
   [smp]
     type = SMP
     full = true
   []
 []
+
 [Executioner]
   type = Transient
   num_steps = 1
@@ -103,5 +110,6 @@
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 []
+
 [Outputs]
 []
