@@ -148,7 +148,6 @@ diffusion_W_preexponential_hat = '${fparse diffusion_W_preexponential * time_ref
 d2_recombination_coefficient_hat = '${fparse d2_recombination_coefficient * mobile_concentration_reference * time_reference / length_reference}'
 d2o_recombination_coefficient_hat = '${fparse d2o_recombination_coefficient * mobile_concentration_reference * time_reference / length_reference}'
 
-
 # Oxide geometry and transport
 oxide_transition_width = '${units 0.25 nm -> mum}'
 left_refined_total_depth = '${fparse length_multiplier_oxide_thickness_left_refined * oxide_thickness}'
@@ -158,8 +157,19 @@ oxide_buffer_fine_depth = '${fparse left_refined_depth - oxide_thickness - damag
 oxide_buffer_coarse_depth = '${fparse buffer_depth - oxide_buffer_fine_depth}'
 oxide_bulk_depth = '${fparse sample_thickness - oxide_thickness - damage_depth - oxide_buffer_fine_depth - oxide_buffer_coarse_depth}'
 
+# The fine mesh resolves the tanh oxide/tungsten transition with a band of
+# elements of the same size as in the oxide layer (oxide_element_size_fine) on
+# the tungsten side of the interface. The band spans
+# 10 transition widths, beyond which the oxygen diffusivity is negligible.
+# Without it, the coarser tungsten elements under-resolve the transition, which
+# inflates the projected initial oxygen inventory and causes oxygen undershoots
+# that the oxygen lower bound clips, creating oxygen mass.
+interface_band_depth = '${fparse 10 * oxide_transition_width}'
+left_refined_tungsten_remainder_depth = '${fparse left_refined_tungsten_depth - interface_band_depth}'
+
 ix_oxide_fine = '${fparse ceil(oxide_thickness / oxide_element_size_fine - mesh_count_roundoff_tolerance)}'
-ix_left_refined_tungsten_fine = '${fparse ceil(left_refined_tungsten_depth / left_refined_tungsten_element_size_fine - mesh_count_roundoff_tolerance)}'
+ix_interface_band_fine = '${fparse ceil(interface_band_depth / oxide_element_size_fine - mesh_count_roundoff_tolerance)}'
+ix_left_refined_tungsten_fine = '${fparse ceil(left_refined_tungsten_remainder_depth / left_refined_tungsten_element_size_fine - mesh_count_roundoff_tolerance)}'
 ix_damage_remainder_fine = '${fparse ceil(damage_remainder_depth / damage_remainder_element_size_fine - mesh_count_roundoff_tolerance)}'
 ix_buffer_fine = '${fparse ceil(oxide_buffer_fine_depth / buffer_fine_element_size_fine - mesh_count_roundoff_tolerance)}'
 ix_buffer_coarse_fine = '${fparse ceil(oxide_buffer_coarse_depth / buffer_coarse_element_size_fine - mesh_count_roundoff_tolerance)}'
@@ -185,6 +195,8 @@ oxygen_release_stoichiometric_factor_hat = '${fparse 0.5 * mobile_concentration_
 oxide_thickness_hat = '${fparse oxide_thickness / length_reference}'
 oxide_transition_width_hat = '${fparse oxide_transition_width / length_reference}'
 left_refined_tungsten_depth_hat = '${fparse left_refined_tungsten_depth / length_reference}'
+interface_band_depth_hat = '${fparse interface_band_depth / length_reference}'
+left_refined_tungsten_remainder_depth_hat = '${fparse left_refined_tungsten_remainder_depth / length_reference}'
 damage_remainder_depth_hat = '${fparse damage_remainder_depth / length_reference}'
 oxide_buffer_fine_depth_hat = '${fparse oxide_buffer_fine_depth / length_reference}'
 oxide_buffer_coarse_depth_hat = '${fparse oxide_buffer_coarse_depth / length_reference}'

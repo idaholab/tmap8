@@ -650,7 +650,7 @@ if oxygen_cases:
         )
 
     ax.set_xlabel("Time (h)")
-    ax.set_ylabel("Oxygen inventory in sample (atoms)")
+    ax.set_ylabel("Oxygen inventory in sample (atoms/m$^2$)")
     ax.set_xlim(0, 4.2)
     ax.set_ylim(bottom=0)
     ax.grid(visible=True, which="major", color="0.65", linestyle="--", alpha=0.3)
