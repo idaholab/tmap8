@@ -50,7 +50,7 @@ To capture the deuterium release behavior from self-irradiated tungsten with a t
 - Deuterium release takes place either as D$_2$ or as D$_2$O by combining with an oxygen atom at the surface. The surface recombination rates of these reactions are different.
 - The oxide layer is modeled as an additional layer on top of the self-damaged region. The transport properties of deuterium in the oxide layer remain equal to those in tungsten (e.g., same diffusivity), except that no trapping sites are present in the oxide layer. Note that the thickness of the oxygen layer does not evolve in time, even as oxygen atoms are released as D$_2$O. These simplifications are considered reasonable as the oxide layer represents only a small volume and thickness in these cases.
 - The oxide layer is initialized with a given oxygen concentration (consistent across all cases), which is null everywhere else. The diffusivity of oxygen in the oxide layer is accounted for, but the diffusion of oxygen deeper into the tungsten sample is suppressed.
-- The mesh is refined near the exposed surface. This is to resolve the oxide-to-damaged-tungsten and damaged-to-bulk-tungsten transition and to accurately capture the surface reactions, oxygen transport, and behavior in the self-damaged region. Deeper into the sample, the mesh is coarser to reduce computational size.
+- The mesh is refined near the exposed surface. This is to resolve the oxide-to-damaged-tungsten and damaged-to-bulk-tungsten transition and to accurately capture the surface reactions, oxygen transport, and behavior in the self-damaged region. In particular, elements of the same size as in the oxide layer extend 2.5 nm (10 transition widths) into the tungsten beyond the oxide/tungsten interface to resolve the steep oxygen concentration and diffusivity transition there. Without this refinement, the coarser tungsten elements under-resolve the transition, which overestimates the initial oxygen inventory and creates oxygen mass. Deeper into the sample, the mesh is coarser to reduce computational size.
 - The only difference between the four configurations of interest (e.g., natural oxide and 5, 10, and 15 nm-thick oxide films) is the thickness of the oxide layer and the mesh refinement area. The model formulation, other initial conditions, and all the model parameters are consistent across all cases.
 
 As in [val-2f](val-2f.md), the implementation is solved internally in dimensionless form, but the physical governing equations are written first here for clarity. The mobile deuterium balance is
@@ -331,7 +331,7 @@ The residual is formed from the change in deuterium retained in the sample plus 
     caption=Relative deuterium mass-balance residual over time for all four cases, which shows that mass conservation errors are below reasonable limits.
 
 [val-2k_natural_oxide_oxygen_conservation] tracks the oxygen conservation residual normalized by the initial oxygen inventory in each available oxygen-field case.
-The residual is formed from the change in oxygen retained in the sample plus the time-integrated oxygen loss tied to D$_2$O release, so values close to zero indicate mass conservation, which is the case here.
+The residual is formed from the change in oxygen retained in the sample plus the time-integrated oxygen loss tied to D$_2$O release, so values close to zero indicate mass conservation, which is the case here, with relative residuals below 0.02% for all four cases.
 
 !media comparison_val-2k.py
     image_name=val-2k_natural_oxide_oxygen_conservation.png
