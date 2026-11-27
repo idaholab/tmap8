@@ -34,4 +34,24 @@
     requirement = 'The system shall be able to generate comparison plots between the analytical solution and simulated solution of verification case 1kd, modeling a diffusion across a membrane separating two enclosures in accordance with Sieverts’ law  and a T2 volumetric source term.'
     required_python_packages = 'matplotlib numpy pandas os git'
   []
+  [ver-1kd_csv_inverted_sorption]
+    type = CSVDiff
+    input = ver-1kd.i
+    issues = '#494'
+    design = 'InterfaceSorption.md'
+    cli_args = "simulation_time=0.05
+                Executioner/nl_rel_tol=1e-6
+                Outputs/exodus=false
+                Outputs/execute_on=FINAL
+                InterfaceKernels/interface_sorption_H2/use_inverted_sorption=true
+                InterfaceKernels/interface_sorption_T2/use_inverted_sorption=true
+                InterfaceKernels/interface_sorption_HT/use_inverted_sorption=true
+                Outputs/file_base=ver-1kd_out_k10_light_inverted"
+    csvdiff = ver-1kd_out_k10_light_inverted.csv
+    # The gold file is the final time step of the default formulation. Only the final time step is compared
+    # because the two formulations take different numbers of time steps. The tolerance is increased since the
+    # two formulations solve different (but equivalent) residuals.
+    rel_err = 1e-5
+    requirement = 'The system shall be able to model the diffusion of T2, H2 and HT across a membrane separating two enclosures in accordance with Sieverts’ law with a concentration jump at the interface and a T2 volumetric source term using the inverted formulation of the sorption law, with initial concentrations in one enclosure many orders of magnitude lower than in the other.'
+  []
 []
