@@ -73,6 +73,8 @@ protected:
   const Node * _last_node;
   /// Coupled temperature field.
   const VariableValue & _temperature;
+  /// Variable number of the coupled temperature (for the analytic temperature Jacobian).
+  const unsigned int _temperature_var;
   /// Denominator used to scale the residual after empty-site assembly.
   const Real _residual_denominator;
   /// Cached AD residual used to extract diagonal and off-diagonal Jacobian entries.

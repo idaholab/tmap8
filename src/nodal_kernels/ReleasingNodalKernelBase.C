@@ -22,7 +22,8 @@ ReleasingNodalKernelBase::ReleasingNodalKernelBase(const InputParameters & param
   : NodalKernel(parameters),
     _release_rate_coefficient(release_rate_coefficient),
     _detrapping_energy(getParam<Real>("detrapping_energy")),
-    _temperature(coupledValue("temperature"))
+    _temperature(coupledValue("temperature")),
+    _temperature_var(coupled("temperature"))
 {
 }
 
@@ -36,4 +37,14 @@ Real
 ReleasingNodalKernelBase::computeQpJacobian()
 {
   return _release_rate_coefficient * std::exp(-_detrapping_energy / _temperature[_qp]);
+}
+
+Real
+ReleasingNodalKernelBase::computeQpOffDiagJacobian(unsigned int jvar)
+{
+  // The residual is proportional to exp(-E_r / T), so dR/dT = R * E_r / T^2.
+  if (jvar == _temperature_var)
+    return computeQpResidual() * _detrapping_energy / (_temperature[_qp] * _temperature[_qp]);
+
+  return 0;
 }

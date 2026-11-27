@@ -26,6 +26,7 @@ public:
 protected:
   Real computeQpResidual() override;
   Real computeQpJacobian() override;
+  Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
   /// Effective release-rate coefficient multiplying the Arrhenius factor and variable value.
   const Real _release_rate_coefficient;
@@ -33,4 +34,6 @@ protected:
   const Real _detrapping_energy;
   /// Coupled temperature field.
   const VariableValue & _temperature;
+  /// Variable number of the coupled temperature (for the analytic temperature Jacobian).
+  const unsigned int _temperature_var;
 };
